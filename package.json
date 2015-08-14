@@ -1,0 +1,35 @@
+{
+  "name": "omh-web-visualizations",
+  "version": "1.0.0",
+  "author": "Jasper Speicher <jasper@openmhealth.org>",
+  "homepage": "http://www.openmhealth.org",
+  "private": false,
+  "description": "A js/css/html library for visualizing data formated using Open mHealth schemas. Settings for graphing weight, heart rate, blood pressure, and activity are included. Settings for additional measures can be specified by the developer as needed. For more information, visit http://www.openmhealth.org.",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/openmhealth/web-visualizations.git"
+  },
+  "bugs": {
+    "url": "https://github.com/openmhealth/web-visualizations"
+  },
+  "licenses": [
+    {
+      "type": "Apache 2.0",
+      "url": "http://www.apache.org/licenses/LICENSE-2.0"
+    }
+  ],
+  "devDependencies": {
+    "del": "^1.2.1",
+    "gulp": "^3.9.0",
+    "gulp-autoprefixer": "^2.3.1",
+    "gulp-cache": "^0.2.10",
+    "gulp-concat": "^2.6.0",
+    "gulp-jshint": "^1.11.2",
+    "gulp-less": "^3.0.3",
+    "gulp-livereload": "^3.8.0",
+    "gulp-minify-css": "^1.2.0",
+    "gulp-notify": "^2.2.0",
+    "gulp-rename": "^1.2.2",
+    "gulp-uglify": "^1.2.0"
+  }
+}

@@ -1,0 +1,98 @@
+<html>
+  
+  <head>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="../bower_components/plottable/plottable.css">
+    <link rel="stylesheet" type="text/css" href="../dist/omh-web-visualizations-all.css">
+    <style>
+      body {
+        font-family: 'Open Sans', Helvetica, Arial, sans-serif;
+        font-size: 14px;
+        color: #7B7B7B;
+      }
+      .page {
+        max-width: 900px;
+        margin: 0 auto;
+      }
+      input[type=text] {
+        width: 200px;
+      }
+      .chart-data-selector {
+        border-bottom: 1px solid #eee;
+        padding-top: 20px;
+        padding-bottom: 20px;
+      }
+      .chart {
+        width: 100%;
+        height: 300px;
+        margin-top: 20px;
+      }
+      .chart .table{
+        margin-bottom: 0;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="page">
+      <div class="chart-data-selector">
+          <h1>OMH Web Visualization Library: Charts</h1>
+          <p>
+            This demo shows a chart with Open mHealth's default display settings for several supported measures. Try choosing a measure from the menu below and clicking update. If you would like to test a data file, enter the url before updating.
+          </p>
+
+          <p>
+            URL: <input class="update-url" type="text" value="https://gist.githubusercontent.com/jasperSpeicher/3a6af8226182880d75d2/raw/1yr.json"></input>
+            <select name="measures">
+              <option value="body_weight">Body weight</option>
+              <option value="heart_rate">Heart rate</option>
+              <option value="systolic_blood_pressure, diastolic_blood_pressure" selected>Blood pressure</option>
+              <option value="minutes_moderate_activity, step_count">Physical activity</option>
+            </select>
+            <button class="update-button">Update</button>
+          </p>
+      </div>
+      <div class="chart-container">
+          <svg class="chart">
+          </svg>
+      </div>
+    </div>
+  </body>
+
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+  <script src="../bower_components/d3/d3.min.js"></script>
+  <script src="../bower_components/d3-tip/index.js"></script>
+  <script src="../bower_components/plottable/plottable.js"></script>
+  <script src="../bower_components/moment/moment.js"></script>
+  <script src="../dist/omh-web-visualizations-all.js"></script>
+
+  <script>
+    
+    var chart = null;
+
+    var makeChartForUrl = function( url, element, measureList, options ){
+      $.getJSON( url, function( data ) {
+        if ( chart ){
+          chart.destroy();
+        }
+        chart = new OMHWebVisualizations.Chart( data, element, measureList, options );
+      });
+    };
+
+    var $button = $('.update-button');
+
+    $button.click( function(){
+
+      var url = $(this).parent().find('input.update-url').val();
+      var measureList = $(this).parent().find('select').val();
+      makeChartForUrl( url, $('.chart-container'), measureList, {} );
+
+    });
+
+    $( document ).ready( function(){
+      $button.click();
+    });
+
+  </script>
+
+</html>
