@@ -1,6 +1,6 @@
-## web-visualizations
+# web-visualizations
 
-#Installation
+##Installation
 
 * Install [Node.js](https://docs.npmjs.com/getting-started/installing-node), which comes with npm
 * Install [bower](http://bower.io/) to manage this library's dependencies
@@ -17,7 +17,7 @@
 * Or you can let gulp watch for changes in the background and update `dist` as needed
     * `gulp watch`
 
-#Chart Configuration
+##Chart Configuration
 
 Below is an example of the options object that can be passed into the `OMHWebVisualization.Chart()` function. The settings below are the defaults used when a sparse, or empty, options object is passed in. You can specify any subset of these options:
 
