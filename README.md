@@ -17,11 +17,25 @@
 * Or you can let gulp watch for changes in the background and update `dist` as needed
     * `gulp watch`
 
+##Building a chart
+
+You can create a chart by calling:
+
+```javascript
+chart = new OMHWebVisualizations.Chart( data, element, measureList, options );`
+```
+
+The arguments passed to the constructor are:
+  * `data` An array of omh-validated data ojects.
+  * `element` A dom element, such as a `<div>` containing an `<svg>` node. This can also be a jQuery object.
+  * `measureList' A string containing a comma-separated list of omh measures to display.
+  * `options` An object with configuration options for the chart. Can be left off or passed an empty object.
+
 ##Chart Configuration
 
-Below is an example of the options object that can be passed into the `OMHWebVisualization.Chart()` function. The settings below are the defaults used when a sparse, or empty, options object is passed in. You can specify any subset of these options:
+Below is an example of the options object that can be passed into the `OMHWebVisualization.Chart()` function shown above. The settings below are the defaults used when a sparse, or empty, options object is passed in. You can specify any subset of these options:
 
-```
+```json
 {
   'userInterface': {
     'toolbar': { 'enabled': true },
@@ -88,7 +102,7 @@ Below is an example of the options object that can be passed into the `OMHWebVis
 
 In addition to the options shown in the `measures` sections above, the following default options are used. They can be specified in the `measures` section of the options object passed to `OMHWebVisualization.Chart()` as well:
 
-```
+```json
 {
   'range': { 'min':0, 'max':100 },
   'units': 'Units',
@@ -107,9 +121,13 @@ In addition to the options shown in the `measures` sections above, the following
 }
 ```
 
-So, for example, if you would like to graph `heart_rate` data as a blue line with blue dots and no tooltips, you may use the following configuration object:
+Using the default settings to graph `hear_rate` data, ie, passing `{}` as the options argument to `OMHWebVisualization.Chart()` will give a chart that looks something like the following screenshot:
 
-```
+![Configured Chart](http://www.openmhealth.org/media/viz_example_default_options.png "Default Chart")
+
+If, for example, you would like to graph `heart_rate` data as a blue line with blue dots and no tooltips, you may use the following configuration object:
+
+```json
 {
   'userInterface': {
     'tooltips': {
@@ -128,5 +146,22 @@ So, for example, if you would like to graph `heart_rate` data as a blue line wit
   }
 }
 ```
+This will produce a chart that looks something like the following screenshot:
+
+![Configured Chart](http://www.openmhealth.org/media/viz_example_user_options.png "Configured Chart")
+
+##Destroying the chart
+
+In order to free up resources or re-use an element for a new chart, the chart and all of its interactive features can be destroyed with
+
+```javascript
+chart.destroy()
+```
+
+
+
+
+
+
 
 

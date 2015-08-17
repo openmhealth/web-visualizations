@@ -26,7 +26,15 @@
     var LINE_STROKE_WIDTH = '1px';
     var POINT_STROKE_WIDTH = '1px';
 
+    if( !element.jquery ){
+      element = $( element );
+    }
+    if( !options ){
+      options = {};
+    }
+
     var selection = d3.select( element.find('svg')[0] );
+    element.addClass('omh-chart-container');
 
     var measureData = {};
     var measures = measureList.split(/\s*,\s*/);
@@ -612,7 +620,7 @@
     if ( interfaceSettings.toolbar.enabled ){
 
       var $toolbar = $('<div></div>');
-      $toolbar.addClass('chart-toolbar');
+      $toolbar.addClass('omh-chart-toolbar');
       $toolbar.attr('unselectable', 'on');
       element.append( $toolbar );
 

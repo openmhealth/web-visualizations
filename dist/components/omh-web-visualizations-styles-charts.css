@@ -1,3 +1,33 @@
+/*
+ * Copyright 2015 Open mHealth
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+/*
+ * Copyright 2015 Open mHealth
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 .unselectable {
   -webkit-user-select: none;
   /* Chrome/Safari */
@@ -78,29 +108,29 @@
   text-transform: capitalize;
   color: #dedede;
 }
-.chart-container {
+.omh-chart-container {
   padding-bottom: 30px;
 }
-.chart-container .zoom-hint-label {
+.omh-chart-container .zoom-hint-label {
   cursor: pointer;
   -webkit-transition: opacity 2s;
           transition: opacity 2s;
 }
-.chart-container .zoom-hint-label text {
+.omh-chart-container .zoom-hint-label text {
   font-size: 12px;
   fill: #a4a4a4;
   font-style: italic;
   font-weight: normal;
 }
-.chart-container .zoom-hint-label.hidden {
+.omh-chart-container .zoom-hint-label.hidden {
   display: block !important;
   opacity: 0;
 }
-.chart-container .zoom-hint-label .background-fill {
+.omh-chart-container .zoom-hint-label .background-fill {
   fill: #fff;
   opacity: 0.9;
 }
-.chart-container .chart-toolbar {
+.omh-chart-container .omh-chart-toolbar {
   -webkit-user-select: none;
   /* Chrome/Safari */
   -moz-user-select: none;
@@ -115,35 +145,35 @@
   border-top: 1px solid #eee;
   padding: 5px;
 }
-.chart-container .chart-toolbar .zoom-button,
-.chart-container .chart-toolbar .time-button,
-.chart-container .chart-toolbar .previous-time-period-button,
-.chart-container .chart-toolbar .next-time-period-button {
+.omh-chart-container .omh-chart-toolbar .zoom-button,
+.omh-chart-container .omh-chart-toolbar .time-button,
+.omh-chart-container .omh-chart-toolbar .previous-time-period-button,
+.omh-chart-container .omh-chart-toolbar .next-time-period-button {
   color: #dedede;
   margin-left: 10px;
   cursor: pointer;
   font-weight: normal;
 }
-.chart-container .chart-toolbar .zoom-button:hover,
-.chart-container .chart-toolbar .time-button:hover,
-.chart-container .chart-toolbar .previous-time-period-button:hover,
-.chart-container .chart-toolbar .next-time-period-button:hover,
-.chart-container .chart-toolbar .zoom-button.active,
-.chart-container .chart-toolbar .time-button.active,
-.chart-container .chart-toolbar .previous-time-period-button.active,
-.chart-container .chart-toolbar .next-time-period-button.active {
+.omh-chart-container .omh-chart-toolbar .zoom-button:hover,
+.omh-chart-container .omh-chart-toolbar .time-button:hover,
+.omh-chart-container .omh-chart-toolbar .previous-time-period-button:hover,
+.omh-chart-container .omh-chart-toolbar .next-time-period-button:hover,
+.omh-chart-container .omh-chart-toolbar .zoom-button.active,
+.omh-chart-container .omh-chart-toolbar .time-button.active,
+.omh-chart-container .omh-chart-toolbar .previous-time-period-button.active,
+.omh-chart-container .omh-chart-toolbar .next-time-period-button.active {
   color: #a4a4a4;
 }
-.chart-container .chart-toolbar .zoom-button {
+.omh-chart-container .omh-chart-toolbar .zoom-button {
   font-size: 16px;
 }
-.chart-container .chart-toolbar .zoom-buttons-label {
+.omh-chart-container .omh-chart-toolbar .zoom-buttons-label {
   margin-left: 15px;
 }
-.chart-container .previous-time-period-button {
+.omh-chart-container .previous-time-period-button {
   float: left;
 }
-.chart-container .next-time-period-button {
+.omh-chart-container .next-time-period-button {
   margin-right: 10px;
   float: right;
 }
