@@ -22,7 +22,7 @@
 You can create a chart by calling:
 
 ```javascript
-chart = new OMHWebVisualizations.Chart( data, element, measureList, options );`
+chart = new OMHWebVisualizations.Chart( data, element, measureList, options );
 ```
 
 The arguments passed to the constructor are:
