@@ -55,7 +55,7 @@ Argument | Description
 
 The easiest way to get some data points is to use our [sample data generator](https://github.com/openmhealth/sample-data-generator). You can either use a pre-generated [data set](https://github.com/openmhealth/sample-data-generator/releases/download/v1.0.0/one-year-of-data.json.gz), or download the generator itself to create data that fits your needs.
 
-##Chart Configuration
+##Configurating a chart
 
 Below is an example of the options object that can be passed into the `OMHWebVisualization.Chart(...)` function shown above. The settings below are the defaults used when a sparse, or empty, options object is passed in. You can specify any subset of these options:
 
@@ -171,7 +171,7 @@ This will produce a chart that looks something like the following screenshot:
 
 ![Configured Chart](http://www.openmhealth.org/media/viz_example_user_options.png "Configured Chart")
 
-##Destroying the chart
+##Destroying a chart
 
 In order to free up resources or re-use an element for a new chart, the chart and all of its interactive features can be destroyed with:
 
