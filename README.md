@@ -26,10 +26,13 @@ chart = new OMHWebVisualizations.Chart( data, element, measureList, options );
 ```
 
 The arguments passed to the constructor are:
-  * `data` An array of omh-validated data ojects.
-  * `element` A dom element, such as a `<div>` containing an `<svg>` node. This can also be a jQuery object.
-  * `measureList' A string containing a comma-separated list of omh measures to display.
-  * `options` An object with configuration options for the chart. Can be left off or passed an empty object.
+
+Argument | Description
+--- | ---
+*data* | An array of omh-validated data ojects.
+*element* | A dom element, such as a `<div>` containing an `<svg>` node. This can also be a jQuery object.
+*measureList* | A string containing a comma-separated list of omh measures to display.
+*options* | An object with configuration options for the chart. Can be left off or passed an empty object.
 
 ##Chart Configuration
 
