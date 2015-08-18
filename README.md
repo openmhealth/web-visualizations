@@ -5,7 +5,7 @@ It currently generates line and bar charts. Default settings are included for th
 * `body_weight`
 * `heart_rate`
 * `systolic_blood_pressure` with `diastolic_blood_pressure`
-* `step_count with minutes_moderate_activity`
+* `step_count` with `minutes_moderate_activity`
 
 The charting functions of the library are built on top of [plottble](http://plottablejs.org/), which is built on top of [d3](http://d3js.org/).
 
