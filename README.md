@@ -35,7 +35,7 @@ The arguments passed to the constructor are:
 
 Below is an example of the options object that can be passed into the `OMHWebVisualization.Chart()` function shown above. The settings below are the defaults used when a sparse, or empty, options object is passed in. You can specify any subset of these options:
 
-```json
+```javascript
 {
   'userInterface': {
     'toolbar': { 'enabled': true },
