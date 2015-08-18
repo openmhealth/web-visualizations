@@ -183,7 +183,7 @@ chart.destroy();
 
 To contribute to this repository
 
-1. Open an [issue](https://github.com/openmhealth/sample-data-generator/issues) to let us know what you're going to work on.
+1. Open an [issue](https://github.com/openmhealth/web-visualizations/issues) to let us know what you're going to work on.
   1. This lets us give you feedback early and lets us put you in touch with people who can help.
 2. Fork this repository.
 3. Create your feature branch from the `develop` branch.
