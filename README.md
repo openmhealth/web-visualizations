@@ -1,5 +1,14 @@
 # web-visualizations
 
+The Open mHealth Web Visualization library renders visualizations of Open mHealth validated data in a web browser.
+It currently generates line and bar charts. Default settings are included for the following measures:
+* `body_weight`
+* `heart_rate`
+* `systolic_blood_pressure` with `diastolic_blood_pressure`
+* `step_count with minutes_moderate_activity`
+
+The charting functions of the library are built on top of [plottble](http://plottablejs.org/), which is built on top of [d3](http://d3js.org/).
+
 ##Installation
 
 * Install [Node.js](https://docs.npmjs.com/getting-started/installing-node), which comes with npm
@@ -36,7 +45,7 @@ Argument | Description
 
 ##Chart Configuration
 
-Below is an example of the options object that can be passed into the `OMHWebVisualization.Chart()` function shown above. The settings below are the defaults used when a sparse, or empty, options object is passed in. You can specify any subset of these options:
+Below is an example of the options object that can be passed into the `OMHWebVisualization.Chart(...)` function shown above. The settings below are the defaults used when a sparse, or empty, options object is passed in. You can specify any subset of these options:
 
 ```javascript
 {
@@ -103,7 +112,7 @@ Below is an example of the options object that can be passed into the `OMHWebVis
 }
 ```
 
-In addition to the options shown in the `measures` sections above, the following default options are used. They can be specified in the `measures` section of the options object passed to `OMHWebVisualization.Chart()` as well:
+In addition to the options shown in the `measures` sections above, the following default options are used. They can be specified in the `measures` section of the options object passed to `OMHWebVisualization.Chart(...)` as well:
 
 ```javascript
 {
@@ -124,11 +133,11 @@ In addition to the options shown in the `measures` sections above, the following
 }
 ```
 
-Using the default settings to graph `hear_rate` data, ie, passing `{}` as the options argument to `OMHWebVisualization.Chart()` will give a chart that looks something like the following screenshot:
+So, using the default settings to graph `heart_rate` data, ie, passing `{}` as the options argument to `OMHWebVisualization.Chart(...)` will give a chart that looks something like the following screenshot:
 
 ![Configured Chart](http://www.openmhealth.org/media/viz_example_default_options.png "Default Chart")
 
-If, for example, you would like to graph `heart_rate` data with a blue line and no tooltips, you may use the following configuration object:
+If you would like to graph `heart_rate` data with a blue line and no tooltips, you may use the following configuration object:
 
 ```javascript
 {
@@ -152,10 +161,10 @@ This will produce a chart that looks something like the following screenshot:
 
 ##Destroying the chart
 
-In order to free up resources or re-use an element for a new chart, the chart and all of its interactive features can be destroyed with
+In order to free up resources or re-use an element for a new chart, the chart and all of its interactive features can be destroyed with:
 
 ```javascript
-chart.destroy()
+chart.destroy();
 ```
 
 
