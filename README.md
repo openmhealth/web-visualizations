@@ -14,25 +14,26 @@ You can play with a demo [here](http://jsfiddle.net/jasperspeicher/dremvboo/3/).
 
 ##Installation
 
-To use the library,
+To run the library,
 
 * Install [Node.js](https://docs.npmjs.com/getting-started/installing-node), which comes with [npm](https://www.npmjs.com/)
 * Install [Bower](http://bower.io/) to manage this library's dependencies
     * `npm install -g bower`
-    * if you get a permission error, use `sudo`
+    * If you get a permission error, use `sudo`
 * Clone this repository
     * `git clone https://github.com/openmhealth/web-visualizations.git`
-* Navigate to the root level of this repository and install the project's dependencies with Bower
+* Navigate to the cloned repository and install the project's dependencies with Bower
     * `bower install`
-* Then check out the demo in the `demo` directory
+* Open `charts.html` in the `demo` directory
 
 If you want to modify or contribute to this library,
 
-* Navigate to the root level of this repository and install the development dependencies using npm
+* Navigate to the cloned repository and install the development dependencies using npm
     * `npm install`
-* Now you can run [gulp](http://gulpjs.com/) to publish your edits to the `dist` directory
+* Make your changes
+* To publish your changes to the `dist` directory, run [gulp](http://gulpjs.com/)
     * `gulp`
-* Or you can let gulp watch for changes in the background and update `dist` as needed
+* To let gulp watch for changes in the background and update `dist` as needed
     * `gulp watch`
 
 ##Building a chart
@@ -47,10 +48,12 @@ The arguments passed to the constructor are:
 
 Argument | Description
 ---: | ---
-*data* | An array of omh-validated data ojects.
+*data* | An array of Open mHealth structured data points.
 *element* | A dom element, such as a `<div>` containing an `<svg>` node. This can also be a jQuery object.
-*measureList* | A string containing a comma-separated list of omh measures to display.
+*measureList* | A string containing a comma-separated list of Open mHealth measures to display.
 *options* | An object with configuration options for the chart. Can be left off or passed an empty object.
+
+The easiest way to get some data points is to use our [sample data generator](https://github.com/openmhealth/sample-data-generator). You can either use a pre-generated [data set](https://github.com/openmhealth/sample-data-generator/releases/download/v1.0.0/one-year-of-data.json.gz), or download the generator itself to create data that fits your needs.
 
 ##Chart Configuration
 
