@@ -9,7 +9,7 @@ It currently generates line and bar charts. Default settings are included for th
 
 The charting functions of the library are built on top of [plottble](http://plottablejs.org/), which is built on top of [d3](http://d3js.org/).
 
-You can play with a demo [here](http://jsfiddle.net/jasperspeicher/dremvboo/2/)
+You can play with a demo [here](http://jsfiddle.net/jasperspeicher/dremvboo/3/)
 
 ##Installation
 
