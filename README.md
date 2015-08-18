@@ -1,27 +1,34 @@
-# web-visualizations
+# Open mHealth Web Visualizations
 
-The Open mHealth Web Visualization library renders visualizations of Open mHealth validated data in a web browser.
+The Open mHealth Web Visualization library renders visualizations of Open mHealth structured data in a web browser.
 It currently generates line and bar charts. Default settings are included for the following measures:
-* `body_weight`
-* `heart_rate`
-* `systolic_blood_pressure` with `diastolic_blood_pressure`
-* `step_count` with `minutes_moderate_activity`
 
-The charting functions of the library are built on top of [plottble](http://plottablejs.org/), which is built on top of [d3](http://d3js.org/).
+* body weight (`body_weight`)
+* heart rate (`heart_rate`)
+* blood pressure (`systolic_blood_pressure`,`diastolic_blood_pressure`)
+* physical activity (`step_count`, `minutes_moderate_activity`)
 
-You can play with a demo [here](http://jsfiddle.net/jasperspeicher/dremvboo/3/)
+The charting functions of the library are built on top of [Plottable.js](http://plottablejs.org/), which is built on top of [D3](http://d3js.org/).
+
+You can play with a demo [here](http://jsfiddle.net/jasperspeicher/dremvboo/3/).
 
 ##Installation
 
-* Install [Node.js](https://docs.npmjs.com/getting-started/installing-node), which comes with npm
-* Install [bower](http://bower.io/) to manage this library's dependencies
+To use the library,
+
+* Install [Node.js](https://docs.npmjs.com/getting-started/installing-node), which comes with [npm](https://www.npmjs.com/)
+* Install [Bower](http://bower.io/) to manage this library's dependencies
     * `npm install -g bower`
+    * if you get a permission error, use `sudo`
 * Clone this repository
     * `git clone https://github.com/openmhealth/web-visualizations.git`
-* If you just want to use the library, navigate to the root level of this repository and install the project's dependencies with bower
+* Navigate to the root level of this repository and install the project's dependencies with Bower
     * `bower install`
 * Then check out the demo in the `demo` directory
-* If you want to modify or contribute to this library, install the development dependencies
+
+If you want to modify or contribute to this library,
+
+* Navigate to the root level of this repository and install the development dependencies using npm
     * `npm install`
 * Now you can run [gulp](http://gulpjs.com/) to publish your edits to the `dist` directory
     * `gulp`
