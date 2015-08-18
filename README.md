@@ -1,7 +1,7 @@
 # Open mHealth Web Visualizations
 
 The Open mHealth Web Visualization library renders visualizations of Open mHealth structured data in a web browser.
-It currently generates line and bar charts. Default settings are included for the following measures:
+It currently generates line charts and bar charts. Default settings are included for the following measures:
 
 * body weight (`body_weight`)
 * heart rate (`heart_rate`)
@@ -13,27 +13,25 @@ The charting functions of the library are built on top of [Plottable.js](http://
 You can play with a demo [here](http://jsfiddle.net/jasperspeicher/dremvboo/3/).
 
 ##Installation
+If you'd like to use the charts in your own project, simply pull the library into your project as a [Bower](http://bower.io/) dependency using
 
-To run the library,
+* `bower install omh-web-visualizations`
 
-* Install [Node.js](https://docs.npmjs.com/getting-started/installing-node), which comes with [npm](https://www.npmjs.com/)
-* Install [Bower](http://bower.io/) to manage this library's dependencies
-    * `npm install -g bower`
-    * If you get a permission error, use `sudo`
-* Clone this repository
+> If you don't have Bower, install it using `npm install -g bower`. If you don't have [npm](https://www.npmjs.com/), you'll need to install [Node.js](https://docs.npmjs.com/getting-started/installing-node).
+
+If you'd like to experiment with the library using a demonstration page,
+
+1. Clone this repository
     * `git clone https://github.com/openmhealth/web-visualizations.git`
-* Navigate to the cloned repository and install the project's dependencies with Bower
+1. Navigate to the cloned repository and install the project's dependencies with Bower
     * `bower install`
-* Open `charts.html` in the `demo` directory
-
-If you want to modify or contribute to this library,
-
-* Navigate to the cloned repository and install the development dependencies using npm
+1. Install the development dependencies using npm
     * `npm install`
-* Make your changes
-* To publish your changes to the `dist` directory, run [gulp](http://gulpjs.com/)
+1. Make your changes
+1. To publish your changes to the `dist` directory, run [gulp](http://gulpjs.com/)
     * `gulp`
-* To let gulp watch for changes in the background and update `dist` as needed
+1. Open `charts.html` in the `demo` directory to see the result
+1. To let gulp watch for changes in the background and update `dist` as needed
     * `gulp watch`
 
 ##Building a chart
@@ -51,13 +49,15 @@ Argument | Description
 *data* | An array of Open mHealth structured data points.
 *element* | A dom element, such as a `<div>` containing an `<svg>` node. This can also be a jQuery object.
 *measureList* | A string containing a comma-separated list of Open mHealth measures to display.
-*options* | An object with configuration options for the chart. Can be left off or passed an empty object.
+*options* | An object with [settings](#configuring_a_chart) for the chart. If this is omitted or if an empty object is passed in, the function uses the default settings explained below.
 
-The easiest way to get some data points is to use our [sample data generator](https://github.com/openmhealth/sample-data-generator). You can either use a pre-generated [data set](https://github.com/openmhealth/sample-data-generator/releases/download/v1.0.0/one-year-of-data.json.gz), or download the generator itself to create data that fits your needs.
+The easiest way to create data points to pass to the `data` parameter is to use our [sample data generator](https://github.com/openmhealth/sample-data-generator). You can either use a pre-generated [data set](https://github.com/openmhealth/sample-data-generator/releases/download/v1.0.0/one-year-of-data.json.gz), or download the generator itself to create data that fits your needs.
 
-##Configurating a chart
+##Configuring a chart
 
-Below is an example of the options object that can be passed into the `OMHWebVisualization.Chart(...)` function shown above. The settings below are the defaults used when a sparse, or empty, options object is passed in. You can specify any subset of these options:
+The `options` parameter of the `OMHWebVisualization.Chart(...)` function is divided into two sections. A `userInterface` section controls the UI of the chart as a whole. The `measures` section contains settings that customize charts for specific measures. 
+
+The following object is the default settings object used by the `OMHWebVisualization.Chart(...)` function when its `options` parameter is empty. You can specify any subset of these settings to override them:
 
 ```javascript
 {
@@ -124,7 +124,11 @@ Below is an example of the options object that can be passed into the `OMHWebVis
 }
 ```
 
-In addition to the options shown in the `measures` sections above, the following default options are used. They can be specified in the `measures` section of the options object passed to `OMHWebVisualization.Chart(...)` as well:
+For example, using these default settings to graph `heart_rate` data will generate a chart that looks like this:
+
+![Configured Chart](http://www.openmhealth.org/media/viz_example_default_options.png "Default Chart")
+
+If you look carefully at the default settings object, you'll also notice that some measure settings have more properties than others. When a property is missing, the following default settings are assumed. 
 
 ```javascript
 {
@@ -145,11 +149,7 @@ In addition to the options shown in the `measures` sections above, the following
 }
 ```
 
-So, using the default settings to graph `heart_rate` data, ie, passing `{}` as the options argument to `OMHWebVisualization.Chart(...)` will give a chart that looks something like the following screenshot:
-
-![Configured Chart](http://www.openmhealth.org/media/viz_example_default_options.png "Default Chart")
-
-If you would like to graph `heart_rate` data with a blue line and no tooltips, you may use the following configuration object:
+To override these defaults, simply specify them in the corresponding `measures` section of the `options` object passed to `OMHWebVisualization.Chart(...)`. If you would like to graph `heart_rate` data with a blue line and no tooltips, for example, you'd use the following settings object:
 
 ```javascript
 {
