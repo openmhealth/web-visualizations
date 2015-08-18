@@ -1,9 +1,34 @@
 {
   "name": "omh-web-visualizations",
-  "homepage": "https://roots.io/sage/",
+  "homepage": "http://www.openmhealth.org",
   "authors": [ "Jasper Speicher <jasper@openmhealth.org>" ],
-  "license": "Apache 2.0",
+  "description": "A JS library for visualizing Open mHealth formatted data. Defaults for weight, heart rate, blood pressure, and activity are included.",
+  "license": "Apache-2.0",
   "private": false,
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/openmhealth/web-visualizations.git"
+  },
+  "keywords": [
+    "mHealth",
+    "mobile",
+    "health",
+    "web",
+    "visualization",
+    "charts"
+  ],
+  "main": [
+    "./dist/omh-web-visualizations-all.js",
+    "./dist/omh-web-visualizations-all.css"
+  ],
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "package.json",
+    "demo",
+    "gulpfile.js"
+  ],
   "dependencies": {
     "jquery": "~1.11.2",
     "d3": "~3.5.5",

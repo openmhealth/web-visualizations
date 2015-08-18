@@ -4,7 +4,7 @@
   "author": "Jasper Speicher <jasper@openmhealth.org>",
   "homepage": "http://www.openmhealth.org",
   "private": false,
-  "description": "A js/css/html library for visualizing data formated using Open mHealth schemas. Settings for graphing weight, heart rate, blood pressure, and activity are included. Settings for additional measures can be specified by the developer as needed. For more information, visit http://www.openmhealth.org.",
+  "description": "A JS library for visualizing Open mHealth formatted data. Defaults for weight, heart rate, blood pressure, and activity are included.",
   "repository": {
     "type": "git",
     "url": "git://github.com/openmhealth/web-visualizations.git"
