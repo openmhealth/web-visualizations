@@ -125,7 +125,7 @@ Using the default settings to graph `hear_rate` data, ie, passing `{}` as the op
 
 ![Configured Chart](http://www.openmhealth.org/media/viz_example_default_options.png "Default Chart")
 
-If, for example, you would like to graph `heart_rate` data as a blue line with blue dots and no tooltips, you may use the following configuration object:
+If, for example, you would like to graph `heart_rate` data with a blue line and no tooltips, you may use the following configuration object:
 
 ```javascript
 {
@@ -136,9 +136,6 @@ If, for example, you would like to graph `heart_rate` data as a blue line with b
   },
   'measures': {
     'heart_rate': {
-      'valueKeyPath': 'body.heart_rate.value',
-      'range': { 'min':30, 'max':150 },
-      'units': 'bpm',
       'chart': {
         'lineColor' : '#4a90e2'
       }
