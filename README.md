@@ -12,7 +12,7 @@ The charting functions of the library are built on top of [Plottable.js](http://
 
 You can play with a demo [here](http://jsfiddle.net/jasperspeicher/dremvboo/3/).
 
-##Installation
+###Installation
 If you'd like to use the charts in your own project, simply pull the library into your project as a [Bower](http://bower.io/) dependency using
 
 * `bower install omh-web-visualizations`
@@ -34,7 +34,7 @@ If you'd like to experiment with the library using a demonstration page,
 1. To let gulp watch for changes in the background and update `dist` as needed
     * `gulp watch`
 
-##Building a chart
+###Building a chart
 
 You can create a chart by calling:
 
@@ -53,7 +53,7 @@ Argument | Description
 
 The easiest way to create data points to pass to the `data` parameter is to use our [sample data generator](https://github.com/openmhealth/sample-data-generator). You can either use a pre-generated [data set](https://github.com/openmhealth/sample-data-generator/releases/download/v1.0.0/one-year-of-data.json.gz), or download the generator itself to create data that fits your needs.
 
-##Configuring a chart
+###Configuring a chart
 
 The `options` parameter of the `OMHWebVisualization.Chart(...)` function is divided into two sections. A `userInterface` section controls the UI of the chart as a whole. The `measures` section contains settings that customize charts for specific measures. 
 
@@ -171,7 +171,7 @@ This will produce a chart that looks something like the following screenshot:
 
 ![Configured Chart](http://www.openmhealth.org/media/viz_example_user_options.png "Configured Chart")
 
-##Destroying a chart
+###Destroying a chart
 
 In order to free up resources or re-use an element for a new chart, the chart and all of its interactive features can be destroyed with:
 
@@ -179,10 +179,13 @@ In order to free up resources or re-use an element for a new chart, the chart an
 chart.destroy();
 ```
 
+###Contributing
 
+To contribute to this repository
 
-
-
-
-
-
+1. Open an [issue](https://github.com/openmhealth/sample-data-generator/issues) to let us know what you're going to work on.
+  1. This lets us give you feedback early and lets us put you in touch with people who can help.
+2. Fork this repository.
+3. Create your feature branch from the `develop` branch.
+4. Commit and push your changes to your fork.
+5. Create a pull request.
