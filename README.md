@@ -102,7 +102,7 @@ Below is an example of the options object that can be passed into the `OMHWebVis
 
 In addition to the options shown in the `measures` sections above, the following default options are used. They can be specified in the `measures` section of the options object passed to `OMHWebVisualization.Chart()` as well:
 
-```json
+```javascript
 {
   'range': { 'min':0, 'max':100 },
   'units': 'Units',
@@ -127,7 +127,7 @@ Using the default settings to graph `hear_rate` data, ie, passing `{}` as the op
 
 If, for example, you would like to graph `heart_rate` data as a blue line with blue dots and no tooltips, you may use the following configuration object:
 
-```json
+```javascript
 {
   'userInterface': {
     'tooltips': {
