@@ -26,6 +26,15 @@
     var LINE_STROKE_WIDTH = '1px';
     var POINT_STROKE_WIDTH = '1px';
 
+    this.QUANTIZE_YEAR = 6;
+    this.QUANTIZE_MONTH = 5;
+    this.QUANTIZE_DAY = 4;
+    this.QUANTIZE_HOUR = 3;
+    this.QUANTIZE_MINUTE = 2;
+    this.QUANTIZE_SECOND = 1;
+    this.QUANTIZE_MILLISECOND = 0;
+    this.QUANTIZE_NONE = -1;
+
     if( !element.jquery ){
       element = $( element );
     }
@@ -36,13 +45,13 @@
     var selection = d3.select( element.find('svg')[0] );
     element.addClass('omh-chart-container');
 
-    var measureData = {};
+    var measureData = null;
     var measures = measureList.split(/\s*,\s*/);
 
     var tooltipHoverPointEntities = {};
     var entityHoverGroups = {};
 
-    var chart = null;
+    var table = null;
 
     var defaultSettings = {
       'userInterface': {
@@ -76,6 +85,7 @@
           'range': { 'min':0, 'max':1500 },
           'units': 'Steps',
           'seriesName': 'Steps',
+          'timeQuantizationLevel': this.QUANTIZE_DAY,
           'chart': {
             'type':'clustered_bar',
             'barColor' : '#eeeeee',
@@ -87,6 +97,7 @@
           'range': { 'min':0, 'max':300 },
           'units': 'Minutes',
           'seriesName': 'Minutes of moderate activity',
+          'timeQuantizationLevel': this.QUANTIZE_DAY,
           'chart': {
             'type':'clustered_bar',
             'daysShownOnTimeline': { 'min':7, 'max':90 },
@@ -111,6 +122,7 @@
       'range': { 'min':0, 'max':100 },
       'units': 'Units',
       'seriesName': 'Series',
+      'timeQuantizationLevel': this.QUANTIZE_NONE,
       'chart': {
         'type':'line',
         'pointSize': 9,
@@ -125,8 +137,42 @@
     };
 
     //public method for getting the plottable chart component
-    this.getChartComponent = function(){
-      return chart;
+    this.getComponents = function(){
+
+      //init the axes, scales, and labels objects with the default measure components
+      var yScales = {}; yScales[ measures[0] ] = yScale;
+      var yAxes = {}; yAxes[ measures[0] ] = yAxis;
+      var yLabels = {}; yLabels[ measures[0] ] = yLabel;
+      var xScales = {}; xScales[ measures[0] ] = xScale;
+      var xAxes = {}; xAxes[ measures[0] ] = xAxis;
+      var colorScales = {}; colorScales[ measures[0] ] = colorScale;
+
+      //populate the axes, scales, and labels objects with the secondary measure components
+      $.each( secondaryYAxes, function( index, axisComponents ){
+        yScales[ axisComponents.measure ] = axisComponents.scale;
+        yAxes[ axisComponents.measure ] = axisComponents.axis;
+        yLabels[ axisComponents.measure ] = axisComponents.label;
+      });
+
+      return {
+        'xScales': xScales,
+        'yScales': yScales,
+        'colorScales': colorScales,
+        'gridlines': null,
+        'legends': [ legend ],
+        'xAxes': xAxes,
+        'yAxes': yAxes,
+        'plots': plots,
+        'yLabels': yLabels,
+        'table': table,
+        'tooltip': tip,
+        'toolbar': $toolbar,
+        'panZoomInteractions': {
+          'plotGroup': pzi,
+          'xAxis': pziXAxis
+        }
+      };
+
     };
     //public method for getting the d3 selection
     this.getD3Selection = function(){
@@ -151,96 +197,143 @@
       return obj;
     };
 
-    //parse out the data
-    $.each( data, function( key, val ) {
-      $.each( measures, function( i, measure ){
-        if ( !measureData.hasOwnProperty( measure ) ){
-          measureData[ measure ] = [];
-        }
-        if ( val.body.hasOwnProperty( measure ) ){
-          //concatenate a string that represents the body for grouping
-          var groupName = val.omhChartGroupName? val.omhChartGroupName : '';
-          //if this datum is the first in its group, it is where the tooltip shows
-          var hasTooltip = !groupName;
-          if ( !groupName ){
-            //if one of the measures in our chart is in this group,
-            //add it to the group name. because the concatenation
-            //order is defined by the measure list string, even if the
-            //measures in data bodies are unordered, the same name
-            //will be produced
-            $.each( measures, function( j, checkMeasure ) {
-              if( val.body.hasOwnProperty( checkMeasure ) ) {
-                groupName += '_'+checkMeasure;
-              }
-            });
-            val.omhChartGroupName = groupName;
+    this.getIntervalDisplayDate = function( omhDatum, dateProvider, quantizationLevel ){
+
+      var omhChart = this;
+
+      var interval = omhDatum.body['effective_time_frame']['time_interval'];
+      var startTime = interval['start_date_time'] ? ( new Date( interval['start_date_time'] ) ).getTime() : null;
+      var endTime = interval['end_date_time'] ? ( new Date( interval['end_date_time'] ) ).getTime() : null;
+      var startTimeObject = interval['start_date_time'] ? ( dateProvider( interval['start_date_time'] ) ) : null;
+      var endTimeObject = interval['end_date_time'] ? ( dateProvider( interval['end_date_time'] ) ) : null;
+
+      //days, weeks, months, and years could all be different durations depending on
+      //the timeframe, because of month duration differences, daylight savings, leapyear, etc
+      //so only use constants for the rest of the time units
+      var durations = {
+        "ps":   0.000000001,
+        "ns":   0.000001,
+        "us":   0.001,
+        "ms":   1,
+        "sec":  1000,
+        "min":  60*1000,
+        "h":    60*60*1000,
+        "d":    'd',
+        "wk":   'w',
+        "Mo":   'M',
+        "yr":   'y'
+      };
+
+      //figure out the duration in milliseconds of the timeframe
+      var unit  = interval['duration']['unit'];
+      var duration = interval['duration']['value'];
+      var durationMs;
+      var durationUnitLength = durations[ unit ];
+      if ( typeof durationUnitLength !== 'string'){
+        durationMs = duration * durationUnitLength;
+        if ( ! startTime ){ startTime = endTime - duration; }
+        if ( ! endTime ){ endTime = startTime + duration; }
+      } else {
+        if ( ! startTime ){ startTime = endTimeObject.subtract( duration, durations[ unit ] ).valueOf(); }
+        if ( ! endTime ){ endTime = startTimeObject.add( duration, durations[ unit ] ).valueOf(); }
+        durationMs = endTime - startTime;
+      }
+      
+      var startDate = new Date( startTime );
+
+      //quantize the points by day
+      var month =       quantizationLevel <= this.QUANTIZE_MONTH? startDate.getMonth(): 6;
+      var day =         quantizationLevel <= this.QUANTIZE_DAY? startDate.getDate():                  quantizationLevel === this.QUANTIZE_MONTH? 15: 1;
+      var hour =        quantizationLevel <= this.QUANTIZE_HOUR? startDate.getHours():                quantizationLevel === this.QUANTIZE_DAY? 12: 0;
+      var minute =      quantizationLevel <= this.QUANTIZE_MINUTE? startDate.getMinutes():            quantizationLevel === this.QUANTIZE_HOUR? 30: 0;
+      var second =      quantizationLevel <= this.QUANTIZE_SECOND? startDate.getSeconds():            quantizationLevel === this.QUANTIZE_MINUTE? 30: 0;
+      var millisecond = quantizationLevel <= this.QUANTIZE_MILLISECOND? startDate.getMilliseconds():  quantizationLevel === this.QUANTIZE_SECOND? 500: 0;
+      
+      var plotDate = new Date( startDate.getFullYear(), month, day, hour, minute, second, millisecond );
+
+      return plotDate;
+
+    };
+
+    //parse out the data into an array that can be used by plottable
+    this.parseOmhData = function( omhData, measuresToParse, dateProvider ){
+
+      var parsedData = {};
+
+      var _self = this;
+
+      $.each( omhData, function( key, omhDatum ) {
+        $.each( measuresToParse, function( i, measure ){
+
+          if ( !parsedData.hasOwnProperty( measure ) ){
+            parsedData[ measure ] = [];
           }
-          //prepare the time (x value) at which the point will be plotted
-          var time;
-          if( val.body['effective_time_frame']['date_time'] ){
-            time = new Date( val.body['effective_time_frame']['date_time'] );
-          }
-          if( val.body['effective_time_frame']['time_interval'] ){
-            
-            var interval = val.body['effective_time_frame']['time_interval'];
-            var startTime = interval['start_date_time'] ? ( new Date( interval['start_date_time'] ) ).getTime() : null;
-            var endTime = interval['end_date_time'] ? ( new Date( interval['end_date_time'] ) ).getTime() : null;
-            var startTimeMoment = interval['start_date_time'] ? ( moment( interval['start_date_time'] ) ) : null;
-            var endTimeMoment = interval['end_date_time'] ? ( moment( interval['end_date_time'] ) ) : null;
-            //days, weeks, months, and years could all be different durations depending on
-            //the timeframe, because of month duration differences, daylight savings, leapyear, etc
-            var durations = {
-              "ps":   0.000000001,
-              "ns":   0.000001,
-              "us":   0.001,
-              "ms":   1,
-              "sec":  1000,
-              "min":  60*1000,
-              "h":    60*60*1000,
-              "d":    'd',
-              "wk":   'w',
-              "Mo":   'M',
-              "yr":   'y'
-            };
-            var unit  = interval['duration']['unit'];
-            var duration = interval['duration']['value'];
-            var durationMs;
-            var durationUnitLength = durations[ unit ];
-            if ( typeof durationUnitLength !== 'string'){
-              durationMs = duration * durationUnitLength;
-              if ( ! startTime ){ startTime = endTime - duration; }
-              if ( ! endTime ){ endTime = startTime + duration; }
-            } else {
-              if ( ! startTime ){ startTime = endTimeMoment.subtract( duration, durations[ unit ] ).valueOf(); }
-              if ( ! endTime ){ endTime = startTimeMoment.add( duration, durations[ unit ] ).valueOf(); }
-              durationMs = endTime - startTime;
+
+          if ( omhDatum.body.hasOwnProperty( measure ) ){
+
+            //if there is more than one measure type in a body, set up refs
+            //so that the interface can treat the data points as a group
+
+            //concatenate a string that represents the body for grouping
+            var groupName = omhDatum.omhChartGroupName? omhDatum.omhChartGroupName : '';
+
+            //if this datum is the first in its group, it is where the tooltip shows
+            var hasTooltip = !groupName;
+
+            if ( !groupName ){
+              //if one of the measures in our chart is in this group,
+              //add it to the group name. because the concatenation
+              //order is defined by the measure list string, even if the
+              //measures in data bodies are unordered, the same name
+              //will be produced
+              $.each( measuresToParse, function( j, checkMeasure ) {
+                if( omhDatum.body.hasOwnProperty( checkMeasure ) ) {
+                  groupName += '_'+checkMeasure;
+                }
+              });
+              omhDatum.omhChartGroupName = groupName;
             }
-            
-            var startDate = new Date( startTime );
-            //quantize the points by day
-            time = new Date( startDate.getFullYear(), startDate.getMonth(), startDate.getDate(), 12, 0, 0, 0 );
+
+            //prepare the time (x value) at which the point will be plotted
+            var date;
+            if( omhDatum.body['effective_time_frame']['date_time'] ){
+              date = new Date( omhDatum.body['effective_time_frame']['date_time'] );
+            }
+
+            if( omhDatum.body['effective_time_frame']['time_interval'] ){
+              var quantizationLevel = getMeasureSettings( measure ).timeQuantizationLevel;
+              date = _self.getIntervalDisplayDate( omhDatum, dateProvider, quantizationLevel );
+            }
+
+            //pull the datum value out based on the measure's keypath
+            var valueKeyPath = getMeasureSettings( measure ).valueKeyPath;
+            var yValue = resolveKeyPath( omhDatum, valueKeyPath );
+
+            //create the datum that plottable will use
+            parsedData[ measure ].push( {
+              'y': yValue,
+              'x': date,
+              'provider': omhDatum.header.acquisition_provenance.source_name,
+              'body': omhDatum.body,
+              'groupName': groupName,
+              'hasTooltip': hasTooltip,
+              'measure': measure
+            });
 
           }
-          var valueKeyPath = getMeasureSettings( measure ).valueKeyPath;
-          var yValue = resolveKeyPath( val, valueKeyPath );
-          measureData[ measure ].push( {
-            //for the three measures supported by this code, the value of the reading is stored
-            //in the 'value' field of a unit-value object keyed by the measure name
-            'y': yValue,
-            'x': time,
-            'provider': val.header.acquisition_provenance.source_name,
-            'body': val.body,
-            'groupName': groupName,
-            'hasTooltip': hasTooltip,
-            'measure': measure
-          });
-        }
+        });
       });
-    });
+
+      return parsedData;
+
+    };
+
+    measureData = this.parseOmhData( data, measures, moment );
+
 
     //consolidate data points at the same time coordinates, as needed
     //provenance data for the first (chronologically) will be preserved
-    var consolidateData = function( data ){
+    this.consolidateData = function( data ){
       data.sort( function( a, b ){ return a.x.getTime() - b.x.getTime(); } );
       for ( var i=0; i<data.length; i++ ) {
         while( i+1 < data.length && ( data[ i+1 ].x.getTime() === data[ i ].x.getTime() ) ) {
@@ -254,11 +347,11 @@
       }
     };
 
-    if ( measureData[ 'minutes_moderate_activity' ] ) {
-      consolidateData( measureData[ 'minutes_moderate_activity' ] );
+    if ( measureData['minutes_moderate_activity'] ) {
+      this.consolidateData( measureData['minutes_moderate_activity'] );
     }
-    if ( measureData[ 'step_count' ] ) {
-      consolidateData( measureData[ 'step_count' ] );
+    if ( measureData['step_count'] ) {
+      this.consolidateData( measureData['step_count'] );
     }
 
     var primaryMeasureSettings = getMeasureSettings( measures[0] );
@@ -366,7 +459,7 @@
           .padding(5)
           .xAlignment('left')
           .yAlignment('top');
-          secondaryYAxes.push( [ barYAxis, barYLabel ] );
+          secondaryYAxes.push( { 'measure':measure, 'axis':barYAxis, 'label':barYLabel, 'scale':barYScale } );
         }
 
         var clusteredBarPlot = new Plottable.Plots.ClusteredBar()
@@ -380,6 +473,7 @@
 
         for ( var i=0; i<clusteredBarPlotCount; i++ ){
           //add blank data for all but one of the datasets
+
           if( i === clusteredBarPlots.length-1 ){
             clusteredBarPlot.addDataset( dataset );
           } else {
@@ -420,6 +514,7 @@
 
     });
 
+
     //add threshold plotlines
     var thresholdXScale = new Plottable.Scales.Linear().domainMin( 0 ).domainMax( 1 );
     var thresholdPlot = new Plottable.Plots.Line()
@@ -447,10 +542,12 @@
 
     plots.push( pointPlot );
 
+    var colorScale = null;
+    var legend = null;
     if ( clusteredBarPlotCount > 0 ){
       //add legend
-      var colorScale = new Plottable.Scales.Color();
-      var legend = new Plottable.Components.Legend( colorScale );
+      colorScale = new Plottable.Scales.Color();
+      legend = new Plottable.Components.Legend( colorScale );
       var names = [];
       var colors = [];
       $.each( measureData, function( measure, data ) {
@@ -498,16 +595,16 @@
     var yAxisGroup = new Plottable.Components.Group( [ yAxis, yLabel ] );
     var topRow = [ yAxisGroup, plotGroup ];
     var bottomRow = [ null, xAxis ];
-    $.each( secondaryYAxes, function( index, axisAndLabel ){
-      topRow.push( new Plottable.Components.Group( axisAndLabel ) );
+    $.each( secondaryYAxes, function( index, axisComponents ){
+      topRow.push( new Plottable.Components.Group( [ axisComponents.axis, axisComponents.label ] ) );
       bottomRow.push( null );
     });
-    chart = new Plottable.Components.Table([
+    table = new Plottable.Components.Table([
       topRow,
       bottomRow
     ]);
-    chart.yAlignment('bottom');
-    drag.attachTo( chart );
+    table.yAlignment('bottom');
+    drag.attachTo( table );
 
 
 
@@ -517,14 +614,18 @@
     var minDays = limits.min;
     var maxDays = limits.max;
 
+    
+    var pzi = null;
+    var pziXAxis = null;
+
     if ( interfaceSettings.panZoom.enabled ) {
 
       //set up pan/zoom                
-      var pzi = new Plottable.Interactions.PanZoom();
+      pzi = new Plottable.Interactions.PanZoom();
       pzi.addXScale( xScale );
       //pzi.addYScale( yScale );
       pzi.attachTo( plotGroup );
-      var pziXAxis = new Plottable.Interactions.PanZoom();
+      pziXAxis = new Plottable.Interactions.PanZoom();
       pziXAxis.addXScale( xScale );
       pziXAxis.attachTo( xAxis );
 
@@ -617,9 +718,10 @@
       $('.time-button').removeClass('active');
     };
 
+    var $toolbar = null;
     if ( interfaceSettings.toolbar.enabled ){
 
-      var $toolbar = $('<div></div>');
+      $toolbar = $('<div></div>');
       $toolbar.addClass('omh-chart-toolbar');
       $toolbar.attr('unselectable', 'on');
       element.append( $toolbar );
@@ -824,8 +926,8 @@
     this.destroy = function (){
       pointer && pointer.offPointerMove( pointerMove );
       pointer && pointer.detachFrom( pointPlot );
-      drag.detachFrom( chart );
-      chart.destroy();
+      drag.detachFrom( table );
+      table.destroy();
       tip && tip.destroy();
       showHoverPointTooltip && mouseWheelDispatcher.offWheel( showHoverPointTooltip );
       showHoverPointTooltip && drag.offDrag( showHoverPointTooltip );
@@ -836,8 +938,8 @@
     };
 
     //render chart
-
-    chart.renderTo( selection );
+    
+    table.renderTo( selection );
 
     //collect the points on the chart that will have tooltips
     //or share an index so that they can be used for group hovers
@@ -861,6 +963,7 @@
       entityHoverGroups[ groupName ][ entity.index ].push( entity );
 
     });
+
 
   };
 
