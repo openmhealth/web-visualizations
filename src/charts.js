@@ -137,7 +137,7 @@
     };
 
     //public method for getting the plottable chart component
-    this.getChartComponents = function(){
+    this.getComponents = function(){
 
       //init the axes, scales, and labels objects with the default measure components
       var yScales = {}; yScales[ measures[0] ] = yScale;
@@ -938,7 +938,7 @@
     };
 
     //render chart
-
+    
     table.renderTo( selection );
 
     //collect the points on the chart that will have tooltips
@@ -964,7 +964,6 @@
 
     });
 
-    console.log( this.getChartComponents() );
 
   };
 
