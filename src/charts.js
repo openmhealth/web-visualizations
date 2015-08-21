@@ -85,6 +85,7 @@
           'range': { 'min':0, 'max':1500 },
           'units': 'Steps',
           'seriesName': 'Steps',
+          'timeQuantizationLevel': this.QUANTIZE_DAY,
           'chart': {
             'type':'clustered_bar',
             'barColor' : '#eeeeee',
@@ -96,6 +97,7 @@
           'range': { 'min':0, 'max':300 },
           'units': 'Minutes',
           'seriesName': 'Minutes of moderate activity',
+          'timeQuantizationLevel': this.QUANTIZE_DAY,
           'chart': {
             'type':'clustered_bar',
             'daysShownOnTimeline': { 'min':7, 'max':90 },
