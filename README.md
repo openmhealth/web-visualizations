@@ -181,7 +181,7 @@ chart.renderTo( svgElement );
 
 ###Further customizations
 
-After a chart has been constructed, but *before it is rendered*, you may choose to get the Plottable components and make further modifications that are not afforded by the constructor's `options` parameter. Get the plottable components, modify them, and render the chart by calling:
+After a chart has been constructed, but *before it is rendered*, you may choose to get the Plottable components and make further modifications that are not afforded by the constructor's `options` parameter. Get the Plottable components, modify them, and render the chart by calling:
 
 ```javascript
 var components = chart.getComponents();
