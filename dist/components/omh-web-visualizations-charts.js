@@ -19,7 +19,7 @@
   root[ parentName ] = factory( root, parentName );
 }( this, function( root, parentName ) {
   var parent = root.hasOwnProperty( parentName )? root[ parentName ] : {};
-  parent.Chart = function( data, element, measureList, options ){
+  parent.Chart = function( data, $element, measureList, options ){
 
     var MS_PER_DAY = 86400000;
     var POINT_OPACITY = 0.5;
@@ -35,23 +35,25 @@
     this.QUANTIZE_MILLISECOND = 0;
     this.QUANTIZE_NONE = -1;
 
-    if( !element.jquery ){
-      element = $( element );
+    if( !$element.jquery ){
+      $element = $( $element );
     }
     if( !options ){
       options = {};
     }
 
-    var selection = d3.select( element.find('svg')[0] );
-    element.addClass('omh-chart-container');
+    var selection = null;
+    $element.addClass('omh-chart-container');
 
     var measureData = null;
-    var measures = measureList.split(/\s*,\s*/);
+    var measures = measureList.split( /\s*,\s*/ );
 
     var tooltipHoverPointEntities = {};
     var entityHoverGroups = {};
 
     var table = null;
+
+    var mouseWheelDispatcher = null;
 
     var defaultSettings = {
       'userInterface': {
@@ -71,55 +73,55 @@
       'measures': {
         'body_weight' : {
           'valueKeyPath': 'body.body_weight.value',
-          'range': { 'min':0, 'max':100 },
+          'range': { 'min': 0, 'max': 100 },
           'units': 'kg',
-          'thresholds': { 'max':57 },
+          'thresholds': { 'max': 57 },
         },
         'heart_rate': {
           'valueKeyPath': 'body.heart_rate.value',
-          'range': { 'min':30, 'max':150 },
+          'range': { 'min': 30, 'max': 150 },
           'units': 'bpm',
         },
         'step_count': {
           'valueKeyPath': 'body.step_count',
-          'range': { 'min':0, 'max':1500 },
+          'range': { 'min': 0, 'max': 1500 },
           'units': 'Steps',
           'seriesName': 'Steps',
           'timeQuantizationLevel': this.QUANTIZE_DAY,
           'chart': {
             'type':'clustered_bar',
             'barColor' : '#eeeeee',
-            'daysShownOnTimeline': { 'min':7, 'max':90 },
+            'daysShownOnTimeline': { 'min': 7, 'max': 90 },
           },
         },
         'minutes_moderate_activity': {
           'valueKeyPath': 'body.minutes_moderate_activity.value',
-          'range': { 'min':0, 'max':300 },
+          'range': { 'min': 0, 'max': 300 },
           'units': 'Minutes',
           'seriesName': 'Minutes of moderate activity',
           'timeQuantizationLevel': this.QUANTIZE_DAY,
           'chart': {
             'type':'clustered_bar',
-            'daysShownOnTimeline': { 'min':7, 'max':90 },
+            'daysShownOnTimeline': { 'min': 7, 'max': 90 },
           },
         },
         'systolic_blood_pressure': {
           'valueKeyPath': 'body.systolic_blood_pressure.value',
-          'range': { 'min':30, 'max':200 },
+          'range': { 'min': 30, 'max': 200 },
           'units': 'mmHg',
-          'thresholds':  { 'max':120 },
+          'thresholds':  { 'max': 120 },
         },
         'diastolic_blood_pressure': {
           'valueKeyPath': 'body.diastolic_blood_pressure.value',
-          'range': { 'min':30, 'max':200 },
+          'range': { 'min': 30, 'max': 200 },
           'units': 'mmHg',
-          'thresholds':  { 'max':80 },
+          'thresholds':  { 'max': 80 },
         }
       }
     };
 
     var genericMeasureDefaults = {
-      'range': { 'min':0, 'max':100 },
+      'range': { 'min': 0, 'max': 100 },
       'units': 'Units',
       'seriesName': 'Series',
       'timeQuantizationLevel': this.QUANTIZE_NONE,
@@ -132,7 +134,7 @@
         'aboveThesholdPointFillColor' : '#e8ac4e',
         'aboveThesholdPointStrokeColor' : '#745628',
         'barColor' : '#4a90e2',
-        'daysShownOnTimeline': { 'min':1, 'max':1000 },
+        'daysShownOnTimeline': { 'min': 1, 'max': 1000 },
       },
     };
 
@@ -354,7 +356,7 @@
       this.consolidateData( measureData['step_count'] );
     }
 
-    var primaryMeasureSettings = getMeasureSettings( measures[0] );
+    var primaryMeasureSettings = getMeasureSettings( measures[ 0 ] );
 
     // set up axes
     var xScale = new Plottable.Scales.Time();
@@ -363,32 +365,30 @@
     yScale.domainMin( domain.min ).domainMax( domain.max );
 
     var xAxis = new Plottable.Axes.Time( xScale, 'bottom')
-    .margin(15)
+    .margin( 15 )
     .addClass('x-axis');
 
     var yAxis = new Plottable.Axes.Numeric( yScale, 'left');
 
     var yLabel = new Plottable.Components.AxisLabel( primaryMeasureSettings.units, '0')
-    .padding(5)
+    .padding( 5 )
     .xAlignment('right')
     .yAlignment('top');
 
     //make the tooltip follow the plot on pan...
     var drag = new Plottable.Interactions.Drag();
-    drag.onDrag( function(){
-        hidePanZoomHint && hidePanZoomHint();
-        showHoverPointTooltip && showHoverPointTooltip();
-      }
-    );
+    var dragCallback = function(){
+      ( tip && hidePanZoomHint ) && hidePanZoomHint();
+      showHoverPointTooltip && showHoverPointTooltip();
+    };
+    drag.onDrag( dragCallback );
 
     //...and on zoom
-    var mouseWheelDispatcher = new Plottable.Dispatchers.Mouse( selection[0][0] )
-    .onWheel( function(){
-        showHoverPointTooltip && showHoverPointTooltip();
-        clearZoomLevelButtonActiveStates && clearZoomLevelButtonActiveStates();
-        hidePanZoomHint && hidePanZoomHint();
-      }
-    );
+    var wheelCallback =  function(){
+      showHoverPointTooltip && showHoverPointTooltip();
+      clearZoomLevelButtonActiveStates && clearZoomLevelButtonActiveStates();
+      hidePanZoomHint && hidePanZoomHint();
+    };//this is added to the selection when the chart is rendered
 
     //create a plot with hover states for each data set
     var plots = [];
@@ -456,7 +456,7 @@
           .domainMin( domain.min ).domainMax( domain.max );
           var barYAxis = new Plottable.Axes.Numeric( barYScale, 'right');
           var barYLabel = new Plottable.Components.AxisLabel( units, '0')
-          .padding(5)
+          .padding( 5 )
           .xAlignment('left')
           .yAlignment('top');
           secondaryYAxes.push( { 'measure':measure, 'axis':barYAxis, 'label':barYLabel, 'scale':barYScale } );
@@ -472,20 +472,21 @@
         clusteredBarPlots.push( clusteredBarPlot );
 
         for ( var i=0; i<clusteredBarPlotCount; i++ ){
-          //add blank data for all but one of the datasets
 
+          //add blank data for all but one of the datasets
           if( i === clusteredBarPlots.length-1 ){
             clusteredBarPlot.addDataset( dataset );
           } else {
             clusteredBarPlot.addDataset( new Plottable.Dataset( [] ) );
           }
+
         }
 
         //prevent time axis from showing detail past the day level
         var axisConfigs = xAxis.axisConfigurations();
         var filteredAxisConfigs = [];
         $.each( axisConfigs, function( index, config ) {
-          if ( config[0].interval === 'day' || config[0].interval === 'month' ||  config[0].interval === 'year' ){
+          if ( config[ 0 ].interval === 'day' || config[ 0 ].interval === 'month' ||  config[ 0 ].interval === 'year' ){
             filteredAxisConfigs.push( config );
           }
         } );
@@ -570,8 +571,8 @@
 
     if ( interfaceSettings.panZoom.enabled && interfaceSettings.panZoom.showHint ){
 
-      var pziHint = new Plottable.Components.Label('( Drag chart to pan, pinch or scroll to zoom )', 0)
-      .padding(10)
+      var pziHint = new Plottable.Components.Label('( Drag chart to pan, pinch or scroll to zoom )', 0 )
+      .padding( 10 )
       .yAlignment('bottom')
       .xAlignment('right')
       .addClass('zoom-hint-label');
@@ -724,7 +725,7 @@
       $toolbar = $('<div></div>');
       $toolbar.addClass('omh-chart-toolbar');
       $toolbar.attr('unselectable', 'on');
-      element.append( $toolbar );
+      $element.append( $toolbar );
 
       if ( interfaceSettings.timespanButtons.enabled ){
 
@@ -788,8 +789,6 @@
 
     if ( interfaceSettings.tooltips.enabled && hasPointPlot ){
 
-      var toolTipParent = selection;
-
       //set up hover
 
       //the last point to show a hover state is stored in this variable
@@ -812,15 +811,15 @@
       };
 
       var showToolTip = function( entity ){
-        tip.show( entity.datum, entity.selection[0][0] );
+        tip.show( entity.datum, entity.selection[ 0 ][ 0 ] );
       };
 
       var showTooltipIfInBounds = function( entity ){
-        if ( entity ){
-          if( entity.selection[0][0].getBoundingClientRect().left >
-              selection[0][0].getBoundingClientRect().left &&
-              entity.selection[0][0].getBoundingClientRect().right <
-              selection[0][0].getBoundingClientRect().right 
+        if ( entity && selection ){
+          if( entity.selection[ 0 ][ 0 ].getBoundingClientRect().left >
+              selection[ 0 ][ 0 ].getBoundingClientRect().left &&
+              entity.selection[ 0 ][ 0 ].getBoundingClientRect().right <
+              selection[ 0 ][ 0 ].getBoundingClientRect().right 
           ){
             showToolTip( entity );
           }else{
@@ -830,14 +829,14 @@
       };
 
       var showHoverPointTooltip = function() {
-        if ( hoverPoint ){
+        if ( hoverPoint && selection ){
           if( hoverPoint.datum.hasTooltip ){
             showTooltipIfInBounds( hoverPoint );
           } else {
             var groupHoverPoint = tooltipHoverPointEntities[ hoverPoint.datum.groupName ][ hoverPoint.index ];
-            var tipHeight = $('.d3-tip')[0].clientHeight;
-            if( groupHoverPoint.selection[0][0].getBoundingClientRect().top >
-              selection[0][0].getBoundingClientRect().top + tipHeight ){
+            var tipHeight = $('.d3-tip')[ 0 ].clientHeight;
+            if( groupHoverPoint.selection[ 0 ][ 0 ].getBoundingClientRect().top >
+              selection[ 0 ][ 0 ].getBoundingClientRect().top + tipHeight ){
               showTooltipIfInBounds( groupHoverPoint );
             }else{
               showTooltipIfInBounds( hoverPoint );
@@ -916,9 +915,6 @@
         return '<div class="omh-tooltip">' + getTipContent( d, measureList ) + '</div>';
       });
 
-      //invoke the tip in the context of the chart
-      toolTipParent.call(tip);
-
     }
 
 
@@ -929,7 +925,9 @@
       drag.detachFrom( table );
       table.destroy();
       tip && tip.destroy();
-      showHoverPointTooltip && mouseWheelDispatcher.offWheel( showHoverPointTooltip );
+      if( mouseWheelDispatcher ){
+        mouseWheelDispatcher.offWheel( wheelCallback );
+      }
       showHoverPointTooltip && drag.offDrag( showHoverPointTooltip );
       $toolbar && $toolbar.remove();
       $.each( destroyers, function( index, destroyer ){
@@ -938,31 +936,47 @@
     };
 
     //render chart
-    
-    table.renderTo( selection );
+    this.renderTo = function( svgElement ){
 
-    //collect the points on the chart that will have tooltips
-    //or share an index so that they can be used for group hovers
-    $.each( pointPlot.entities(), function( entityIndex, entity ) {
+      //invoke the tip in the context of the chart
+      selection = d3.select( svgElement );
+      tip && selection.call( tip );
 
-      var groupName = entity.datum.groupName;
+      //remove mouse wheel dispatcher callback from the previous selection if there is one
+      mouseWheelDispatcher && mouseWheelDispatcher.offWheel( wheelCallback );
+      //and add it to this one
+      mouseWheelDispatcher = new Plottable.Dispatchers.Mouse.getDispatcher( selection[0][0] )
+      .onWheel( wheelCallback );
 
-      if ( !tooltipHoverPointEntities[ groupName ] ){
-        tooltipHoverPointEntities[ groupName ] = [];
-      }
-      if( entity.datum.hasTooltip ){
-        tooltipHoverPointEntities[ groupName ][ entity.index ] = entity;
-      }
+      //render the table
+      table.renderTo( selection );
 
-      if ( !entityHoverGroups[ groupName ] ){
-        entityHoverGroups[ groupName ] = [];
-      }
-      if ( !entityHoverGroups[ groupName ][ entity.index ] ){
-        entityHoverGroups[ groupName ][ entity.index ] = [];
-      }
-      entityHoverGroups[ groupName ][ entity.index ].push( entity );
+      //collect the points on the chart that will have tooltips
+      //or share an index so that they can be used for group hovers
+      tooltipHoverPointEntities = {};
+      entityHoverGroups = {};
+      $.each( pointPlot.entities(), function( entityIndex, entity ) {
 
-    });
+        var groupName = entity.datum.groupName;
+
+        if ( !tooltipHoverPointEntities[ groupName ] ){
+          tooltipHoverPointEntities[ groupName ] = [];
+        }
+        if( entity.datum.hasTooltip ){
+          tooltipHoverPointEntities[ groupName ][ entity.index ] = entity;
+        }
+
+        if ( !entityHoverGroups[ groupName ] ){
+          entityHoverGroups[ groupName ] = [];
+        }
+        if ( !entityHoverGroups[ groupName ][ entity.index ] ){
+          entityHoverGroups[ groupName ][ entity.index ] = [];
+        }
+        entityHoverGroups[ groupName ][ entity.index ].push( entity );
+
+      });
+
+    };
 
 
   };
