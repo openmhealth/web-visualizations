@@ -70,28 +70,66 @@
     
     var chart = null;
 
-    var makeChartForUrl = function( url, element, measureList, options ){
+    var makeChartForUrl = function( url, $element, measureList, configOptions ){
+
       $.getJSON( url, function( data ) {
+
         if ( chart ){
           chart.destroy();
         }
-        chart = new OMHWebVisualizations.Chart( data, element, measureList, options );
-        console.info(chart);
+
+        //builds a new plottable chart
+        chart = new OMHWebVisualizations.Chart( data, $element, measureList, configOptions );
+
+        //customizes the chart's components
+        customizeChartComponents( chart.getComponents() );
+
+        //renders the chart to an svg element
+        chart.renderTo( $element.find("svg.demo-chart")[0] );
+
       });
+
     };
 
-    var $button = $('.update-button');
+    var customizeChartComponents = function( components ){
 
-    $button.click( function(){
+      //move any label overlayed on the bottom right
+      //of the chart up to the top left
+      var plots = components.plots;
 
-      var url = $(this).parent().find('input.update-url').val();
-      var measureList = $(this).parent().find('select').val();
+      $.each( plots, function( index, component ){
+
+        if ( component instanceof Plottable.Components.Label &&
+          component.yAlignment() === 'bottom' &&
+          component.xAlignment() === 'right' ){
+
+          component.yAlignment('top');
+          component.xAlignment('left');
+
+        }
+
+      });
+
+    };
+
+    var parseInputAndMakeChart = function(){
+
+      //collect the user's input
+      var url = $('input.update-url').val();
+      var measureList = $('select').val();
+
+      //make the chart
       makeChartForUrl( url, $('.demo-chart-container'), measureList, {} );
 
-    });
+    };
 
+    //set up the UI elements
+    var $button = $('.update-button');
+    $button.click( parseInputAndMakeChart );
+
+    //make the chart when the document is loaded
     $( document ).ready( function(){
-      $button.click();
+      parseInputAndMakeChart();
     });
 
   </script>

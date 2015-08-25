@@ -10,7 +10,7 @@ It currently generates line charts and bar charts. Default settings are included
 
 The charting functions of the library are built on top of [Plottable.js](http://plottablejs.org/), which is built on top of [D3](http://d3js.org/).
 
-You can play with a demo [here](http://jsfiddle.net/jasperspeicher/dremvboo/3/).
+You can play with a demo [here](http://www.openmhealth.org/visualizationFiddle).
 
 ###Installation
 If you'd like to use the charts in your own project, simply pull the library into your project as a [Bower](http://bower.io/) dependency using
