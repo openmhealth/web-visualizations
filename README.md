@@ -10,7 +10,7 @@ It currently generates line charts and bar charts. Default settings are included
 
 The charting functions of the library are built on top of [Plottable.js](http://plottablejs.org/), which is built on top of [D3](http://d3js.org/).
 
-You can play with a demo [here](http://www.openmhealth.org/visualizationFiddle).
+You can play with a live demo [here](http://www.openmhealth.org/visualizationFiddle).
 
 ###Installation
 If you'd like to use the charts in your own project, simply pull the library into your project as a [Bower](http://bower.io/) dependency using
@@ -30,7 +30,7 @@ If you'd like to experiment with the library using a demonstration page,
 1. Make your changes
 1. To publish your changes to the `dist` directory, run [gulp](http://gulpjs.com/)
     * `gulp`
-1. Open `charts.html` in the `demo` directory to see the result
+1. Open `charts.html` in the `example` directory to see the result
 1. To let gulp watch for changes in the background and update `dist` as needed
     * `gulp watch`
 
@@ -170,6 +170,28 @@ To override these defaults, simply specify them in the corresponding `measures` 
 This will produce a chart that looks something like the following screenshot:
 
 ![Configured Chart](http://www.openmhealth.org/media/viz_example_user_options.png "Configured Chart")
+
+###Rendering a chart
+
+Once a chart has been constructed, it must be rendered to an `<svg>` element. Render the chart by calling:
+
+```javascript
+chart.renderTo( svgElement );
+```
+
+###Further customizations
+
+After a chart has been constructed, but *before it is rendered*, you may choose to get the Plottable components and make further modifications that are not afforded by the constructor's `options` parameter. Get the plottable components, modify them, and render the chart by calling:
+
+```javascript
+var components = chart.getComponents();
+
+// modify plottable components here...
+
+chart.renderTo( svgElement );
+```
+
+To see an example of component modification, check out the `/examples/charts.html` file in this repository.
 
 ###Destroying a chart
 
