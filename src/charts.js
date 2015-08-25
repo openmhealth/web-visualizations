@@ -15,10 +15,14 @@
  */
 
 ( function( root, factory ) {
+
   var parentName = 'OMHWebVisualizations';
   root[ parentName ] = factory( root, parentName );
+
 }( this, function( root, parentName ) {
+
   var parent = root.hasOwnProperty( parentName )? root[ parentName ] : {};
+
   parent.Chart = function( data, $element, measureList, options ){
 
     var MS_PER_DAY = 86400000;
@@ -378,8 +382,8 @@
     //make the tooltip follow the plot on pan...
     var drag = new Plottable.Interactions.Drag();
     var dragCallback = function(){
-      ( tip && hidePanZoomHint ) && hidePanZoomHint();
-      showHoverPointTooltip && showHoverPointTooltip();
+      hidePanZoomHint  && hidePanZoomHint();
+      ( tip && showHoverPointTooltip ) && showHoverPointTooltip();
     };
     drag.onDrag( dragCallback );
 
