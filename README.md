@@ -1,16 +1,16 @@
 # Open mHealth Web Visualizations
 
-The Open mHealth Web Visualization library renders visualizations of Open mHealth structured data in a web browser.
-It currently generates line charts and bar charts. Default settings are included for the following measures:
+This library renders visualizations of Open mHealth structured data in a web browser. 
+It currently generates line charts and bar charts, with default settings included for the following measures:
 
 * body weight (`body_weight`)
 * heart rate (`heart_rate`)
 * blood pressure (`systolic_blood_pressure`,`diastolic_blood_pressure`)
 * physical activity (`step_count`, `minutes_moderate_activity`)
 
-The charting functions of the library are built on top of [Plottable.js](http://plottablejs.org/), which is built on top of [D3](http://d3js.org/).
+The charting functions of the library are built on top of [Plottable.js](http://plottablejs.org/), which is built on top of [D3](http://d3js.org/). You can play with a live demo [here](http://www.openmhealth.org/visualizationFiddle).
 
-You can play with a live demo [here](http://www.openmhealth.org/visualizationFiddle).
+You can learn more about the [design principles behind these visualisations](http://www.openmhealth.org/documentation/#/visualize-data/visualization-library) on our website, and learn about [how design became implementation](http://www.openmhealth.org/see-it-believe-it-the-web-visualization-library/) on our blog.
 
 ###Installation
 If you'd like to use the charts in your own project, simply pull the library into your project as a [Bower](http://bower.io/) dependency using
