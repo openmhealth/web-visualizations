@@ -19,6 +19,15 @@
   var parentName = 'OMHWebVisualizations';
   root[ parentName ] = factory( root, parentName );
 
+  root[ parentName ].QUANTIZE_YEAR = 6;
+  root[ parentName ].QUANTIZE_MONTH = 5;
+  root[ parentName ].QUANTIZE_DAY = 4;
+  root[ parentName ].QUANTIZE_HOUR = 3;
+  root[ parentName ].QUANTIZE_MINUTE = 2;
+  root[ parentName ].QUANTIZE_SECOND = 1;
+  root[ parentName ].QUANTIZE_MILLISECOND = 0;
+  root[ parentName ].QUANTIZE_NONE = -1;
+
 }( this, function( root, parentName ) {
 
   var parent = root.hasOwnProperty( parentName )? root[ parentName ] : {};
@@ -29,15 +38,6 @@
     var POINT_OPACITY = 0.5;
     var LINE_STROKE_WIDTH = '1px';
     var POINT_STROKE_WIDTH = '1px';
-
-    this.QUANTIZE_YEAR = 6;
-    this.QUANTIZE_MONTH = 5;
-    this.QUANTIZE_DAY = 4;
-    this.QUANTIZE_HOUR = 3;
-    this.QUANTIZE_MINUTE = 2;
-    this.QUANTIZE_SECOND = 1;
-    this.QUANTIZE_MILLISECOND = 0;
-    this.QUANTIZE_NONE = -1;
 
     if( !$element.jquery ){
       $element = $( $element );
@@ -91,7 +91,7 @@
           'range': { 'min': 0, 'max': 1500 },
           'units': 'Steps',
           'seriesName': 'Steps',
-          'timeQuantizationLevel': this.QUANTIZE_DAY,
+          'timeQuantizationLevel': OMHWebVisualizations.QUANTIZE_DAY,
           'chart': {
             'type':'clustered_bar',
             'barColor' : '#eeeeee',
@@ -103,7 +103,7 @@
           'range': { 'min': 0, 'max': 300 },
           'units': 'Minutes',
           'seriesName': 'Minutes of moderate activity',
-          'timeQuantizationLevel': this.QUANTIZE_DAY,
+          'timeQuantizationLevel': OMHWebVisualizations.QUANTIZE_DAY,
           'chart': {
             'type':'clustered_bar',
             'daysShownOnTimeline': { 'min': 7, 'max': 90 },
@@ -128,7 +128,7 @@
       'range': { 'min': 0, 'max': 100 },
       'units': 'Units',
       'seriesName': 'Series',
-      'timeQuantizationLevel': this.QUANTIZE_NONE,
+      'timeQuantizationLevel': OMHWebVisualizations.QUANTIZE_NONE,
       'chart': {
         'type':'line',
         'pointSize': 9,
@@ -197,9 +197,23 @@
       return settings.measures[ measure ];
     };
 
+    var keyPathArrays = {};
     var resolveKeyPath = function( obj, keyPath ){
-      var r = keyPath.split('.');
-      if( keyPath && r.length>0 ){ return resolveKeyPath( obj[ r.shift() ], r.join('.') ); }
+      if ( obj == undefined ) return obj;
+      var r;
+      if ( typeof keyPath == 'string' ){
+        if ( !keyPathArrays[ keyPath ] ){
+          keyPathArrays[ keyPath ] = keyPath.split('.');
+        }
+        r = keyPathArrays[ keyPath ].slice();
+      }else{
+        r = keyPath;
+      }
+      try{
+        if( keyPath && r.length>0 ){ return resolveKeyPath( obj[ r.shift() ], r ); }
+      }catch( e ){
+        debugger;
+      }
       return obj;
     };
 
@@ -248,12 +262,12 @@
       var startDate = new Date( startTime );
 
       //quantize the points by day
-      var month =       quantizationLevel <= this.QUANTIZE_MONTH? startDate.getMonth(): 6;
-      var day =         quantizationLevel <= this.QUANTIZE_DAY? startDate.getDate():                  quantizationLevel === this.QUANTIZE_MONTH? 15: 1;
-      var hour =        quantizationLevel <= this.QUANTIZE_HOUR? startDate.getHours():                quantizationLevel === this.QUANTIZE_DAY? 12: 0;
-      var minute =      quantizationLevel <= this.QUANTIZE_MINUTE? startDate.getMinutes():            quantizationLevel === this.QUANTIZE_HOUR? 30: 0;
-      var second =      quantizationLevel <= this.QUANTIZE_SECOND? startDate.getSeconds():            quantizationLevel === this.QUANTIZE_MINUTE? 30: 0;
-      var millisecond = quantizationLevel <= this.QUANTIZE_MILLISECOND? startDate.getMilliseconds():  quantizationLevel === this.QUANTIZE_SECOND? 500: 0;
+      var month =       quantizationLevel <= OMHWebVisualizations.QUANTIZE_MONTH? startDate.getMonth(): 6;
+      var day =         quantizationLevel <= OMHWebVisualizations.QUANTIZE_DAY? startDate.getDate():                  quantizationLevel === OMHWebVisualizations.QUANTIZE_MONTH? 15: 1;
+      var hour =        quantizationLevel <= OMHWebVisualizations.QUANTIZE_HOUR? startDate.getHours():                quantizationLevel === OMHWebVisualizations.QUANTIZE_DAY? 12: 0;
+      var minute =      quantizationLevel <= OMHWebVisualizations.QUANTIZE_MINUTE? startDate.getMinutes():            quantizationLevel === OMHWebVisualizations.QUANTIZE_HOUR? 30: 0;
+      var second =      quantizationLevel <= OMHWebVisualizations.QUANTIZE_SECOND? startDate.getSeconds():            quantizationLevel === OMHWebVisualizations.QUANTIZE_MINUTE? 30: 0;
+      var millisecond = quantizationLevel <= OMHWebVisualizations.QUANTIZE_MILLISECOND? startDate.getMilliseconds():  quantizationLevel === OMHWebVisualizations.QUANTIZE_SECOND? 500: 0;
       
       var plotDate = new Date( startDate.getFullYear(), month, day, hour, minute, second, millisecond );
 
@@ -269,65 +283,61 @@
       var _self = this;
 
       $.each( omhData, function( key, omhDatum ) {
-        $.each( measuresToParse, function( i, measure ){
+      
+        //if there is more than one measure type in a body, set up refs
+        //so that the interface can treat the data points as a group
 
-          if ( !parsedData.hasOwnProperty( measure ) ){
-            parsedData[ measure ] = [];
-          }
+        //generate a group name for each data point that encodes
+        //which measures are in its group. because the concatenation
+        //order is defined by the measure list string, even if the
+        //measures in data bodies are unordered, the same name
+        //will be produced
+        
+        $.each( measuresToParse, function( i, measure ) {
 
-          if ( omhDatum.body.hasOwnProperty( measure ) ){
+          var keyPath = getMeasureSettings( measure ).valueKeyPath;
+          var valueAtKeyPath = resolveKeyPath( omhDatum, keyPath );
 
-            //if there is more than one measure type in a body, set up refs
-            //so that the interface can treat the data points as a group
+          if( valueAtKeyPath !== undefined && typeof valueAtKeyPath !== 'object' ) {
 
-            //concatenate a string that represents the body for grouping
-            var groupName = omhDatum.omhChartGroupName? omhDatum.omhChartGroupName : '';
+             omhDatum.groupName += '_' + measure;
 
-            //if this datum is the first in its group, it is where the tooltip shows
-            var hasTooltip = !groupName;
+             if ( !parsedData.hasOwnProperty( measure ) ){
+               parsedData[ measure ] = [];
+             }
 
-            if ( !groupName ){
-              //if one of the measures in our chart is in this group,
-              //add it to the group name. because the concatenation
-              //order is defined by the measure list string, even if the
-              //measures in data bodies are unordered, the same name
-              //will be produced
-              $.each( measuresToParse, function( j, checkMeasure ) {
-                if( omhDatum.body.hasOwnProperty( checkMeasure ) ) {
-                  groupName += '_'+checkMeasure;
-                }
-              });
-              omhDatum.omhChartGroupName = groupName;
-            }
+             //prepare the time (x value) at which the point will be plotted
+             var date;
+             if( omhDatum.body['effective_time_frame']['date_time'] ){
+               date = new Date( omhDatum.body['effective_time_frame']['date_time'] );
+             }
 
-            //prepare the time (x value) at which the point will be plotted
-            var date;
-            if( omhDatum.body['effective_time_frame']['date_time'] ){
-              date = new Date( omhDatum.body['effective_time_frame']['date_time'] );
-            }
+             if( omhDatum.body['effective_time_frame']['time_interval'] ){
+               var quantizationLevel = getMeasureSettings( measure ).timeQuantizationLevel;
+               date = _self.getIntervalDisplayDate( omhDatum, dateProvider, quantizationLevel );
+             }
 
-            if( omhDatum.body['effective_time_frame']['time_interval'] ){
-              var quantizationLevel = getMeasureSettings( measure ).timeQuantizationLevel;
-              date = _self.getIntervalDisplayDate( omhDatum, dateProvider, quantizationLevel );
-            }
+             //pull the datum value out based on the measure's keypath
+             var valueKeyPath = getMeasureSettings( measure ).valueKeyPath;
+             var yValue = resolveKeyPath( omhDatum, valueKeyPath );
+             if (valueKeyPath == "body.minutes_moderate_activity.value" && yValue==undefined ){
+               console.info('yValue ' + measure, omhDatum );
+             }
 
-            //pull the datum value out based on the measure's keypath
-            var valueKeyPath = getMeasureSettings( measure ).valueKeyPath;
-            var yValue = resolveKeyPath( omhDatum, valueKeyPath );
-
-            //create the datum that plottable will use
-            parsedData[ measure ].push( {
-              'y': yValue,
-              'x': date,
-              'provider': omhDatum.header.acquisition_provenance.source_name,
-              'body': omhDatum.body,
-              'groupName': groupName,
-              'hasTooltip': hasTooltip,
-              'measure': measure
-            });
+             //create the datum that plottable will use
+             parsedData[ measure ].push( {
+               'y': yValue,
+               'x': date,
+               'provider': omhDatum.header.acquisition_provenance.source_name,
+               'omhDatum': omhDatum,
+               'hasTooltip': i == 0, // the tooltip is associated with the first measure in the group
+               'measure': measure
+             });
 
           }
+
         });
+
       });
 
       return parsedData;
@@ -345,9 +355,9 @@
         while( i+1 < data.length && ( data[ i+1 ].x.getTime() === data[ i ].x.getTime() ) ) {
           data[ i ].y += data[ i+1 ].y;
           if ( ! data[ i ].accumulatedDataBodies ){
-            data[ i ].accumulatedDataBodies = [ data[ i ].body ];
+            data[ i ].accumulatedDataBodies = [ data[ i ].omhDatum.body ];
           }
-          data[ i ].accumulatedDataBodies.push( data[ i+1 ].body );
+          data[ i ].accumulatedDataBodies.push( data[ i+1 ].omhDatum.body );
           data.splice( i+1, 1 );
         }
       }
@@ -434,14 +444,18 @@
     var clusteredBarPlotCount = 0;
     var secondaryYAxes = [];
     $.each( measureData, function( measure, data ) {
-      if( primaryMeasureSettings.chart.type === 'clustered_bar' ) {
+      if( getMeasureSettings( measure ).chart.type === 'clustered_bar' ) {
         clusteredBarPlotCount++;
       }
     } );
 
     //iterate across the data prepared from the omh json data
-    $.each( measureData, function( measure, data ) {
-
+    $.each( measures, function( j , measure ) {
+      if ( ! measureData.hasOwnProperty( measure ) ){
+        return;
+      }
+      data = measureData[ measure ];
+      //debugger;
       var dataset = new Plottable.Dataset( data );
       var measureSettings = getMeasureSettings( measure );
       dataset.measure = measure;
@@ -837,7 +851,7 @@
           if( hoverPoint.datum.hasTooltip ){
             showTooltipIfInBounds( hoverPoint );
           } else {
-            var groupHoverPoint = tooltipHoverPointEntities[ hoverPoint.datum.groupName ][ hoverPoint.index ];
+            var groupHoverPoint = tooltipHoverPointEntities[ hoverPoint.datum.omhDatum.groupName ][ hoverPoint.index ];
             var tipHeight = $('.d3-tip')[ 0 ].clientHeight;
             if( groupHoverPoint.selection[ 0 ][ 0 ].getBoundingClientRect().top >
               selection[ 0 ][ 0 ].getBoundingClientRect().top + tipHeight ){
@@ -851,10 +865,10 @@
 
       var highlightNewHoverPoint = function( point ) {
         if( hoverPoint !== null ) {
-          if( point.datum.body !== hoverPoint.datum.body ){
-            resetGroup( hoverPoint.datum.groupName, hoverPoint.index );
+          if( point.datum.omhDatum.body !== hoverPoint.datum.omhDatum.body ){
+            resetGroup( hoverPoint.datum.omhDatum.groupName, hoverPoint.index );
             hoverPoint = point;
-            highlightGroup( hoverPoint.datum.groupName, point.index );
+            highlightGroup( hoverPoint.datum.omhDatum.groupName, point.index );
           }
         }else{
           hoverPoint = point;
@@ -897,11 +911,11 @@
         }
 
         //show different tool tip depending on measureList
-        if( d.groupName === '_systolic_blood_pressure_diastolic_blood_pressure' ) {
-          var systolic = d.body.systolic_blood_pressure.value.toFixed( 0 );
-          var diastolic = d.body.diastolic_blood_pressure.value.toFixed( 0 );
+        if( d.omhDatum.groupName === '_systolic_blood_pressure_diastolic_blood_pressure' ) {
+          var systolic = d.omhDatum.body.systolic_blood_pressure.value.toFixed( 0 );
+          var diastolic = d.omhDatum.body.diastolic_blood_pressure.value.toFixed( 0 );
           content = '<div class="' + contentCssClass + '">' + systolic + '/' + diastolic + '</div>';
-        }else if( d.groupName === '_heart_rate' ) {
+        }else if( d.omhDatum.groupName === '_heart_rate' ) {
           //heart rate does not need decimal places. an integer is best
           content = '<div class="' + contentCssClass + '">' + d.y.toFixed( 0 ) + '</div>';
         }else {
@@ -961,7 +975,7 @@
       entityHoverGroups = {};
       $.each( pointPlot.entities(), function( entityIndex, entity ) {
 
-        var groupName = entity.datum.groupName;
+        var groupName = entity.datum.omhDatum.groupName;
 
         if ( !tooltipHoverPointEntities[ groupName ] ){
           tooltipHoverPointEntities[ groupName ] = [];

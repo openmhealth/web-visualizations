@@ -48,6 +48,7 @@
               <option value="heart_rate">Heart rate</option>
               <option value="systolic_blood_pressure, diastolic_blood_pressure" selected>Blood pressure</option>
               <option value="minutes_moderate_activity, step_count">Physical activity</option>
+              <option value="distance">Distance</option>
             </select>
             <button class="update-button">Update</button>
           </p>
@@ -118,8 +119,25 @@
       var url = $('input.update-url').val();
       var measureList = $('select').val();
 
+      //an example of some options for a distance chart
+      var options = {
+          'measures': {
+            'distance': {
+                'valueKeyPath': 'body.distance.value',
+                'range': { 'min':0, 'max':10000 },
+                'units': 'm',
+                'timeQuantizationLevel': OMHWebVisualizations.QUANTIZE_MONTH,
+                'seriesName': 'Distance',
+                'chart': {
+                    'type' : 'clustered_bar',
+                    'daysShownOnTimeline': { 'min': 90, 'max': 365 }
+                }
+            }
+          }
+      };
+
       //make the chart
-      makeChartForUrl( url, $('.demo-chart-container'), measureList, {} );
+      makeChartForUrl( url, $('.demo-chart-container'), measureList, options );
 
     };
 
