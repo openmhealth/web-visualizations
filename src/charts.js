@@ -320,9 +320,6 @@
              //pull the datum value out based on the measure's keypath
              var valueKeyPath = getMeasureSettings( measure ).valueKeyPath;
              var yValue = resolveKeyPath( omhDatum, valueKeyPath );
-             if (valueKeyPath == "body.minutes_moderate_activity.value" && yValue==undefined ){
-               console.info('yValue ' + measure, omhDatum );
-             }
 
              //create the datum that plottable will use
              parsedData[ measure ].push( {
