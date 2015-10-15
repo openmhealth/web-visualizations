@@ -193,6 +193,40 @@ chart.renderTo( svgElement );
 
 To see an example of component modification, check out the `/examples/charts.html` file in this repository.
 
+###Library Constants
+
+If you wish to configure the `timeQuantizationLevel` for a measure, you will need the following constants:
+
+* OMHWebVisualizations.QUANTIZE_YEAR
+* OMHWebVisualizations.QUANTIZE_MONTH
+* OMHWebVisualizations.QUANTIZE_DAY
+* OMHWebVisualizations.QUANTIZE_HOUR
+* OMHWebVisualizations.QUANTIZE_MINUTE
+* OMHWebVisualizations.QUANTIZE_SECOND
+* OMHWebVisualizations.QUANTIZE_MILLISECOND
+* OMHWebVisualizations.QUANTIZE_NONE
+
+These can be used in an `options` object as follows (see examples/charts.html):
+
+```javascript
+//an example of some options for a distance chart
+var options = {
+    'measures': {
+      'distance': {
+          'valueKeyPath': 'body.distance.value',
+          'range': { 'min':0, 'max':10000 },
+          'units': 'm',
+          'timeQuantizationLevel': OMHWebVisualizations.QUANTIZE_MONTH,
+          'seriesName': 'Distance',
+          'chart': {
+              'type' : 'clustered_bar',
+              'daysShownOnTimeline': { 'min': 90, 'max': 365 }
+          }
+      }
+    }
+};
+```
+
 ###Destroying a chart
 
 In order to free up resources or re-use an element for a new chart, the chart and all of its interactive features can be destroyed with:
