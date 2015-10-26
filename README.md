@@ -171,28 +171,6 @@ This will produce a chart that looks something like the following screenshot:
 
 ![Configured Chart](http://www.openmhealth.org/media/viz_example_user_options.png "Configured Chart")
 
-###Rendering a chart
-
-Once a chart has been constructed, it must be rendered to an `<svg>` element. Render the chart by calling:
-
-```javascript
-chart.renderTo( svgElement );
-```
-
-###Further customizations
-
-After a chart has been constructed, but *before it is rendered*, you may choose to get the Plottable components and make further modifications that are not afforded by the constructor's `options` parameter. Get the Plottable components, modify them, and render the chart by calling:
-
-```javascript
-var components = chart.getComponents();
-
-// modify plottable components here...
-
-chart.renderTo( svgElement );
-```
-
-To see an example of component modification, check out the `examples/charts.html` file in this repository.
-
 #### Quantization configuration
 
 If you wish to configure the `timeQuantizationLevel` for a measure, you will need the following constants:
@@ -226,6 +204,28 @@ var options = {
     }
 };
 ```
+
+###Rendering a chart
+
+Once a chart has been constructed, it must be rendered to an `<svg>` element. Render the chart by calling:
+
+```javascript
+chart.renderTo( svgElement );
+```
+
+###Further customizations
+
+After a chart has been constructed, but *before it is rendered*, you may choose to get the Plottable components and make further modifications that are not afforded by the constructor's `options` parameter. Get the Plottable components, modify them, and render the chart by calling:
+
+```javascript
+var components = chart.getComponents();
+
+// modify plottable components here...
+
+chart.renderTo( svgElement );
+```
+
+To see an example of component modification, check out the `examples/charts.html` file in this repository.
 
 ###Destroying a chart
 
