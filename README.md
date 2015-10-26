@@ -191,25 +191,25 @@ var components = chart.getComponents();
 chart.renderTo( svgElement );
 ```
 
-To see an example of component modification, check out the `/examples/charts.html` file in this repository.
+To see an example of component modification, check out the `examples/charts.html` file in this repository.
 
-###Library Constants
+#### Quantization configuration
 
 If you wish to configure the `timeQuantizationLevel` for a measure, you will need the following constants:
 
-* OMHWebVisualizations.QUANTIZE_YEAR
-* OMHWebVisualizations.QUANTIZE_MONTH
-* OMHWebVisualizations.QUANTIZE_DAY
-* OMHWebVisualizations.QUANTIZE_HOUR
-* OMHWebVisualizations.QUANTIZE_MINUTE
-* OMHWebVisualizations.QUANTIZE_SECOND
-* OMHWebVisualizations.QUANTIZE_MILLISECOND
-* OMHWebVisualizations.QUANTIZE_NONE
+* `OMHWebVisualizations.QUANTIZE_YEAR`
+* `OMHWebVisualizations.QUANTIZE_MONTH`
+* `OMHWebVisualizations.QUANTIZE_DAY`
+* `OMHWebVisualizations.QUANTIZE_HOUR`
+* `OMHWebVisualizations.QUANTIZE_MINUTE`
+* `OMHWebVisualizations.QUANTIZE_SECOND`
+* `OMHWebVisualizations.QUANTIZE_MILLISECOND`
+* `OMHWebVisualizations.QUANTIZE_NONE`
 
-These can be used in an `options` object as follows (see examples/charts.html):
+These can be used in an `options` object as follows:
 
 ```javascript
-//an example of some options for a distance chart
+// an example of some options for a distance chart
 var options = {
     'measures': {
       'distance': {
