@@ -1,5 +1,5 @@
 <html>
-  
+
   <head>
     <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
     <link rel="stylesheet" type="text/css" href="../bower_components/plottable/plottable.css">
@@ -60,7 +60,6 @@
     </div>
   </body>
 
-  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
   <script src="../bower_components/d3/d3.min.js"></script>
   <script src="../bower_components/d3-tip/index.js"></script>
   <script src="../bower_components/plottable/plottable.js"></script>
@@ -68,13 +67,12 @@
   <script src="../dist/omh-web-visualizations-all.js"></script>
 
   <script>
-    
+
     var chart = null;
 
     var makeChartForUrl = function( url, $element, measureList, configOptions ){
 
-      $.getJSON( url, function( data ) {
-
+      d3.json( url, function( data ) {
         if ( chart ){
           chart.destroy();
         }
@@ -86,7 +84,7 @@
         customizeChartComponents( chart.getComponents() );
 
         //renders the chart to an svg element
-        chart.renderTo( $element.find("svg.demo-chart")[0] );
+        chart.renderTo( $element.select("svg").node() );
 
       });
 
@@ -98,7 +96,7 @@
       //of the chart up to the top left
       var plots = components.plots;
 
-      $.each( plots, function( index, component ){
+      plots.forEach(function( component ){
 
         if ( component instanceof Plottable.Components.Label &&
           component.yAlignment() === 'bottom' &&
@@ -116,8 +114,8 @@
     var parseInputAndMakeChart = function(){
 
       //collect the user's input
-      var url = $('input.update-url').val();
-      var measureList = $('select').val();
+      var url = d3.select('input.update-url').node().value;
+      var measureList = d3.select('select').node().value;
 
       //an example of some options for a distance chart
       var options = {
@@ -137,18 +135,15 @@
       };
 
       //make the chart
-      makeChartForUrl( url, $('.demo-chart-container'), measureList, options );
+      makeChartForUrl( url, d3.select('.demo-chart-container'), measureList, options );
 
     };
 
     //set up the UI elements
-    var $button = $('.update-button');
-    $button.click( parseInputAndMakeChart );
+    d3.select('.update-button').on('click', parseInputAndMakeChart );
 
     //make the chart when the document is loaded
-    $( document ).ready( function(){
-      parseInputAndMakeChart();
-    });
+    parseInputAndMakeChart();
 
   </script>
 
