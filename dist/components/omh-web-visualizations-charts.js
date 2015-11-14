@@ -32,22 +32,27 @@
 
   var parent = root.hasOwnProperty( parentName )? root[ parentName ] : {};
 
-  parent.Chart = function( data, $element, measureList, options ){
+  parent.Chart = function( data, element, measureList, options ){
 
     var MS_PER_DAY = 86400000;
     var POINT_OPACITY = 0.5;
     var LINE_STROKE_WIDTH = '1px';
     var POINT_STROKE_WIDTH = '1px';
 
-    if( !$element.node ){
-      $element = d3.select( $element );
+    // if the element passed in is a jQuery element, then get the dom element
+    if ( typeof jQuery === 'function' && element instanceof jQuery ){
+      element = element[0];
+    }
+    //check if the element passed in is a d3 selection
+    if( !element.node ){
+      element = d3.select( element );
     }
     if( !options ){
       options = {};
     }
 
     var selection = null;
-    $element.classed('omh-chart-container', true);
+    element.classed('omh-chart-container', true);
 
     var measureData = null;
     var measures = measureList.split( /\s*,\s*/ );
@@ -172,7 +177,7 @@
         'yLabels': yLabels,
         'table': table,
         'tooltip': tip,
-        'toolbar': $toolbar,
+        'toolbar': toolbar,
         'panZoomInteractions': {
           'plotGroup': pzi,
           'xAxis': pziXAxis
@@ -199,7 +204,7 @@
           }
           else {
             merged[attr] = val1;
-            if (val2 != undefined) {
+            if (obj2.hasOwnProperty(attr)) {
               merged[attr] = val2;
             }
           }
@@ -241,7 +246,7 @@
       try{
         if( keyPath && r.length>0 ){ return resolveKeyPath( obj[ r.shift() ], r ); }
       }catch( e ){
-        debugger;
+        console.info('Exception while resolving keypath',e);
       }
       return obj;
     };
@@ -401,7 +406,9 @@
     var xScale = new Plottable.Scales.Time();
     var yScale = new Plottable.Scales.Linear();
     var domain = primaryMeasureSettings.range;
-    yScale.domainMin( domain.min ).domainMax( domain.max );
+    if( domain ){
+      yScale.domainMin( domain.min ).domainMax( domain.max );
+    }
 
     var xAxis = new Plottable.Axes.Time( xScale, 'bottom')
     .margin( 15 )
@@ -661,8 +668,8 @@
     //limit the width of the timespan
     //eg so that bars do not have times under them etc
     var limits = primaryMeasureSettings.chart.daysShownOnTimeline;
-    var minDays = limits.min;
-    var maxDays = limits.max;
+    var minDays = limits? limits.min: false;
+    var maxDays = limits? limits.max: false;
 
 
     var pzi = null;
@@ -714,9 +721,9 @@
 
     var setZoomLevelByDays = function( timeInDays ){
 
-      var limits = primaryMeasureSettings.chart.daysShownOnTimeline;
-      var minDays = limits.min;
-      var maxDays = limits.max;
+      // var limits = primaryMeasureSettings.chart.daysShownOnTimeline;
+      // var minDays = limits? limits.min: false;
+      // var maxDays = limits? limits.max: false;
 
       if ( minDays ) {
         timeInDays = Math.max( timeInDays, minDays );
@@ -733,9 +740,9 @@
 
     var setZoomLevelByPercentageIncrement = function( percentage ){
 
-      var limits = primaryMeasureSettings.chart.daysShownOnTimeline;
-      var minDays = limits.min;
-      var maxDays = limits.max;
+      // var limits = primaryMeasureSettings.chart.daysShownOnTimeline;
+      // var minDays = limits? limits.min: false;
+      // var maxDays = limits? limits.max: false;
 
       var currentDomain = xScale.domain();
 
@@ -767,12 +774,12 @@
     };
 
     var clearZoomLevelButtonActiveStates = function(){
-      d3.select('.time-button').classed('active', false);
+      d3.selectAll('.time-button').classed('active', false);
     };
 
-    var $toolbar = null;
+    var toolbar = null;
     if ( interfaceSettings.toolbar.enabled ){
-      $toolbar = $element.append("div")
+      toolbar = element.append("div")
                     .classed('omh-chart-toolbar', true)
                     .attr('unselectable', 'on');
 
@@ -784,12 +791,12 @@
           '3m': 90,
           '6m': 180,
         };
-        $toolbar.append("span").classed("time-buttons-label", true).text("Show: ");
+        toolbar.append("span").classed("time-buttons-label", true).text("Show: ");
         d3.entries(zoomLevels).forEach(function( entry ) {
           var days = entry.value;
           var label = entry.key;
-          if ( days <= maxDays && days >= minDays ){
-            var $button = $toolbar.append("span").classed('time-button', true).text(label);
+          if ( ( !maxDays || days <= maxDays ) && ( !minDays || days >= minDays ) ){
+            var $button = toolbar.append("span").classed('time-button', true).text(label);
             $button.on( 'click', function(){
               clearZoomLevelButtonActiveStates();
               setZoomLevelByDays( days );
@@ -806,12 +813,12 @@
           '&#8722;': -20,
           '&#43;':    20,
         };
-        $toolbar.append( "span" ).classed('zoom-buttons-label', true).text(' Zoom: ');
+        toolbar.append( "span" ).classed('zoom-buttons-label', true).text(' Zoom: ');
         d3.entries(zoomPercentageIncrements).forEach(function( entry ){
           var percentageIncrement = entry.value;
           var label = entry.key;
 
-          var $button = $toolbar.append('span').classed('zoom-button', true).html(label);
+          var $button = toolbar.append('span').classed('zoom-button', true).html(label);
           $button.on( 'click', function(){
             clearZoomLevelButtonActiveStates();
             setZoomLevelByPercentageIncrement( percentageIncrement );
@@ -821,12 +828,12 @@
       }
 
       if ( interfaceSettings.navigation.enabled ){
-        var $prevButton = $toolbar.append('span', ":first-child").classed('previous-time-period-button', true).text('< prev');
+        var $prevButton = toolbar.append('span', ":first-child").classed('previous-time-period-button', true).text('< prev');
         $prevButton.on('click', function(){
           shiftVisibleTimeByPercentageIncrement( -100 );
         });
 
-        var $nextButton = $toolbar.append('span').classed('next-time-period-button', true).text('next >');
+        var $nextButton = toolbar.append('span').classed('next-time-period-button', true).text('next >');
         $nextButton.on('click', function(){
           shiftVisibleTimeByPercentageIncrement( 100 );
         });
@@ -980,7 +987,7 @@
         mouseWheelDispatcher.offWheel( wheelCallback );
       }
       showHoverPointTooltip && drag.offDrag( showHoverPointTooltip );
-      $toolbar && $toolbar.remove();
+      toolbar && toolbar.remove();
       destroyers.forEach(function( destroyer ){
         destroyer();
       });
