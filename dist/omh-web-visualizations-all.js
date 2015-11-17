@@ -19,6 +19,7 @@
   var parentName = 'OMHWebVisualizations';
   root[ parentName ] = factory( root, parentName );
 
+  // Add constants for quantization
   root[ parentName ].QUANTIZE_YEAR = 6;
   root[ parentName ].QUANTIZE_MONTH = 5;
   root[ parentName ].QUANTIZE_DAY = 4;
@@ -27,6 +28,42 @@
   root[ parentName ].QUANTIZE_SECOND = 1;
   root[ parentName ].QUANTIZE_MILLISECOND = 0;
   root[ parentName ].QUANTIZE_NONE = -1;
+
+  // Add a Utils namespace for functions that are not directly Chart related
+  root[ parentName ].Utils = {};
+
+  // Function merges defaults and options into one config settings object
+  root[ parentName ].Utils.mergeObjects = function(obj1, obj2){
+    var merged = {};
+
+    function set_attr(attr) {
+      if (merged[attr] === undefined) {
+        var val1 = obj1[attr];
+        var val2 = obj2[attr];
+
+        if (typeof(val1) === typeof(val2) && typeof(val1) === "object") {
+          merged[attr] = root[ parentName ].Utils.mergeObjects(val1 || {}, val2 || {});
+        }
+        else {
+          merged[attr] = val1;
+          if (obj2.hasOwnProperty(attr)) {
+            merged[attr] = val2;
+          }
+        }
+      }
+    }
+
+    for (var attrname in obj1){
+      set_attr(attrname);
+    }
+
+    for (var attrname in obj2){
+      set_attr(attrname);
+    }
+
+    return merged;
+  };
+
 
 }( this, function( root, parentName ) {
 
@@ -96,7 +133,7 @@
           'range': { 'min': 0, 'max': 1500 },
           'units': 'Steps',
           'seriesName': 'Steps',
-          'timeQuantizationLevel': OMHWebVisualizations.QUANTIZE_DAY,
+          'timeQuantizationLevel': parent.QUANTIZE_DAY,
           'chart': {
             'type':'clustered_bar',
             'barColor' : '#eeeeee',
@@ -108,7 +145,7 @@
           'range': { 'min': 0, 'max': 300 },
           'units': 'Minutes',
           'seriesName': 'Minutes of moderate activity',
-          'timeQuantizationLevel': OMHWebVisualizations.QUANTIZE_DAY,
+          'timeQuantizationLevel': parent.QUANTIZE_DAY,
           'chart': {
             'type':'clustered_bar',
             'daysShownOnTimeline': { 'min': 7, 'max': 90 },
@@ -133,7 +170,7 @@
       'range': { 'min': 0, 'max': 100 },
       'units': 'Units',
       'seriesName': 'Series',
-      'timeQuantizationLevel': OMHWebVisualizations.QUANTIZE_NONE,
+      'timeQuantizationLevel': parent.QUANTIZE_NONE,
       'chart': {
         'type':'line',
         'pointSize': 9,
@@ -190,39 +227,9 @@
       return selection;
     };
 
-    // Merge defaults and options into settings
-    function merge_objects(obj1, obj2){
-      var merged = {};
-
-      function set_attr(attr) {
-        if (merged[attr] == undefined) {
-          var val1 = obj1[attr];
-          var val2 = obj2[attr];
-
-          if (typeof(val1) == typeof(val2) && typeof(val1) == "object") {
-            merged[attr] = merge_objects(val1 || {}, val2 || {});
-          }
-          else {
-            merged[attr] = val1;
-            if (obj2.hasOwnProperty(attr)) {
-              merged[attr] = val2;
-            }
-          }
-        }
-      }
-
-      for (var attrname in obj1)
-        set_attr(attrname);
-
-      for (var attrname in obj2)
-        set_attr(attrname);
-
-      return merged;
-    }
-
-    var settings = merge_objects(defaultSettings, options);
+    var settings = parent.Utils.mergeObjects(defaultSettings, options);
     d3.keys( settings.measures ).forEach(function( measure ) {
-      settings.measures[measure] = merge_objects(genericMeasureDefaults, settings.measures[measure]);
+      settings.measures[measure] = parent.Utils.mergeObjects(genericMeasureDefaults, settings.measures[measure]);
     });
 
     var interfaceSettings = settings.userInterface;
