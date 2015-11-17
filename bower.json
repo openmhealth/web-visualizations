@@ -30,7 +30,6 @@
     "gulpfile.js"
   ],
   "dependencies": {
-    "jquery": "~1.11.2",
     "d3": "^3.5.5",
     "plottable": "^1.10.0",
     "d3-tip": "~0.6.7",

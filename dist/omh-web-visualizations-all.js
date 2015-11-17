@@ -32,22 +32,27 @@
 
   var parent = root.hasOwnProperty( parentName )? root[ parentName ] : {};
 
-  parent.Chart = function( data, $element, measureList, options ){
+  parent.Chart = function( data, element, measureList, options ){
 
     var MS_PER_DAY = 86400000;
     var POINT_OPACITY = 0.5;
     var LINE_STROKE_WIDTH = '1px';
     var POINT_STROKE_WIDTH = '1px';
 
-    if( !$element.jquery ){
-      $element = $( $element );
+    // if the element passed in is a jQuery element, then get the dom element
+    if ( typeof jQuery === 'function' && element instanceof jQuery ){
+      element = element[0];
+    }
+    //check if the element passed in is a d3 selection
+    if( !element.node ){
+      element = d3.select( element );
     }
     if( !options ){
       options = {};
     }
 
     var selection = null;
-    $element.addClass('omh-chart-container');
+    element.classed('omh-chart-container', true);
 
     var measureData = null;
     var measures = measureList.split( /\s*,\s*/ );
@@ -154,7 +159,7 @@
       var colorScales = {}; colorScales[ measures[0] ] = colorScale;
 
       //populate the axes, scales, and labels objects with the secondary measure components
-      $.each( secondaryYAxes, function( index, axisComponents ){
+      secondaryYAxes.forEach(function( axisComponents ){
         yScales[ axisComponents.measure ] = axisComponents.scale;
         yAxes[ axisComponents.measure ] = axisComponents.axis;
         yLabels[ axisComponents.measure ] = axisComponents.label;
@@ -172,7 +177,7 @@
         'yLabels': yLabels,
         'table': table,
         'tooltip': tip,
-        'toolbar': $toolbar,
+        'toolbar': toolbar,
         'panZoomInteractions': {
           'plotGroup': pzi,
           'xAxis': pziXAxis
@@ -186,9 +191,38 @@
     };
 
     // Merge defaults and options into settings
-    var settings = $.extend( true, {}, defaultSettings, options );
-    $.each( Object.keys( settings.measures ), function( index, measure ) {
-      settings.measures[ measure ] = $.extend( true, {}, genericMeasureDefaults, settings.measures[ measure ] );
+    function merge_objects(obj1, obj2){
+      var merged = {};
+
+      function set_attr(attr) {
+        if (merged[attr] == undefined) {
+          var val1 = obj1[attr];
+          var val2 = obj2[attr];
+
+          if (typeof(val1) == typeof(val2) && typeof(val1) == "object") {
+            merged[attr] = merge_objects(val1 || {}, val2 || {});
+          }
+          else {
+            merged[attr] = val1;
+            if (obj2.hasOwnProperty(attr)) {
+              merged[attr] = val2;
+            }
+          }
+        }
+      }
+
+      for (var attrname in obj1)
+        set_attr(attrname);
+
+      for (var attrname in obj2)
+        set_attr(attrname);
+
+      return merged;
+    }
+
+    var settings = merge_objects(defaultSettings, options);
+    d3.keys( settings.measures ).forEach(function( measure ) {
+      settings.measures[measure] = merge_objects(genericMeasureDefaults, settings.measures[measure]);
     });
 
     var interfaceSettings = settings.userInterface;
@@ -212,7 +246,7 @@
       try{
         if( keyPath && r.length>0 ){ return resolveKeyPath( obj[ r.shift() ], r ); }
       }catch( e ){
-        debugger;
+        console.info('Exception while resolving keypath',e);
       }
       return obj;
     };
@@ -258,7 +292,7 @@
         if ( ! endTime ){ endTime = startTimeObject.add( duration, durations[ unit ] ).valueOf(); }
         durationMs = endTime - startTime;
       }
-      
+
       var startDate = new Date( startTime );
 
       //quantize the points by day
@@ -268,7 +302,7 @@
       var minute =      quantizationLevel <= OMHWebVisualizations.QUANTIZE_MINUTE? startDate.getMinutes():            quantizationLevel === OMHWebVisualizations.QUANTIZE_HOUR? 30: 0;
       var second =      quantizationLevel <= OMHWebVisualizations.QUANTIZE_SECOND? startDate.getSeconds():            quantizationLevel === OMHWebVisualizations.QUANTIZE_MINUTE? 30: 0;
       var millisecond = quantizationLevel <= OMHWebVisualizations.QUANTIZE_MILLISECOND? startDate.getMilliseconds():  quantizationLevel === OMHWebVisualizations.QUANTIZE_SECOND? 500: 0;
-      
+
       var plotDate = new Date( startDate.getFullYear(), month, day, hour, minute, second, millisecond );
 
       return plotDate;
@@ -281,9 +315,8 @@
       var parsedData = {};
 
       var _self = this;
+      omhData.forEach(function( omhDatum ) {
 
-      $.each( omhData, function( key, omhDatum ) {
-      
         //if there is more than one measure type in a body, set up refs
         //so that the interface can treat the data points as a group
 
@@ -292,8 +325,8 @@
         //order is defined by the measure list string, even if the
         //measures in data bodies are unordered, the same name
         //will be produced
-        
-        $.each( measuresToParse, function( i, measure ) {
+
+        measuresToParse.forEach(function( measure, i ) {
 
           var keyPath = getMeasureSettings( measure ).valueKeyPath;
           var valueAtKeyPath = resolveKeyPath( omhDatum, keyPath );
@@ -373,7 +406,9 @@
     var xScale = new Plottable.Scales.Time();
     var yScale = new Plottable.Scales.Linear();
     var domain = primaryMeasureSettings.range;
-    yScale.domainMin( domain.min ).domainMax( domain.max );
+    if( domain ){
+      yScale.domainMin( domain.min ).domainMax( domain.max );
+    }
 
     var xAxis = new Plottable.Axes.Time( xScale, 'bottom')
     .margin( 15 )
@@ -440,19 +475,21 @@
     var clusteredBarPlots = [];
     var clusteredBarPlotCount = 0;
     var secondaryYAxes = [];
-    $.each( measureData, function( measure, data ) {
+    d3.entries(measureData).forEach(function( entry ) {
+      measure = entry.key;
+      data = entry.value;
       if( getMeasureSettings( measure ).chart.type === 'clustered_bar' ) {
         clusteredBarPlotCount++;
       }
     } );
 
     //iterate across the data prepared from the omh json data
-    $.each( measures, function( j , measure ) {
+    measures.forEach(function( measure ) {
       if ( ! measureData.hasOwnProperty( measure ) ){
         return;
       }
       data = measureData[ measure ];
-      //debugger;
+
       var dataset = new Plottable.Dataset( data );
       var measureSettings = getMeasureSettings( measure );
       dataset.measure = measure;
@@ -500,7 +537,7 @@
         //prevent time axis from showing detail past the day level
         var axisConfigs = xAxis.axisConfigurations();
         var filteredAxisConfigs = [];
-        $.each( axisConfigs, function( index, config ) {
+        axisConfigs.forEach(function( config ) {
           if ( config[ 0 ].interval === 'day' || config[ 0 ].interval === 'month' ||  config[ 0 ].interval === 'year' ){
             filteredAxisConfigs.push( config );
           }
@@ -539,7 +576,9 @@
     .attr('stroke','#dedede')
     .attr('stroke-width', LINE_STROKE_WIDTH);
 
-    $.each( measureData, function( measure, data ) {
+    d3.entries(measureData).forEach(function( entry ) {
+      measure = entry.key;
+      data = entry.value;
 
       var thresholds = getMeasureSettings( measure ).thresholds;
 
@@ -566,7 +605,9 @@
       legend = new Plottable.Components.Legend( colorScale );
       var names = [];
       var colors = [];
-      $.each( measureData, function( measure, data ) {
+      d3.entries(measureData).forEach(function( entry ) {
+        measure = entry.key;
+        data = entry.value;
         var measureSettings = getMeasureSettings( measure );
         var name = measureSettings.seriesName;
         var color = measureSettings.chart.barColor;
@@ -611,7 +652,7 @@
     var yAxisGroup = new Plottable.Components.Group( [ yAxis, yLabel ] );
     var topRow = [ yAxisGroup, plotGroup ];
     var bottomRow = [ null, xAxis ];
-    $.each( secondaryYAxes, function( index, axisComponents ){
+    secondaryYAxes.forEach(function( axisComponents ){
       topRow.push( new Plottable.Components.Group( [ axisComponents.axis, axisComponents.label ] ) );
       bottomRow.push( null );
     });
@@ -627,16 +668,16 @@
     //limit the width of the timespan
     //eg so that bars do not have times under them etc
     var limits = primaryMeasureSettings.chart.daysShownOnTimeline;
-    var minDays = limits.min;
-    var maxDays = limits.max;
+    var minDays = limits? limits.min: false;
+    var maxDays = limits? limits.max: false;
 
-    
+
     var pzi = null;
     var pziXAxis = null;
 
     if ( interfaceSettings.panZoom.enabled ) {
 
-      //set up pan/zoom                
+      //set up pan/zoom
       pzi = new Plottable.Interactions.PanZoom();
       pzi.addXScale( xScale );
       //pzi.addYScale( yScale );
@@ -661,8 +702,10 @@
 
       //limit the width of the timespan on load so that bars do not get too narrow
       var measureExtentsData = [];
-      $.each( measureData, function( measure, data ) {
-        $.each( data, function( index, datum ) {
+      d3.entries(measureData).forEach(function( entry ) {
+        measure = entry.key;
+        data = entry.value;
+        data.forEach(function( datum ) {
           measureExtentsData.push( datum.x );
         });
       });
@@ -678,9 +721,9 @@
 
     var setZoomLevelByDays = function( timeInDays ){
 
-      var limits = primaryMeasureSettings.chart.daysShownOnTimeline;
-      var minDays = limits.min;
-      var maxDays = limits.max;
+      // var limits = primaryMeasureSettings.chart.daysShownOnTimeline;
+      // var minDays = limits? limits.min: false;
+      // var maxDays = limits? limits.max: false;
 
       if ( minDays ) {
         timeInDays = Math.max( timeInDays, minDays );
@@ -697,9 +740,9 @@
 
     var setZoomLevelByPercentageIncrement = function( percentage ){
 
-      var limits = primaryMeasureSettings.chart.daysShownOnTimeline;
-      var minDays = limits.min;
-      var maxDays = limits.max;
+      // var limits = primaryMeasureSettings.chart.daysShownOnTimeline;
+      // var minDays = limits? limits.min: false;
+      // var maxDays = limits? limits.max: false;
 
       var currentDomain = xScale.domain();
 
@@ -731,16 +774,14 @@
     };
 
     var clearZoomLevelButtonActiveStates = function(){
-      $('.time-button').removeClass('active');
+      d3.selectAll('.time-button').classed('active', false);
     };
 
-    var $toolbar = null;
+    var toolbar = null;
     if ( interfaceSettings.toolbar.enabled ){
-
-      $toolbar = $('<div></div>');
-      $toolbar.addClass('omh-chart-toolbar');
-      $toolbar.attr('unselectable', 'on');
-      $element.append( $toolbar );
+      toolbar = element.append("div")
+                    .classed('omh-chart-toolbar', true)
+                    .attr('unselectable', 'on');
 
       if ( interfaceSettings.timespanButtons.enabled ){
 
@@ -750,16 +791,17 @@
           '3m': 90,
           '6m': 180,
         };
-        $toolbar.append( $('<span class="time-buttons-label">Show: </span>') );
-        $.each( zoomLevels, function( label, days ){
-          if ( days <= maxDays && days >= minDays ){
-            var $button = $( '<span class="time-button">'+label+'</span>' );
+        toolbar.append("span").classed("time-buttons-label", true).text("Show: ");
+        d3.entries(zoomLevels).forEach(function( entry ) {
+          var days = entry.value;
+          var label = entry.key;
+          if ( ( !maxDays || days <= maxDays ) && ( !minDays || days >= minDays ) ){
+            var $button = toolbar.append("span").classed('time-button', true).text(label);
             $button.on( 'click', function(){
               clearZoomLevelButtonActiveStates();
               setZoomLevelByDays( days );
-              $( this ).addClass('active');
+              d3.select(this).classed('active', true);
             });
-            $toolbar.append( $button );
           }
         });
 
@@ -771,29 +813,30 @@
           '&#8722;': -20,
           '&#43;':    20,
         };
-        $toolbar.append( $('<span class="zoom-buttons-label"> Zoom: </span>') );
-        $.each( zoomPercentageIncrements, function( label, percentageIncrement ){
-          var $button = $( '<span class="zoom-button">'+label+'</span>' );
+        toolbar.append( "span" ).classed('zoom-buttons-label', true).text(' Zoom: ');
+        d3.entries(zoomPercentageIncrements).forEach(function( entry ){
+          var percentageIncrement = entry.value;
+          var label = entry.key;
+
+          var $button = toolbar.append('span').classed('zoom-button', true).html(label);
           $button.on( 'click', function(){
             clearZoomLevelButtonActiveStates();
             setZoomLevelByPercentageIncrement( percentageIncrement );
           });
-          $toolbar.append( $button );
         });
 
       }
 
       if ( interfaceSettings.navigation.enabled ){
-
-        var $prevButton = $('<span class="previous-time-period-button">< prev</span>').click( function(){
+        var $prevButton = toolbar.append('span', ":first-child").classed('previous-time-period-button', true).text('< prev');
+        $prevButton.on('click', function(){
           shiftVisibleTimeByPercentageIncrement( -100 );
         });
-        $toolbar.prepend( $prevButton );
-        var $nextButton = $('<span class="next-time-period-button">next ></span>').click( function(){
+
+        var $nextButton = toolbar.append('span').classed('next-time-period-button', true).text('next >');
+        $nextButton.on('click', function(){
           shiftVisibleTimeByPercentageIncrement( 100 );
         });
-        $toolbar.append( $nextButton );
-
       }
 
     }
@@ -819,10 +862,10 @@
 
       //change an entire group of points' appearances on hover
       var highlightGroup = function( groupName, index ){
-        $.each( entityHoverGroups[ groupName ][ index ], function( i, p ){ highlightPoint(p); } );
+        entityHoverGroups[ groupName ][ index ].forEach(function( p ){ highlightPoint(p); } );
       };
       var resetGroup = function(  groupName, index ){
-        $.each( entityHoverGroups[ groupName ][ index ], function( i, p ){ resetPoint(p); } );
+        entityHoverGroups[ groupName ][ index ].forEach(function( p ){ resetPoint(p); } );
       };
 
       var showToolTip = function( entity ){
@@ -834,7 +877,7 @@
           if( entity.selection[ 0 ][ 0 ].getBoundingClientRect().left >
               selection[ 0 ][ 0 ].getBoundingClientRect().left &&
               entity.selection[ 0 ][ 0 ].getBoundingClientRect().right <
-              selection[ 0 ][ 0 ].getBoundingClientRect().right 
+              selection[ 0 ][ 0 ].getBoundingClientRect().right
           ){
             showToolTip( entity );
           }else{
@@ -849,7 +892,7 @@
             showTooltipIfInBounds( hoverPoint );
           } else {
             var groupHoverPoint = tooltipHoverPointEntities[ hoverPoint.datum.omhDatum.groupName ][ hoverPoint.index ];
-            var tipHeight = $('.d3-tip')[ 0 ].clientHeight;
+            var tipHeight = d3.select('.d3-tip').node().clientHeight;
             if( groupHoverPoint.selection[ 0 ][ 0 ].getBoundingClientRect().top >
               selection[ 0 ][ 0 ].getBoundingClientRect().top + tipHeight ){
               showTooltipIfInBounds( groupHoverPoint );
@@ -944,8 +987,8 @@
         mouseWheelDispatcher.offWheel( wheelCallback );
       }
       showHoverPointTooltip && drag.offDrag( showHoverPointTooltip );
-      $toolbar && $toolbar.remove();
-      $.each( destroyers, function( index, destroyer ){
+      toolbar && toolbar.remove();
+      destroyers.forEach(function( destroyer ){
         destroyer();
       });
     };
@@ -970,7 +1013,7 @@
       //or share an index so that they can be used for group hovers
       tooltipHoverPointEntities = {};
       entityHoverGroups = {};
-      $.each( pointPlot.entities(), function( entityIndex, entity ) {
+      pointPlot.entities().forEach(function( entity ) {
 
         var groupName = entity.datum.omhDatum.groupName;
 
