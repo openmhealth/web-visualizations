@@ -78,14 +78,14 @@
             <span class="label">Data URL:</span> <input class="update-url" type="text" value="https://gist.githubusercontent.com/jasperSpeicher/3a6af8226182880d75d2/raw/1yr.json"></input>
           </p>
           <p>
-            <span class="label">Measure:</span> <select name="measures">
+            <span class="label">Measure:</span>
+            <select name="measures">
               <option value="body_weight">Body weight</option>
               <option value="heart_rate">Heart rate</option>
               <option value="systolic_blood_pressure, diastolic_blood_pressure" selected>Blood pressure</option>
               <option value="minutes_moderate_activity, step_count">Physical activity</option>
               <option value="distance">Distance</option>
             </select>
-            <button class="update-button">Update</button>
           </p>
       </div>
       <div class="demo-chart-container">
@@ -116,6 +116,8 @@
 
     var loadingMessage = d3.select('.loading-message');
     var datapointDetails = d3.select('.datapoint-details');
+    var clickInteraction = null;
+    var clickInteractionComponent = null;
 
     var hideLoadingMessage = function(){
       loadingMessage.remove();
@@ -154,12 +156,12 @@
           component.xAlignment('left');
 
         }
-
         if ( component instanceof Plottable.Plots.Scatter && component.datasets().length > 0 ) {
 
             scatterPlot = component;
 
-            var clickInteraction = new Plottable.Interactions.Click()
+            if (! clickInteraction ){
+                clickInteraction = new Plottable.Interactions.Click()
                 .onClick( function(point) {
                     var nearestEntity;
                     try {
@@ -169,10 +171,12 @@
                     }
                     updateDatapointDetails( nearestEntity.datum.omhDatum );
                 });
+            }
 
-           clickInteraction.attachTo( scatterPlot );
+            clickInteraction.attachTo( scatterPlot );
+            clickInteractionComponent = scatterPlot;
 
-           datapointDetails.html('<h3>Data Point Details</h3> Click on a point to see details here...');
+            datapointDetails.html('<h3>Data Point Details</h3> Click on a point to see details here...');
 
         }
 
@@ -186,6 +190,9 @@
 
         if ( chart ){
           chart.destroy();
+          if ( clickInteraction && clickInteractionComponent ){
+            clickInteraction.detachFrom( clickInteractionComponent );
+          }
         }
 
         //builds a new plottable chart
@@ -236,7 +243,7 @@
                 }
             },
             'systolic_blood_pressure': {
-                'thresholds': undefined,
+                'thresholds': { 'max': 120 },
                 'range': undefined,
                 'chart': {
                     'daysShownOnTimeline': { 'min': 0, 'max': Infinity }
@@ -254,7 +261,7 @@
     };
 
     //set up the UI elements
-    d3.select('.update-button').on('click', parseInputAndMakeChart );
+    d3.select('select').on('change', parseInputAndMakeChart );
 
     //make the chart when the document is loaded
     parseInputAndMakeChart();
