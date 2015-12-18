@@ -10,12 +10,19 @@
         font-size: 14px;
         color: #7B7B7B;
       }
+      * {
+        box-sizing: border-box;
+      }
       .page {
         max-width: 900px;
         margin: 0 auto;
       }
+      .label {
+        display: inline-block;
+        width: 70px;
+      }
       input[type=text] {
-        width: 200px;
+        width: 500px;
       }
       .chart-data-selector {
         border-bottom: 1px solid #eee;
@@ -30,6 +37,32 @@
       .demo-chart .table{
         margin-bottom: 0;
       }
+      .additional-information {
+        padding-bottom: 40px;
+        margin-bottom: 40px;
+      }
+      .datapoint-details {
+        padding: 10px;
+        white-space: pre;
+        width: 100%;
+        margin: 0 auto;
+        text-align: left;
+        border: 1px solid #eee;
+        font-family: Courier;
+      }
+      .datapoint-details h3 {
+        font-family: 'Open Sans', Helvetica, Arial, sans-serif;
+        display: block;
+        padding-bottom: 5px;
+        margin-top: 0;
+        font-weight: normal;
+        border-bottom: 1px solid #eee;
+      }
+      .loading-message {
+        font-style: italic;
+        padding-top: 50px;
+        text-align: center;
+      }
     </style>
   </head>
 
@@ -42,8 +75,10 @@
           </p>
 
           <p>
-            URL: <input class="update-url" type="text" value="https://gist.githubusercontent.com/jasperSpeicher/3a6af8226182880d75d2/raw/1yr.json"></input>
-            <select name="measures">
+            <span class="label">Data URL:</span> <input class="update-url" type="text" value="https://gist.githubusercontent.com/jasperSpeicher/3a6af8226182880d75d2/raw/1yr.json"></input>
+          </p>
+          <p>
+            <span class="label">Measure:</span> <select name="measures">
               <option value="body_weight">Body weight</option>
               <option value="heart_rate">Heart rate</option>
               <option value="systolic_blood_pressure, diastolic_blood_pressure" selected>Blood pressure</option>
@@ -54,8 +89,15 @@
           </p>
       </div>
       <div class="demo-chart-container">
+          <div class="loading-message">
+            loading data...
+          </div>
           <svg class="demo-chart">
           </svg>
+      </div>
+      <div class="additional-information">
+        <div class="datapoint-details">
+        </div>
       </div>
     </div>
   </body>
@@ -69,25 +111,29 @@
   <script>
 
     var chart = null;
+    var currentData = null;
+    var currentUrl = '';
 
-    var makeChartForUrl = function( url, $element, measureList, configOptions ){
+    var loadingMessage = d3.select('.loading-message');
+    var datapointDetails = d3.select('.datapoint-details');
 
-      d3.json( url, function( data ) {
-        if ( chart ){
-          chart.destroy();
-        }
+    var hideLoadingMessage = function(){
+      loadingMessage.remove();
+    };
 
-        //builds a new plottable chart
-        chart = new OMHWebVisualizations.Chart( data, $element, measureList, configOptions );
+    var updateDatapointDetails = function( datum ){
+      var replacer = function(key, value ) {
+          if ( key === 'groupName') {
+              return undefined;
+          }else{
+            return value;
+          }
+      };
+      datapointDetails.html( '<h3>Data Point Details</h3> ' + JSON.stringify( datum, replacer, 4 ) );
+    };
 
-        //customizes the chart's components
-        customizeChartComponents( chart.getComponents() );
-
-        //renders the chart to an svg element
-        chart.renderTo( $element.select("svg").node() );
-
-      });
-
+    var resetDatapointDetails = function(){
+      datapointDetails.html('<h3>Data Point Details</h3> Choose a measure that displays as a scatter plot to see details here.');
     };
 
     var customizeChartComponents = function( components ){
@@ -95,6 +141,8 @@
       //move any label overlayed on the bottom right
       //of the chart up to the top left
       var plots = components.plots;
+
+      resetDatapointDetails();
 
       plots.forEach(function( component ){
 
@@ -107,7 +155,63 @@
 
         }
 
+        if ( component instanceof Plottable.Plots.Scatter && component.datasets().length > 0 ) {
+
+            scatterPlot = component;
+
+            var clickInteraction = new Plottable.Interactions.Click()
+                .onClick( function(point) {
+                    var nearestEntity;
+                    try {
+                        nearestEntity = scatterPlot.entityNearest(point);
+                    } catch (e) {
+                        return;
+                    }
+                    updateDatapointDetails( nearestEntity.datum.omhDatum );
+                });
+
+           clickInteraction.attachTo( scatterPlot );
+
+           datapointDetails.html('<h3>Data Point Details</h3> Click on a point to see details here...');
+
+        }
+
       });
+
+    };
+
+    var makeChartForUrl = function( url, element, measureList, configOptions ){
+
+      var makeChart = function( data ) {
+
+        if ( chart ){
+          chart.destroy();
+        }
+
+        //builds a new plottable chart
+        chart = new OMHWebVisualizations.Chart( data, element, measureList, configOptions );
+
+        //customizes the chart's components
+        customizeChartComponents( chart.getComponents() );
+
+        //renders the chart to an svg element
+        chart.renderTo( element.select("svg").node() );
+
+        currentData = data;
+        hideLoadingMessage();
+
+      };
+
+      if ( url === currentUrl && currentData !== null ){
+
+        makeChart( currentData );
+
+      } else {
+
+        d3.json( url, makeChart );
+        currentUrl = url;
+
+      }
 
     };
 
@@ -130,6 +234,16 @@
                     'type' : 'clustered_bar',
                     'daysShownOnTimeline': { 'min': 90, 'max': 365 }
                 }
+            },
+            'systolic_blood_pressure': {
+                'thresholds': undefined,
+                'range': undefined,
+                'chart': {
+                    'daysShownOnTimeline': { 'min': 0, 'max': Infinity }
+                }
+            },
+            'diastolic_blood_pressure': {
+                'thresholds': undefined
             }
           }
       };
