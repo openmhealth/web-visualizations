@@ -31,7 +31,7 @@
   ],
   "dependencies": {
     "d3": "^3.5.5",
-    "plottable": "^1.10.0",
+    "plottable": "^2.0.0",
     "d3-tip": "~0.6.7",
     "moment": "~2.10.3"
   }
