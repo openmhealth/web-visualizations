@@ -195,11 +195,11 @@
       var merged = {};
 
       function set_attr(attr) {
-        if (merged[attr] == undefined) {
+        if (merged[attr] === undefined) {
           var val1 = obj1[attr];
           var val2 = obj2[attr];
 
-          if (typeof(val1) == typeof(val2) && typeof(val1) == "object") {
+          if (typeof(val1) === typeof(val2) && typeof(val1) === "object") {
             merged[attr] = merge_objects(val1 || {}, val2 || {});
           }
           else {
@@ -233,9 +233,9 @@
 
     var keyPathArrays = {};
     var resolveKeyPath = function( obj, keyPath ){
-      if ( obj == undefined ) return obj;
+      if ( obj === undefined ) return obj;
       var r;
-      if ( typeof keyPath == 'string' ){
+      if ( typeof keyPath === 'string' ){
         if ( !keyPathArrays[ keyPath ] ){
           keyPathArrays[ keyPath ] = keyPath.split('.');
         }
@@ -279,18 +279,21 @@
       };
 
       //figure out the duration in milliseconds of the timeframe
+      //the timeframe could be a start and end, or it could be just one and a duration
       var unit  = interval['duration']['unit'];
-      var duration = interval['duration']['value'];
+      var duration = interval['duration'] ? interval['duration']['value'] : null;
       var durationMs;
       var durationUnitLength = durations[ unit ];
-      if ( typeof durationUnitLength !== 'string'){
-        durationMs = duration * durationUnitLength;
-        if ( ! startTime ){ startTime = endTime - duration; }
-        if ( ! endTime ){ endTime = startTime + duration; }
-      } else {
-        if ( ! startTime ){ startTime = endTimeObject.subtract( duration, durations[ unit ] ).valueOf(); }
-        if ( ! endTime ){ endTime = startTimeObject.add( duration, durations[ unit ] ).valueOf(); }
-        durationMs = endTime - startTime;
+      //if there is a duration, use it to determine the missing start or end time
+      if ( duration ){
+        if ( typeof durationUnitLength !== 'string'){
+          durationMs = duration * durationUnitLength;
+          if ( ! startTime ){ startTime = endTime - durationMs; }
+          if ( ! endTime ){ endTime = startTime + durationMs; }
+        } else {
+          if ( ! startTime ){ startTime = endTimeObject.subtract( duration, durations[ unit ] ).valueOf(); }
+          if ( ! endTime ){ endTime = startTimeObject.add( duration, durations[ unit ] ).valueOf(); }
+        }
       }
 
       var startDate = new Date( startTime );
@@ -315,7 +318,7 @@
       var parsedData = {};
 
       var _self = this;
-      omhData.forEach(function( omhDatum ) {
+      omhData.forEach( function( omhDatum ) {
 
         //if there is more than one measure type in a body, set up refs
         //so that the interface can treat the data points as a group
@@ -325,6 +328,8 @@
         //order is defined by the measure list string, even if the
         //measures in data bodies are unordered, the same name
         //will be produced
+
+        omhDatum.groupName = "";
 
         measuresToParse.forEach(function( measure, i ) {
 
@@ -360,7 +365,7 @@
                'x': date,
                'provider': omhDatum.header.acquisition_provenance.source_name,
                'omhDatum': omhDatum,
-               'hasTooltip': i == 0, // the tooltip is associated with the first measure in the group
+               'hasTooltip': i === 0, // the tooltip is associated with the first measure in the group
                'measure': measure
              });
 
@@ -374,7 +379,9 @@
 
     };
 
-    measureData = this.parseOmhData( data, measures, moment );
+    //deep copy data passed in so that it is not altered when we add group names
+    dataCopy = JSON.parse( JSON.stringify( data ) );
+    measureData = this.parseOmhData( dataCopy, measures, moment );
 
 
     //consolidate data points at the same time coordinates, as needed
@@ -475,20 +482,19 @@
     var clusteredBarPlots = [];
     var clusteredBarPlotCount = 0;
     var secondaryYAxes = [];
-    d3.entries(measureData).forEach(function( entry ) {
-      measure = entry.key;
-      data = entry.value;
+    d3.entries( measureData ).forEach( function( entry ) {
+      var measure = entry.key;
       if( getMeasureSettings( measure ).chart.type === 'clustered_bar' ) {
         clusteredBarPlotCount++;
       }
     } );
 
     //iterate across the data prepared from the omh json data
-    measures.forEach(function( measure ) {
+    measures.forEach( function( measure ) {
       if ( ! measureData.hasOwnProperty( measure ) ){
         return;
       }
-      data = measureData[ measure ];
+      var data = measureData[ measure ];
 
       var dataset = new Plottable.Dataset( data );
       var measureSettings = getMeasureSettings( measure );
@@ -576,7 +582,7 @@
     .attr('stroke','#dedede')
     .attr('stroke-width', LINE_STROKE_WIDTH);
 
-    d3.entries(measureData).forEach(function( entry ) {
+    d3.entries( measureData ).forEach(function( entry ) {
       measure = entry.key;
       data = entry.value;
 
@@ -605,9 +611,8 @@
       legend = new Plottable.Components.Legend( colorScale );
       var names = [];
       var colors = [];
-      d3.entries(measureData).forEach(function( entry ) {
-        measure = entry.key;
-        data = entry.value;
+      d3.entries( measureData ).forEach(function( entry ) {
+        var measure = entry.key;
         var measureSettings = getMeasureSettings( measure );
         var name = measureSettings.seriesName;
         var color = measureSettings.chart.barColor;
@@ -703,8 +708,7 @@
       //limit the width of the timespan on load so that bars do not get too narrow
       var measureExtentsData = [];
       d3.entries(measureData).forEach(function( entry ) {
-        measure = entry.key;
-        data = entry.value;
+        var data = entry.value;
         data.forEach(function( datum ) {
           measureExtentsData.push( datum.x );
         });
