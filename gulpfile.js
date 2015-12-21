@@ -18,6 +18,9 @@
  * limitations under the License.
  */
 
+//Load Karma
+var KarmaServer = require('karma').Server;
+
 // Load plugins
 var gulp = require('gulp'),
     less = require('gulp-less'),
@@ -33,7 +36,7 @@ var gulp = require('gulp'),
     del = require('del');
 
 // Styles
-gulp.task('concatenated-styles', function() {
+gulp.task('generate-concatenated-styles', function() {
   return gulp.src(['src/*.less','!src/styles-common.less'])
     .pipe(concat('omh-web-visualizations-all.css'))
     .pipe(less())
@@ -44,7 +47,7 @@ gulp.task('concatenated-styles', function() {
     .pipe(gulp.dest('dist'))
     .pipe(notify({ message: 'Concatenated styles task complete' }));
 });
-gulp.task('component-styles', function() {
+gulp.task('generate-component-styles', function() {
   return gulp.src(['src/*.less','!src/styles-common.less'])
     .pipe(less())
     .pipe(autoprefixer('last 2 version'))
@@ -57,7 +60,7 @@ gulp.task('component-styles', function() {
 });
 
 // Scripts
-gulp.task('concatenated-script', function() {
+gulp.task('generate-concatenated-script', function() {
   return gulp.src('src/*.js')
     .pipe(jshint('.jshintrc'))
     .pipe(jshint.reporter('default'))
@@ -68,7 +71,7 @@ gulp.task('concatenated-script', function() {
     .pipe(gulp.dest('dist'))
     .pipe(notify({ message: 'Scripts concat task complete' }));
 });
-gulp.task('component-scripts', function(){
+gulp.task('generate-component-scripts', function(){
   return gulp.src('src/*.js')
     .pipe(jshint('.jshintrc'))
     .pipe(jshint.reporter('default'))
@@ -80,6 +83,23 @@ gulp.task('component-scripts', function(){
     .pipe(notify({ message: 'Scripts copy task complete' }));
 });
 
+// Run test once and exit
+gulp.task('test-scripts', function (done) {
+  new KarmaServer({
+    configFile: __dirname + '/karma.conf.js',
+    singleRun: true,
+    autoWatch: false
+    }, function() {
+        done();
+  }).start();
+});
+
+// Watch for file changes and re-run tests on each change
+gulp.task('tdd', function (done) {
+  new KarmaServer({
+    configFile: __dirname + '/karma.conf.js'
+  }, done).start();
+});
 
 // Clean
 gulp.task('clean', function(cb) {
@@ -88,17 +108,17 @@ gulp.task('clean', function(cb) {
 
 // Default task
 gulp.task('default', ['clean'], function() {
-    gulp.start(['component-styles','concatenated-styles'], ['component-scripts','concatenated-script']);
+    gulp.start(['generate-component-styles','generate-concatenated-styles'], ['generate-component-scripts','generate-concatenated-script']);
 });
 
 // Watch
 gulp.task('watch', function() {
 
   // Watch .scss files
-  gulp.watch('src/*.less', ['component-styles','concatenated-styles']);
+  gulp.watch('src/*.less', ['generate-component-styles','generate-concatenated-styles']);
 
   // Watch .js files
-  gulp.watch('src/*.js', ['component-scripts','concatenated-script']);
+  gulp.watch(['src/*.js','test/*.js'], ['test-scripts','generate-component-scripts','generate-concatenated-script']);
 
   // Create LiveReload server
   livereload.listen();
