@@ -49,6 +49,7 @@
         text-align: left;
         border: 1px solid #eee;
         font-family: Courier;
+        overflow-x: auto;
       }
       .datapoint-details h3 {
         font-family: 'Open Sans', Helvetica, Arial, sans-serif;
@@ -60,8 +61,13 @@
       }
       .loading-message {
         font-style: italic;
-        padding-top: 50px;
+        padding-top: 150px;
+        padding-bottom: 150px;
         text-align: center;
+      }
+      .loading-message.hidden,
+      svg.plottable.hidden {
+        display: none;
       }
     </style>
   </head>
@@ -75,22 +81,23 @@
           </p>
 
           <p>
-            <span class="label">Data URL:</span> <input class="update-url" type="text" value="https://gist.githubusercontent.com/jasperSpeicher/3a6af8226182880d75d2/raw/1yr.json"></input>
+            <span class="label">Data URL:</span> <input class="update-url" type="text" value="https://gist.githubusercontent.com/jasperSpeicher/3a6af8226182880d75d2/raw/1yr.json"></input> <button class="update-button">update</button>
           </p>
           <p>
             <span class="label">Measure:</span>
-            <select name="measures">
+            <select name="measures" class="measure-select">
               <option value="body_weight">Body weight</option>
               <option value="heart_rate">Heart rate</option>
               <option value="systolic_blood_pressure, diastolic_blood_pressure" selected>Blood pressure</option>
               <option value="minutes_moderate_activity, step_count">Physical activity</option>
+              <option value="step_count">Just step count</option>
               <option value="distance">Distance</option>
             </select>
           </p>
       </div>
       <div class="demo-chart-container">
           <div class="loading-message">
-            loading data...
+            Loading data...
           </div>
           <svg class="demo-chart">
           </svg>
@@ -110,7 +117,13 @@
 
   <script>
 
+    /*=================================================================
+    =            Variable defninitions and initializations            =
+    =================================================================*/
+
     var chart = null;
+
+    //data is reused if url is not changed
     var currentData = null;
     var currentUrl = '';
 
@@ -119,8 +132,69 @@
     var clickInteraction = null;
     var clickInteractionComponent = null;
 
+    //an example of some options for custom chart appearance
+    var options = {
+        'measures': {
+          'distance': {
+              'valueKeyPath': 'body.distance.value',
+              'range': { 'min':0, 'max':10000 },
+              'units': 'm',
+              'timeQuantizationLevel': OMHWebVisualizations.QUANTIZE_MONTH,
+              'seriesName': 'Distance',
+              'chart': {
+                  'type' : 'clustered_bar',
+                  'daysShownOnTimeline': { 'min': 90, 'max': 365 }
+              }
+          },
+          'systolic_blood_pressure': {
+              'thresholds': { 'max': 120 },
+              'range': undefined,
+              'chart': {
+                  'daysShownOnTimeline': { 'min': 0, 'max': Infinity }
+              }
+          },
+          'diastolic_blood_pressure': {
+              'thresholds': undefined
+          }
+        }
+    };
+
+    /*=====  End of Variable defninitions and initializations  ======*/
+
+
+    /*===================================================
+    =            Example UI helper functions            =
+    ===================================================*/
+    
     var hideLoadingMessage = function(){
-      loadingMessage.remove();
+      loadingMessage.classed('hidden',true);
+    };
+
+    var updateLoadingMessage = function( amountLoaded ){
+      loadingMessage.classed('hidden',false);
+      loadingMessage.text('Loading data... ' + Math.round( amountLoaded * 100 ) + '%');
+    };
+
+    var showLoadingError = function( error ){
+      loadingMessage.classed('hidden',false);
+      loadingMessage.html('There was an error while trying to load the data: <pre>' + JSON.stringify( error ) + '</pre>');
+    };
+
+    var hideChart = function(){
+      d3.select('.demo-chart').classed('hidden', true);
+    };
+
+    var showChart = function(){
+      d3.select('.demo-chart').classed('hidden', false);
+    };
+
+    var disableUI = function() {
+      d3.select('.measure-select').property('disabled',true);
+      d3.select('.update-button').property('disabled',true);
+    };
+    var enableUI = function() {
+      d3.select('.measure-select').property('disabled',false);
+      d3.select('.update-button').property('disabled',false);
     };
 
     var updateDatapointDetails = function( datum ){
@@ -137,6 +211,13 @@
     var resetDatapointDetails = function(){
       datapointDetails.html('<h3>Data Point Details</h3> Choose a measure that displays as a scatter plot to see details here.');
     };
+    
+    /*=====  End of Example UI helper functions  ======*/
+    
+
+    /*====================================================
+    =            Chart construction functions            =
+    ====================================================*/
 
     var customizeChartComponents = function( components ){
 
@@ -188,6 +269,11 @@
 
       var makeChart = function( data ) {
 
+        //if data is from shimmer, the points are in an array called 'body'
+        if ( data.hasOwnProperty('body') ) {
+          data = data.body;
+        }
+
         if ( chart ){
           chart.destroy();
           if ( clickInteraction && clickInteractionComponent ){
@@ -198,16 +284,31 @@
         //builds a new plottable chart
         chart = new OMHWebVisualizations.Chart( data, element, measureList, configOptions );
 
-        //customizes the chart's components
-        customizeChartComponents( chart.getComponents() );
+        if ( chart.initialized ){
+          
+          //customizes the chart's components
+          customizeChartComponents( chart.getComponents() );
 
-        //renders the chart to an svg element
-        chart.renderTo( element.select("svg").node() );
+          //renders the chart to an svg element
+          showChart();
+          hideLoadingMessage();
+          chart.renderTo( element.select("svg").node() );
 
-        currentData = data;
-        hideLoadingMessage();
+          currentData = data;
+          currentUrl = url;
+
+
+        } else {
+
+          showLoadingError( 'Chart could not be initialized with the arguments supplied.' );
+
+        }
+
+        enableUI();
 
       };
+
+      disableUI();
 
       if ( url === currentUrl && currentData !== null ){
 
@@ -215,53 +316,63 @@
 
       } else {
 
-        d3.json( url, makeChart );
-        currentUrl = url;
+        hideChart();
+
+        var xhr = d3.json(url)
+            .on("progress", function() { updateLoadingMessage( d3.event.loaded/d3.event.total ); })
+            .on("load", function(json) { makeChart( json ); })
+            .on("error", function(error) { showLoadingError( error ); })
+            .get();
 
       }
 
+
+    };
+
+    var cloneObject = function( object ){
+      return JSON.parse( JSON.stringify( object ) );
     };
 
     var parseInputAndMakeChart = function(){
 
-      //collect the user's input
+      // Collect the user's input
       var url = d3.select('input.update-url').node().value;
       var measureList = d3.select('select').node().value;
 
-      //an example of some options for a distance chart
-      var options = {
-          'measures': {
-            'distance': {
-                'valueKeyPath': 'body.distance.value',
-                'range': { 'min':0, 'max':10000 },
-                'units': 'm',
-                'timeQuantizationLevel': OMHWebVisualizations.QUANTIZE_MONTH,
-                'seriesName': 'Distance',
-                'chart': {
-                    'type' : 'clustered_bar',
-                    'daysShownOnTimeline': { 'min': 90, 'max': 365 }
-                }
-            },
-            'systolic_blood_pressure': {
-                'thresholds': { 'max': 120 },
-                'range': undefined,
-                'chart': {
-                    'daysShownOnTimeline': { 'min': 0, 'max': Infinity }
-                }
-            },
-            'diastolic_blood_pressure': {
-                'thresholds': undefined
-            }
-          }
-      };
+      // Use options specified at top of script, but overwrite
+      // the step_count options if it has been chosen in the menu.
 
-      //make the chart
-      makeChartForUrl( url, d3.select('.demo-chart-container'), measureList, options );
+      // This allows us to change the appearance of step_count data,
+      // which normally defaults to a bar graph.
+
+      var chartOptions = options;
+
+      if ( measureList === 'step_count' ) {
+
+        chartOptions = cloneObject( options );
+
+        chartOptions['measures']['step_count'] = {
+            'range': undefined,
+            'timeQuantizationLevel': OMHWebVisualizations.QUANTIZE_NONE,
+            'chart': {
+                'type' : 'line',
+                'daysShownOnTimeline': undefined
+            }
+        };
+
+      }
+
+      // Make the chart
+      makeChartForUrl( url, d3.select('.demo-chart-container'), measureList, chartOptions );
 
     };
 
+    /*=====  End of Chart construction functions  ======*/
+
+
     //set up the UI elements
     d3.select('select').on('change', parseInputAndMakeChart );
+    d3.select('.update-button').on('click', parseInputAndMakeChart );
 
     //make the chart when the document is loaded
     parseInputAndMakeChart();
