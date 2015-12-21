@@ -300,6 +300,7 @@
 
         } else {
 
+          hideChart();
           showLoadingError( 'Chart could not be initialized with the arguments supplied.' );
 
         }
@@ -321,7 +322,7 @@
         var xhr = d3.json(url)
             .on("progress", function() { updateLoadingMessage( d3.event.loaded/d3.event.total ); })
             .on("load", function(json) { makeChart( json ); })
-            .on("error", function(error) { showLoadingError( error ); })
+            .on("error", function(error) { hideChart(); showLoadingError( error ); })
             .get();
 
       }
