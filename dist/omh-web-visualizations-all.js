@@ -39,6 +39,8 @@
     var LINE_STROKE_WIDTH = '1px';
     var POINT_STROKE_WIDTH = '1px';
 
+    this.initialized = false;
+
     // if the element passed in is a jQuery element, then get the dom element
     if ( typeof jQuery === 'function' && element instanceof jQuery ){
       element = element[0];
@@ -150,6 +152,8 @@
     //public method for getting the plottable chart component
     this.getComponents = function(){
 
+      if ( !this.initialized ){ return {}; }
+
       //init the axes, scales, and labels objects with the default measure components
       var yScales = {}; yScales[ measures[0] ] = yScale;
       var yAxes = {}; yAxes[ measures[0] ] = yAxis;
@@ -211,11 +215,13 @@
         }
       }
 
-      for (var attrname in obj1)
+      for (var attrname in obj1) {
         set_attr(attrname);
+      }
 
-      for (var attrname in obj2)
+      for (attrname in obj2) {
         set_attr(attrname);
+      }
 
       return merged;
     }
@@ -280,12 +286,12 @@
 
       //figure out the duration in milliseconds of the timeframe
       //the timeframe could be a start and end, or it could be just one and a duration
-      var unit  = interval['duration']['unit'];
       var duration = interval['duration'] ? interval['duration']['value'] : null;
-      var durationMs;
-      var durationUnitLength = durations[ unit ];
       //if there is a duration, use it to determine the missing start or end time
       if ( duration ){
+        var unit = interval['duration']['unit'];
+        var durationMs;
+        var durationUnitLength = durations[ unit ];
         if ( typeof durationUnitLength !== 'string'){
           durationMs = duration * durationUnitLength;
           if ( ! startTime ){ startTime = endTime - durationMs; }
@@ -318,6 +324,13 @@
       var parsedData = {};
 
       var _self = this;
+
+      //if there is no data, return an empty object
+      if ( !( omhData ) || omhData.length === 0 ){
+        return parsedData;
+      }
+
+
       omhData.forEach( function( omhDatum ) {
 
         //if there is more than one measure type in a body, set up refs
@@ -382,6 +395,11 @@
     //deep copy data passed in so that it is not altered when we add group names
     dataCopy = JSON.parse( JSON.stringify( data ) );
     measureData = this.parseOmhData( dataCopy, measures, moment );
+
+    if( Object.keys( measureData ).length === 0 ){
+      console.log( "Warning: no data of the specified type could be found." );
+      return;
+    }
 
 
     //consolidate data points at the same time coordinates, as needed
@@ -1000,6 +1018,11 @@
     //render chart
     this.renderTo = function( svgElement ){
 
+      if ( !this.initialized ){
+        console.log("Warning: chart could not be rendered because it was not successfully initialized.")
+        return;
+      }
+
       //invoke the tip in the context of the chart
       selection = d3.select( svgElement );
       tip && selection.call( tip );
@@ -1040,6 +1063,7 @@
 
     };
 
+    this.initialized = true;
 
   };
 
