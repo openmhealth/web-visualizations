@@ -208,9 +208,11 @@
       datapointDetails.html( '<h3>Data Point Details</h3> ' + JSON.stringify( datum, replacer, 4 ) );
     };
 
-    var resetDatapointDetails = function(){
-      datapointDetails.html('<h3>Data Point Details</h3> Choose a measure that displays as a scatter plot to see details here.');
+    var showDatapointDetailsMessage = function( message ){
+      datapointDetails.html('<h3>Data Point Details</h3> '+message);
     };
+
+
     
     /*=====  End of Example UI helper functions  ======*/
     
@@ -225,7 +227,7 @@
       //of the chart up to the top left
       var plots = components.plots;
 
-      resetDatapointDetails();
+      showDatapointDetailsMessage('Choose a measure that displays as a scatter plot to see details here.');
 
       plots.forEach(function( component ){
 
@@ -257,7 +259,7 @@
             clickInteraction.attachTo( scatterPlot );
             clickInteractionComponent = scatterPlot;
 
-            datapointDetails.html('<h3>Data Point Details</h3> Click on a point to see details here...');
+            showDatapointDetailsMessage('Click on a point to see details here...');
 
         }
 
