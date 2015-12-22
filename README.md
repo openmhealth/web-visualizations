@@ -53,6 +53,8 @@ Argument | Description
 
 The easiest way to create data points to pass to the `data` parameter is to use our [sample data generator](https://github.com/openmhealth/sample-data-generator). You can either use a pre-generated [data set](https://github.com/openmhealth/sample-data-generator/releases/download/v1.0.0/one-year-of-data.json.gz), or download the generator itself to create data that fits your needs.
 
+A chart is considered *initialized* if the constructor `OMHWebVisualizations.Chart(...);` completes. If, for example, no measures specified in the `measureList` argument can be found in the `data` argument, the constructor will not complete, and the chart will not be initialized. Initialization state is tracked by the `Chart.initialized` property, which can be used as a condition for rendering a chart or requesting its components after construction.
+
 ###Configuring a chart
 
 The `options` parameter of the `OMHWebVisualization.Chart(...)` function is divided into two sections. A `userInterface` section controls the UI of the chart as a whole. The `measures` section contains settings that customize charts for specific measures. 
@@ -175,7 +177,7 @@ This will produce a chart that looks something like the following screenshot:
 
 Quantization reduces the dataset's size by summarizing each group of points that fall into a common time range, or "bucket," with a single point that represents their bucket's range.
 
-Currently, quantized data point values within each subsequent quantization bucket are *summed*. This is useful for measures like `step_count`, which accumulate naturally over time. It should not be used for measures that are not cumulative, such as `blood_pressure`.
+Currently, quantized data point values within each subsequent quantization bucket are *summed*. This is useful for additive measures like `step_count`, which accumulate naturally over time. It should not be used for measures that are not additive, such as `blood_pressure`.
 
 If you wish to configure the `timeQuantizationLevel` for a measure, you will need the following constants:
 
@@ -213,15 +215,11 @@ var options = {
 Here is a chart of some *unquantized* data:
 ![Unquantized Data](http://www.openmhealth.org/media/viz_example_unquantized_data.png "Unquantized Data")
 
-As an example, the data will be quantized by hour using OMHWebVisualizations.QUANTIZE_HOUR. Thus all points in the hour from 4am to 4:59am will be *summed* into a single point. The *unquantized* points in this hour are shown below in a zoomed-in view of the minutes just before 5am:
+As an example, the data will be quantized by hour using `OMHWebVisualizations.QUANTIZE_HOUR`. Thus all points in the hour from 04:00 to 05:00 will be *summed* into a single point. The *unquantized* points in this hour are shown below in a zoomed-in view of the minutes just before 05:00:
 ![Unquantized Data Detail](http://www.openmhealth.org/media/viz_example_unquantized_data_detail1.png "Unquantized Data Detail")
 
-And here is a chart of the same data *quantized* by hour. The points before 5am in the zoomed-in view above have been accumulated into a single point, shown in dark blue:
+And here is a chart of the same data *quantized* by hour. The points before 05:00 in the zoomed-in view above have been accumulated into a single point, shown in dark blue:
 ![Quantized Data](http://www.openmhealth.org/media/viz_example_quantized_data.png "Quantized Data")
-
-### Initialization
-
-A chart is considered *initialized* if its constructor `OMHWebVisualizations.Chart( data, element, measureList, options );` completes. If, for example, no measures specified in the `measureList` argument can be found in the `data` argument, the constructor will not complete, and the chart will not be initialized. Initialization state is tracked by the `Chart.initialized` property, which can be used as a condition for rendering a chart or requesting its components after construction.
 
 ###Rendering a chart
 
