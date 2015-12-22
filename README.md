@@ -214,7 +214,7 @@ Here is a chart of some *unquantized* data:
 ![Unquantized Data](http://www.openmhealth.org/media/viz_example_unquantized_data.png "Unquantized Data")
 
 As an example, the data will be quantized by hour using OMHWebVisualizations.QUANTIZE_HOUR. Thus all points in the hour from 4am to 4:59am will be *summed* into a single point. The *unquantized* points in this hour are shown below in a zoomed-in view of the minutes just before 5am:
-![Unquantized Data Detail](http://www.openmhealth.org/media/viz_example_unquantized_data_detail.png "Unquantized Data Detail")
+![Unquantized Data Detail](http://www.openmhealth.org/media/viz_example_unquantized_data_detail1.png "Unquantized Data Detail")
 
 And here is a chart of the same data *quantized* by hour. The points before 5am in the zoomed-in view above have been accumulated into a single point, shown in dark blue:
 ![Quantized Data](http://www.openmhealth.org/media/viz_example_quantized_data.png "Quantized Data")
