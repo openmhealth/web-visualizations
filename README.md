@@ -171,7 +171,7 @@ This will produce a chart that looks something like the following screenshot:
 
 ![Configured Chart](http://www.openmhealth.org/media/viz_example_user_options.png "Configured Chart")
 
-#### Quantization
+### Quantization
 
 Quantization reduces the dataset's size by summarizing each group of points that fall into a common time range, or "bucket," with a single point that represents their bucket's range.
 
@@ -208,7 +208,7 @@ var options = {
     }
 };
 ```
-### Quantization Example
+#### Quantization Example
 
 Here is a chart of some *unquantized* data:
 ![Unquantized Data](http://www.openmhealth.org/media/viz_example_unquantized_data.png "Unquantized Data")
