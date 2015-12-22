@@ -171,7 +171,11 @@ This will produce a chart that looks something like the following screenshot:
 
 ![Configured Chart](http://www.openmhealth.org/media/viz_example_user_options.png "Configured Chart")
 
-#### Quantization configuration
+#### Quantization
+
+Quantization reduces the dataset's size by summarizing each group of points that fall into a common time range, or "bucket," with a single point that represents their bucket's range.
+
+Currently, quantized data point values within each subsequent quantization bucket are *summed*. This is useful for measures like `step_count`, which accumulate naturally over time. It should not be used for measures that are not cumulative, such as `blood_pressure`.
 
 If you wish to configure the `timeQuantizationLevel` for a measure, you will need the following constants:
 
@@ -204,6 +208,17 @@ var options = {
     }
 };
 ```
+### Quantization Example
+
+Here is a chart of some *unquantized* data:
+![Unquantized Data](http://www.openmhealth.org/media/viz_example_unquantized_data.png "Unquantized Data")
+
+As an example, the data will be quantized by hour using OMHWebVisualizations.QUANTIZE_HOUR. Thus all points in the hour from 4am to 4:59am will be *summed* into a single point. The *unquantized* points in this hour are shown below in a zoomed-in view of the minutes just before 5am:
+![Unquantized Data Detail](http://www.openmhealth.org/media/viz_example_unquantized_data_detail.png "Unquantized Data Detail")
+
+And here is a chart of the same data *quantized* by hour. The points before 5am in the zoomed-in view above have been accumulated into a single point, shown in dark blue:
+![Quantized Data](http://www.openmhealth.org/media/viz_example_quantized_data.png "Quantized Data")
+
 
 ###Rendering a chart
 
