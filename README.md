@@ -47,7 +47,7 @@ The arguments passed to the constructor are:
 Argument | Description
 ---: | ---
 *data* | An array of Open mHealth structured data points.
-*element* | A dom element, such as a `<div>` containing an `<svg>` node. This can also be a jQuery object.
+*element* | A dom element, such as a `<div>` containing an `<svg>` node. This can also be a D3 selection.
 *measureList* | A string containing a comma-separated list of Open mHealth measures to display.
 *options* | An object with [settings](#configuring_a_chart) for the chart. If this is omitted or if an empty object is passed in, the function uses the default settings explained below.
 
