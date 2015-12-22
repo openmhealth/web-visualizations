@@ -221,7 +221,7 @@ And here is a chart of the same data *quantized* by hour. The points before 5am 
 
 ### Initialization
 
-A chart is considered *initialized* if its constructor `OMHWebVisualizations.Chart( data, element, measureList, options );` completes. If, for example, no measures specified in the measureList argument can be found in the data argument, the constructor will not complete, and the chart will not be initialized. Initialization state is tracked by the `Chart.initialized` property, which can be used as a condition for rendering a chart or requesting its components after construction.
+A chart is considered *initialized* if its constructor `OMHWebVisualizations.Chart( data, element, measureList, options );` completes. If, for example, no measures specified in the `measureList` argument can be found in the `data` argument, the constructor will not complete, and the chart will not be initialized. Initialization state is tracked by the `Chart.initialized` property, which can be used as a condition for rendering a chart or requesting its components after construction.
 
 ###Rendering a chart
 
