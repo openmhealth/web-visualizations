@@ -219,6 +219,9 @@ As an example, the data will be quantized by hour using OMHWebVisualizations.QUA
 And here is a chart of the same data *quantized* by hour. The points before 5am in the zoomed-in view above have been accumulated into a single point, shown in dark blue:
 ![Quantized Data](http://www.openmhealth.org/media/viz_example_quantized_data.png "Quantized Data")
 
+### Initialization
+
+A chart is considered *initialized* if its constructor `OMHWebVisualizations.Chart( data, element, measureList, options );` completes. If, for example, no measures specified in the measureList argument can be found in the data argument, the constructor will not complete, and the chart will not be initialized. Initialization state is tracked by the `Chart.initialized` property, which can be used as a condition for rendering a chart or requesting its components after construction.
 
 ###Rendering a chart
 
@@ -230,14 +233,22 @@ chart.renderTo( svgElement );
 
 ###Further customizations
 
-After a chart has been constructed, but *before it is rendered*, you may choose to get the Plottable components and make further modifications that are not afforded by the constructor's `options` parameter. Get the Plottable components, modify them, and render the chart by calling:
+After a chart has been constructed, but *before it is rendered*, you may choose to get the Plottable components and make further modifications that are not afforded by the constructor's `options` parameter. Get the Plottable components, modify them, and render the chart as follows:
 
 ```javascript
-var components = chart.getComponents();
 
-// modify plottable components here...
+// construct chart here...
 
-chart.renderTo( svgElement );
+if (chart.initialized) {
+   
+   var components = chart.getComponents();
+
+   // modify plottable components here...
+
+   chart.renderTo( svgElement );
+
+}
+
 ```
 
 To see an example of component modification, check out the `examples/charts.html` file in this repository.
