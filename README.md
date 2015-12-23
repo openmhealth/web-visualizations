@@ -47,11 +47,13 @@ The arguments passed to the constructor are:
 Argument | Description
 ---: | ---
 *data* | An array of Open mHealth structured data points.
-*element* | A dom element, such as a `<div>` containing an `<svg>` node. This can also be a jQuery object.
+*element* | A dom element, such as a `<div>` containing an `<svg>` node. This can also be a D3 selection. For backward compatibility, it can also be a jQuery object, however this functionality is deprecated and may be removed in a future release.
 *measureList* | A string containing a comma-separated list of Open mHealth measures to display.
 *options* | An object with [settings](#configuring_a_chart) for the chart. If this is omitted or if an empty object is passed in, the function uses the default settings explained below.
 
 The easiest way to create data points to pass to the `data` parameter is to use our [sample data generator](https://github.com/openmhealth/sample-data-generator). You can either use a pre-generated [data set](https://github.com/openmhealth/sample-data-generator/releases/download/v1.0.0/one-year-of-data.json.gz), or download the generator itself to create data that fits your needs.
+
+A chart is considered *initialized* if the constructor `OMHWebVisualizations.Chart(...);` completes. If, for example, no measures specified in the `measureList` argument can be found in the `data` argument, the constructor will not complete, and the chart will not be initialized. Initialization state is tracked by the `Chart.initialized` property, which can be used as a condition for rendering a chart or requesting its components after construction.
 
 ###Configuring a chart
 
@@ -171,7 +173,11 @@ This will produce a chart that looks something like the following screenshot:
 
 ![Configured Chart](http://www.openmhealth.org/media/viz_example_user_options.png "Configured Chart")
 
-#### Quantization configuration
+### Quantization
+
+Quantization reduces the dataset's size by summarizing each group of points that fall into a common time range, or "bucket," with a single point that represents their bucket's range.
+
+Currently, quantized data point values within each subsequent quantization bucket are *summed*. This is useful for additive measures like `step_count`, which accumulate naturally over time. It should not be used for measures that are not additive, such as `blood_pressure`.
 
 If you wish to configure the `timeQuantizationLevel` for a measure, you will need the following constants:
 
@@ -204,6 +210,16 @@ var options = {
     }
 };
 ```
+#### Quantization Example
+
+Here is a chart of some *unquantized* data:
+![Unquantized Data](http://www.openmhealth.org/media/viz_example_unquantized_data.png "Unquantized Data")
+
+As an example, the data will be quantized by hour using `OMHWebVisualizations.QUANTIZE_HOUR`. Thus all points in the hour from 04:00 to 05:00 will be *summed* into a single point. The *unquantized* points in this hour are shown below in a zoomed-in view of the minutes just before 05:00:
+![Unquantized Data Detail](http://www.openmhealth.org/media/viz_example_unquantized_data_detail1.png "Unquantized Data Detail")
+
+And here is a chart of the same data *quantized* by hour. The points before 05:00 in the zoomed-in view above have been accumulated into a single point, shown in dark blue:
+![Quantized Data](http://www.openmhealth.org/media/viz_example_quantized_data.png "Quantized Data")
 
 ###Rendering a chart
 
@@ -215,14 +231,22 @@ chart.renderTo( svgElement );
 
 ###Further customizations
 
-After a chart has been constructed, but *before it is rendered*, you may choose to get the Plottable components and make further modifications that are not afforded by the constructor's `options` parameter. Get the Plottable components, modify them, and render the chart by calling:
+After a chart has been constructed, but *before it is rendered*, you may choose to get the Plottable components and make further modifications that are not afforded by the constructor's `options` parameter. Get the Plottable components, modify them, and render the chart as follows:
 
 ```javascript
-var components = chart.getComponents();
 
-// modify plottable components here...
+// construct chart here...
 
-chart.renderTo( svgElement );
+if (chart.initialized) {
+   
+   var components = chart.getComponents();
+
+   // modify plottable components here...
+
+   chart.renderTo( svgElement );
+
+}
+
 ```
 
 To see an example of component modification, check out the `examples/charts.html` file in this repository.
