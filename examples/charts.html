@@ -134,6 +134,16 @@
 
     //an example of some options for custom chart appearance
     var options = {
+        'userInterface':{
+          'axes': {
+            'yAxis':{
+              'visible': true
+            },
+            'xAxis':{
+              'visible': true
+            }
+          }
+        },
         'measures': {
           'distance': {
               'valueKeyPath': 'body.distance.value',
@@ -249,10 +259,10 @@
                     var nearestEntity;
                     try {
                         nearestEntity = scatterPlot.entityNearest(point);
+                        updateDatapointDetails( nearestEntity.datum.omhDatum );
                     } catch (e) {
                         return;
                     }
-                    updateDatapointDetails( nearestEntity.datum.omhDatum );
                 });
             }
 

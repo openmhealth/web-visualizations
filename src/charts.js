@@ -117,6 +117,14 @@
           'enabled': true,
           'showHint': true
         },
+        'axes': {
+          'yAxis':{
+            'visible': true
+          },
+          'xAxis':{
+            'visible': true
+          }
+        }
       },
       'measures': {
         'body_weight' : {
@@ -711,14 +719,18 @@
 
 
     //build table
+    var xAxisVisible = interfaceSettings.axes.xAxis.visible;
+    var yAxisVisible = interfaceSettings.axes.yAxis.visible;
     var plotGroup = new Plottable.Components.Group( plots );
-    var yAxisGroup = new Plottable.Components.Group( [ yAxis, yLabel ] );
+    var yAxisGroup = yAxisVisible? new Plottable.Components.Group( [ yAxis, yLabel ] ): null;
     var topRow = [ yAxisGroup, plotGroup ];
-    var bottomRow = [ null, xAxis ];
-    secondaryYAxes.forEach(function( axisComponents ){
-      topRow.push( new Plottable.Components.Group( [ axisComponents.axis, axisComponents.label ] ) );
-      bottomRow.push( null );
-    });
+    var bottomRow = [ null, xAxisVisible? xAxis: null ];
+    if( yAxisVisible ){
+      secondaryYAxes.forEach(function( axisComponents ){
+        topRow.push( new Plottable.Components.Group( [ axisComponents.axis, axisComponents.label ] ) );
+        bottomRow.push( null );
+      });
+    }
     table = new Plottable.Components.Table([
       topRow,
       bottomRow
@@ -966,18 +978,18 @@
       };
 
       var highlightNewHoverPoint = function( point ) {
-        if( hoverPoint !== null ) {
-          if( point.datum.omhDatum.body !== hoverPoint.datum.omhDatum.body ){
-            resetGroup( hoverPoint.datum.omhDatum.groupName, hoverPoint.index );
+          if( hoverPoint !== null ) {
+            if( point.datum.omhDatum.body !== hoverPoint.datum.omhDatum.body ){
+              resetGroup( hoverPoint.datum.omhDatum.groupName, hoverPoint.index );
+              hoverPoint = point;
+              highlightGroup( hoverPoint.datum.omhDatum.groupName, point.index );
+            }
+          }else{
             hoverPoint = point;
-            highlightGroup( hoverPoint.datum.omhDatum.groupName, point.index );
           }
-        }else{
-          hoverPoint = point;
-        }
-        if ( point.datum === null ) {
-          return;
-        }
+          if ( point.datum === null ) {
+            return;
+          }
       };
 
       //set up plottable's hover-based point selection interaction
@@ -993,11 +1005,11 @@
         var nearestEntity;
         try{
           nearestEntity = pointPlot.entityNearest(p);
+          highlightNewHoverPoint( nearestEntity );
+          showHoverPointTooltip();
         } catch( e ) {
           return;
         }
-        highlightNewHoverPoint( nearestEntity );
-        showHoverPointTooltip();
       }.bind(this);
       pointer.onPointerMove( pointerMove );
       pointer.attachTo( pointPlot );
