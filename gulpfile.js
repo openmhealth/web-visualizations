@@ -32,7 +32,8 @@ var gulp = require('gulp'),
     concat = require('gulp-concat'),
     notify = require('gulp-notify'),
     cache = require('gulp-cache'),
-    livereload = require('gulp-livereload'),
+    connect = require('gulp-connect'),
+    // livereload = require('gulp-livereload'),
     del = require('del');
 
 // Styles
@@ -121,9 +122,14 @@ gulp.task('watch', function() {
   gulp.watch(['src/*.js','test/*.js'], ['test-scripts','generate-component-scripts','generate-concatenated-script']);
 
   // Create LiveReload server
-  livereload.listen();
+  // livereload.listen();
 
   // Watch any files in dist/, reload on change
-  gulp.watch(['dist/**']).on('change', livereload.changed);
+  gulp.watch(['dist/**']).on('change', connect.reload);
+
+  connect.server({
+    livereload: true
+  });
+  
 
 });
