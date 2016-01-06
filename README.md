@@ -76,51 +76,61 @@ The following object is the default settings object used by the `OMHWebVisualiza
       'enabled': true,
       'showHint': true
     },
+    'axes': {
+      'yAxis':{
+        'visible': true
+      },
+      'xAxis':{
+        'visible': true
+      }
+    }
   },
   'measures': {
     'body_weight' : {
       'valueKeyPath': 'body.body_weight.value',
-      'range': { 'min':0, 'max':100 },
+      'range': { 'min': 0, 'max': 100 },
       'units': 'kg',
-      'thresholds': { 'max':57 },
+      'thresholds': { 'max': 57 },
     },
     'heart_rate': {
       'valueKeyPath': 'body.heart_rate.value',
-      'range': { 'min':30, 'max':150 },
+      'range': { 'min': 30, 'max': 150 },
       'units': 'bpm',
     },
     'step_count': {
       'valueKeyPath': 'body.step_count',
-      'range': { 'min':0, 'max':1500 },
+      'range': { 'min': 0, 'max': 1500 },
       'units': 'Steps',
       'seriesName': 'Steps',
+      'timeQuantizationLevel': OMHWebVisualizations.QUANTIZE_DAY,
       'chart': {
         'type':'clustered_bar',
         'barColor' : '#eeeeee',
-        'daysShownOnTimeline': { 'min':7, 'max':90 },
+        'daysShownOnTimeline': { 'min': 7, 'max': 90 },
       },
     },
     'minutes_moderate_activity': {
       'valueKeyPath': 'body.minutes_moderate_activity.value',
-      'range': { 'min':0, 'max':300 },
+      'range': { 'min': 0, 'max': 300 },
       'units': 'Minutes',
       'seriesName': 'Minutes of moderate activity',
+      'timeQuantizationLevel': OMHWebVisualizations.QUANTIZE_DAY,
       'chart': {
         'type':'clustered_bar',
-        'daysShownOnTimeline': { 'min':7, 'max':90 },
+        'daysShownOnTimeline': { 'min': 7, 'max': 90 },
       },
     },
     'systolic_blood_pressure': {
       'valueKeyPath': 'body.systolic_blood_pressure.value',
-      'range': { 'min':30, 'max':200 },
+      'range': { 'min': 30, 'max': 200 },
       'units': 'mmHg',
-      'thresholds':  { 'max':120 },
+      'thresholds':  { 'max': 120 },
     },
     'diastolic_blood_pressure': {
       'valueKeyPath': 'body.diastolic_blood_pressure.value',
-      'range': { 'min':30, 'max':200 },
+      'range': { 'min': 30, 'max': 200 },
       'units': 'mmHg',
-      'thresholds':  { 'max':80 },
+      'thresholds':  { 'max': 80 },
     }
   }
 }
@@ -134,9 +144,10 @@ If you look carefully at the default settings object, you'll also notice that so
 
 ```javascript
 {
-  'range': { 'min':0, 'max':100 },
+  'range': { 'min': 0, 'max': 100 },
   'units': 'Units',
   'seriesName': 'Series',
+  'timeQuantizationLevel': OMHWebVisualizations.QUANTIZE_NONE,
   'chart': {
     'type':'line',
     'pointSize': 9,
@@ -146,7 +157,7 @@ If you look carefully at the default settings object, you'll also notice that so
     'aboveThesholdPointFillColor' : '#e8ac4e',
     'aboveThesholdPointStrokeColor' : '#745628',
     'barColor' : '#4a90e2',
-    'daysShownOnTimeline': { 'min':1, 'max':1000 },
+    'daysShownOnTimeline': { 'min': 1, 'max': 1000 },
   },
 }
 ```

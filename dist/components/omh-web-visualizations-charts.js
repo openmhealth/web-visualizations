@@ -117,6 +117,14 @@
           'enabled': true,
           'showHint': true
         },
+        'axes': {
+          'yAxis':{
+            'visible': true
+          },
+          'xAxis':{
+            'visible': true
+          }
+        }
       },
       'measures': {
         'body_weight' : {
@@ -196,6 +204,7 @@
       mouseWheelDispatcher && mouseWheelDispatcher.offWheel( wheelCallback );
       showHoverPointTooltip && drag.offDrag( showHoverPointTooltip );
       toolbar && toolbar.remove();
+      yScaleCallback && yScale.offUpdate( yScaleCallback );
     };
 
     //public method for getting the plottable chart component
@@ -450,6 +459,7 @@
     // set up axes
     var xScale = new Plottable.Scales.Time();
     var yScale = new Plottable.Scales.Linear();
+    var yScaleCallback = null;
     var domain = primaryMeasureSettings.range;
     if( domain ){
       yScale.domainMin( domain.min ).domainMax( domain.max );
@@ -526,7 +536,55 @@
       }
     } );
 
-    //iterate across the data prepared from the omh json data
+
+    // If there are thresholds for any of the measures, add them as gridlines
+
+    var thresholdValues = [];
+
+    d3.entries( measureData ).forEach( function( entry ) {
+
+      measure = entry.key;
+
+      var thresholds = getMeasureSettings( measure ).thresholds;
+
+      if ( thresholds ){
+        thresholdValues.push( thresholds.max );
+      }
+
+    });
+
+    if ( thresholdValues.length > 0 ){
+
+      thresholdValues.sort( function(a,b){ return a-b; } );
+
+      var gridlineYScale = new Plottable.Scales.Linear();
+      gridlineYScale.domain( yScale.domain() );
+      gridlineYScale.range( yScale.range() );
+      yScaleCallback = function( updatedScale ){
+        gridlineYScale.domain( updatedScale.domain() );
+        gridlineYScale.range( updatedScale.range() );
+      };
+      yScale.onUpdate( yScaleCallback );
+      var yScaleTickGenerator = function( scale ){
+        var domain = scale.domain();
+        var ticks = thresholdValues;
+        return ticks;
+      };
+      gridlineYScale.tickGenerator(yScaleTickGenerator);
+
+      var gridlineYAxis = new Plottable.Axes.Numeric(gridlineYScale, "right")
+      .tickLabelPosition("top")
+      .tickLabelPadding( 5 )
+      .showEndTickLabels(true);
+
+      var gridlines = new Plottable.Components.Gridlines(null, gridlineYScale);
+
+      plots.push( gridlines );
+      plots.push( gridlineYAxis );
+
+    }
+
+    //iterate across the data prepared from the omh json data and add plots
     measures.forEach( function( measure ) {
       if ( ! measureData.hasOwnProperty( measure ) ){
         return;
@@ -607,36 +665,7 @@
 
       }
 
-
     });
-
-
-    //add threshold plotlines
-    var thresholdXScale = new Plottable.Scales.Linear().domainMin( 0 ).domainMax( 1 );
-    var thresholdPlot = new Plottable.Plots.Line()
-    .x(function(d) { return d.x; }, thresholdXScale )
-    .y(function(d) { return d.y; }, yScale )
-    .attr('stroke','#dedede')
-    .attr('stroke-width', LINE_STROKE_WIDTH);
-
-    d3.entries( measureData ).forEach(function( entry ) {
-      measure = entry.key;
-      data = entry.value;
-
-      var thresholds = getMeasureSettings( measure ).thresholds;
-
-      if ( thresholds ){
-
-        thresholdPlot.addDataset( new Plottable.Dataset( [
-          { x:0, y:thresholds.max },
-          { x:1, y:thresholds.max }
-        ] ) );
-
-      }
-
-    });
-
-    plots.push( thresholdPlot );
 
     plots.push( pointPlot );
 
@@ -690,14 +719,18 @@
 
 
     //build table
+    var xAxisVisible = interfaceSettings.axes.xAxis.visible;
+    var yAxisVisible = interfaceSettings.axes.yAxis.visible;
     var plotGroup = new Plottable.Components.Group( plots );
-    var yAxisGroup = new Plottable.Components.Group( [ yAxis, yLabel ] );
+    var yAxisGroup = yAxisVisible? new Plottable.Components.Group( [ yAxis, yLabel ] ): null;
     var topRow = [ yAxisGroup, plotGroup ];
-    var bottomRow = [ null, xAxis ];
-    secondaryYAxes.forEach(function( axisComponents ){
-      topRow.push( new Plottable.Components.Group( [ axisComponents.axis, axisComponents.label ] ) );
-      bottomRow.push( null );
-    });
+    var bottomRow = [ null, xAxisVisible? xAxis: null ];
+    if( yAxisVisible ){
+      secondaryYAxes.forEach(function( axisComponents ){
+        topRow.push( new Plottable.Components.Group( [ axisComponents.axis, axisComponents.label ] ) );
+        bottomRow.push( null );
+      });
+    }
     table = new Plottable.Components.Table([
       topRow,
       bottomRow
@@ -945,18 +978,18 @@
       };
 
       var highlightNewHoverPoint = function( point ) {
-        if( hoverPoint !== null ) {
-          if( point.datum.omhDatum.body !== hoverPoint.datum.omhDatum.body ){
-            resetGroup( hoverPoint.datum.omhDatum.groupName, hoverPoint.index );
+          if( hoverPoint !== null ) {
+            if( point.datum.omhDatum.body !== hoverPoint.datum.omhDatum.body ){
+              resetGroup( hoverPoint.datum.omhDatum.groupName, hoverPoint.index );
+              hoverPoint = point;
+              highlightGroup( hoverPoint.datum.omhDatum.groupName, point.index );
+            }
+          }else{
             hoverPoint = point;
-            highlightGroup( hoverPoint.datum.omhDatum.groupName, point.index );
           }
-        }else{
-          hoverPoint = point;
-        }
-        if ( point.datum === null ) {
-          return;
-        }
+          if ( point.datum === null ) {
+            return;
+          }
       };
 
       //set up plottable's hover-based point selection interaction
@@ -972,11 +1005,11 @@
         var nearestEntity;
         try{
           nearestEntity = pointPlot.entityNearest(p);
+          highlightNewHoverPoint( nearestEntity );
+          showHoverPointTooltip();
         } catch( e ) {
           return;
         }
-        highlightNewHoverPoint( nearestEntity );
-        showHoverPointTooltip();
       }.bind(this);
       pointer.onPointerMove( pointerMove );
       pointer.attachTo( pointPlot );

@@ -81,7 +81,7 @@
           </p>
 
           <p>
-            <span class="label">Data URL:</span> <input class="update-url" type="text" value="https://gist.githubusercontent.com/jasperSpeicher/3a6af8226182880d75d2/raw/1yr.json"></input> <button class="update-button">update</button>
+            <span class="label">Data URL:</span> <input class="update-url" type="text" value="1yr.json"></input> <button class="update-button">update</button>
           </p>
           <p>
             <span class="label">Measure:</span>
@@ -134,6 +134,16 @@
 
     //an example of some options for custom chart appearance
     var options = {
+        'userInterface':{
+          'axes': {
+            'yAxis':{
+              'visible': true
+            },
+            'xAxis':{
+              'visible': true
+            }
+          }
+        },
         'measures': {
           'distance': {
               'valueKeyPath': 'body.distance.value',
@@ -249,10 +259,10 @@
                     var nearestEntity;
                     try {
                         nearestEntity = scatterPlot.entityNearest(point);
+                        updateDatapointDetails( nearestEntity.datum.omhDatum );
                     } catch (e) {
                         return;
                     }
-                    updateDatapointDetails( nearestEntity.datum.omhDatum );
                 });
             }
 
