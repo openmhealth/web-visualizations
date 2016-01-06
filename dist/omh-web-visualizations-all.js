@@ -196,6 +196,7 @@
       mouseWheelDispatcher && mouseWheelDispatcher.offWheel( wheelCallback );
       showHoverPointTooltip && drag.offDrag( showHoverPointTooltip );
       toolbar && toolbar.remove();
+      yScaleCallback && yScale.offUpdate( yScaleCallback );
     };
 
     //public method for getting the plottable chart component
@@ -450,6 +451,7 @@
     // set up axes
     var xScale = new Plottable.Scales.Time();
     var yScale = new Plottable.Scales.Linear();
+    var yScaleCallback = null;
     var domain = primaryMeasureSettings.range;
     if( domain ){
       yScale.domainMin( domain.min ).domainMax( domain.max );
@@ -526,7 +528,55 @@
       }
     } );
 
-    //iterate across the data prepared from the omh json data
+
+    // If there are thresholds for any of the measures, add them as gridlines
+
+    var thresholdValues = [];
+
+    d3.entries( measureData ).forEach( function( entry ) {
+
+      measure = entry.key;
+
+      var thresholds = getMeasureSettings( measure ).thresholds;
+
+      if ( thresholds ){
+        thresholdValues.push( thresholds.max );
+      }
+
+    });
+
+    if ( thresholdValues.length > 0 ){
+
+      thresholdValues.sort( function(a,b){ return a-b; } );
+
+      var gridlineYScale = new Plottable.Scales.Linear();
+      gridlineYScale.domain( yScale.domain() );
+      gridlineYScale.range( yScale.range() );
+      yScaleCallback = function( updatedScale ){
+        gridlineYScale.domain( updatedScale.domain() );
+        gridlineYScale.range( updatedScale.range() );
+      };
+      yScale.onUpdate( yScaleCallback );
+      var yScaleTickGenerator = function( scale ){
+        var domain = scale.domain();
+        var ticks = thresholdValues;
+        return ticks;
+      };
+      gridlineYScale.tickGenerator(yScaleTickGenerator);
+
+      var gridlineYAxis = new Plottable.Axes.Numeric(gridlineYScale, "right")
+      .tickLabelPosition("top")
+      .tickLabelPadding( 5 )
+      .showEndTickLabels(true);
+
+      var gridlines = new Plottable.Components.Gridlines(null, gridlineYScale);
+
+      plots.push( gridlines );
+      plots.push( gridlineYAxis );
+
+    }
+
+    //iterate across the data prepared from the omh json data and add plots
     measures.forEach( function( measure ) {
       if ( ! measureData.hasOwnProperty( measure ) ){
         return;
@@ -607,36 +657,7 @@
 
       }
 
-
     });
-
-
-    //add threshold plotlines
-    var thresholdXScale = new Plottable.Scales.Linear().domainMin( 0 ).domainMax( 1 );
-    var thresholdPlot = new Plottable.Plots.Line()
-    .x(function(d) { return d.x; }, thresholdXScale )
-    .y(function(d) { return d.y; }, yScale )
-    .attr('stroke','#dedede')
-    .attr('stroke-width', LINE_STROKE_WIDTH);
-
-    d3.entries( measureData ).forEach(function( entry ) {
-      measure = entry.key;
-      data = entry.value;
-
-      var thresholds = getMeasureSettings( measure ).thresholds;
-
-      if ( thresholds ){
-
-        thresholdPlot.addDataset( new Plottable.Dataset( [
-          { x:0, y:thresholds.max },
-          { x:1, y:thresholds.max }
-        ] ) );
-
-      }
-
-    });
-
-    plots.push( thresholdPlot );
 
     plots.push( pointPlot );
 
