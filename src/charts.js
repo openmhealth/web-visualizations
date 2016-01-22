@@ -495,17 +495,17 @@
     var plots = [];
 
     //fill and stroke colors are determined by threshold
-    var aboveThreshold = function( d ){
+    var aboveOrBelowThreshold = function( d ){
       var thresholds = getMeasureSettings( d.measure ).thresholds;
-      return thresholds && d.y > thresholds.max;
+      return thresholds && ( ( thresholds.max && d.y > thresholds.max ) || ( thresholds.min && d.y < thresholds.min ));
     };
     var fillColor = function( d ){
       var chartSettings = getMeasureSettings( d.measure ).chart;
-      return aboveThreshold( d ) ? chartSettings.aboveThesholdPointFillColor : chartSettings.pointFillColor;
+      return aboveOrBelowThreshold( d ) ? chartSettings.aboveThesholdPointFillColor : chartSettings.pointFillColor;
     };
     var strokeColor = function( d ){
       var chartSettings = getMeasureSettings( d.measure ).chart;
-      return aboveThreshold( d ) ? chartSettings.aboveThesholdPointStrokeColor : chartSettings.pointStrokeColor;
+      return aboveOrBelowThreshold( d ) ? chartSettings.aboveThesholdPointStrokeColor : chartSettings.pointStrokeColor;
     };
     var barColor = function( d ){
       return getMeasureSettings( d.measure ).chart.barColor;
@@ -547,8 +547,12 @@
 
       var thresholds = getMeasureSettings( measure ).thresholds;
 
-      if ( thresholds ){
+      if ( thresholds && thresholds.max ){
         thresholdValues.push( thresholds.max );
+      }
+
+      if ( thresholds && thresholds.min ){
+        thresholdValues.push( thresholds.min );
       }
 
     });
@@ -1020,7 +1024,7 @@
         var content;
 
         var contentCssClass = 'value';
-        if ( aboveThreshold( d ) ) {
+        if ( aboveOrBelowThreshold( d ) ) {
           contentCssClass += ' above-threshold';
         }
 
@@ -1104,3 +1108,4 @@
   return parent;
 
 } ) );
+
