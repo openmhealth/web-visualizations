@@ -55,12 +55,10 @@
 .plottable .axis-label .background-container .background-fill {
   fill: #fff;
   -webkit-transform: translateX(1px);
-      -ms-transform: translateX(1px);
           transform: translateX(1px);
 }
 .plottable .content > .component-group:first-child .axis-label .background-container .background-fill {
   -webkit-transform: translateX(-1px);
-      -ms-transform: translateX(-1px);
           transform: translateX(-1px);
 }
 .plottable .axis-label text {
@@ -68,7 +66,6 @@
 }
 .plottable .legend .content {
   -webkit-transform: translateX(-5px);
-      -ms-transform: translateX(-5px);
           transform: translateX(-5px);
 }
 .plottable .legend text {
