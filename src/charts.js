@@ -675,7 +675,7 @@
 
     var colorScale = null;
     var legend = null;
-    if ( clusteredBarPlotCount > 0 ){
+    if ( settings.userInterface.legend ){
       //add legend
       colorScale = new Plottable.Scales.Color();
       legend = new Plottable.Components.Legend( colorScale );
@@ -685,7 +685,19 @@
         var measure = entry.key;
         var measureSettings = getMeasureSettings( measure );
         var name = measureSettings.seriesName;
-        var color = measureSettings.chart.barColor;
+        var type = measureSettings.chart.type
+
+        // The color to plot depends on the type of chart
+        var color
+        switch(type) {
+          case 'clustered_bar':
+            color = measureSettings.chart.barColor;
+            break;
+          default:
+            color = measureSettings.chart.pointFillColor;
+            break;
+        }
+
         if ( name && color ) {
           names.push( name );
           colors.push( color );
@@ -1108,4 +1120,3 @@
   return parent;
 
 } ) );
-
