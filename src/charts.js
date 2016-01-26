@@ -111,7 +111,9 @@
         'navigation': { 'enabled': true },
         'tooltips': {
           'enabled': true,
-          'timeFormat': 'M/D/YY, h:mma'
+          'timeFormat': 'M/D/YY, h:mma',
+          'decimalPlaces': 0,
+          'contentFormatter': undefined
          },
         'panZoom': {
           'enabled': true,
@@ -1029,16 +1031,16 @@
         }
 
         //show different tool tip depending on measureList
-        if( d.omhDatum.groupName === '_systolic_blood_pressure_diastolic_blood_pressure' ) {
-          var systolic = d.omhDatum.body.systolic_blood_pressure.value.toFixed( 0 );
-          var diastolic = d.omhDatum.body.diastolic_blood_pressure.value.toFixed( 0 );
-          content = '<div class="' + contentCssClass + '">' + systolic + '/' + diastolic + '</div>';
-        }else if( d.omhDatum.groupName === '_heart_rate' ) {
-          //heart rate does not need decimal places. an integer is best
-          content = '<div class="' + contentCssClass + '">' + d.y.toFixed( 0 ) + '</div>';
-        }else {
-          content = '<div class="' + contentCssClass + '">' + d.y.toFixed( 1 ) + '</div>';
+        var title;
+        if( settings.userInterface.tooltips && typeof(settings.userInterface.tooltips.contentFormatter) != 'undefined' ) {
+          title = settings.userInterface.tooltips.contentFormatter(d);
+        } else {
+          var decimalPlaces = typeof(settings.userInterface.decimalPlaces) != 'undefined' ? settings.userInterface.decimalPlaces : 1;
+          title = d.y.toFixed( decimalPlaces );
         }
+
+        content = '<div class="' + contentCssClass + '">' + title + '</div>';
+
         var timeFormat = interfaceSettings.tooltips.timeFormat;
         content += '<div class="time">' + moment( d.x ).format( timeFormat ) + '</div>';
         content += '<div class="provider">' + d.provider + '</div>';
