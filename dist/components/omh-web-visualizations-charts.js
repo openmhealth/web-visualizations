@@ -109,6 +109,7 @@
         'timespanButtons': { 'enabled': true },
         'zoomButtons': { 'enabled': true },
         'navigation': { 'enabled': true },
+        'thresholds': { 'show': true },
         'tooltips': {
           'enabled': true,
           'timeFormat': 'M/D/YY, h:mma',
@@ -498,17 +499,61 @@
     var plots = [];
 
     //fill and stroke colors are determined by threshold
-    var aboveOrBelowThreshold = function( d ){
+    var whichThreshold = function( d ){
       var thresholds = getMeasureSettings( d.measure ).thresholds;
-      return thresholds && ( ( thresholds.max && d.y > thresholds.max ) || ( thresholds.min && d.y < thresholds.min ));
+
+      var defaultThreshold = { 'name': 'normal', 'color': '_default' };
+
+      // If no thresholds are specified, return default settings
+      if( !thresholds || thresholds.length == 0 ) {
+        return defaultThreshold;
+      }
+
+      // If the thresholds variable is an object, there is only a single threshold
+      if( !Array.isArray(thresholds)) {
+        thresholds = [thresholds];
+      }
+
+      // Find the first threshold that this value falls in to
+      for( i = 0; i < thresholds.length; i++ ) {
+        var threshold = thresholds[i];
+
+        if( threshold && ( !threshold.max || d.y <= threshold.max ) && ( !threshold.min || d.y > threshold.min ) ) {
+          return threshold;
+        }
+      }
+
+      // If nnoe of the thresholds holds, consider it as being 'aboveThreshold'
+      return { 'color': '_aboveThreshold', name: 'above-threshold' };
     };
-    var fillColor = function( d ){
+
+    var getColorsForThreshold = function(d, threshold) {
       var chartSettings = getMeasureSettings( d.measure ).chart;
-      return aboveOrBelowThreshold( d ) ? chartSettings.aboveThesholdPointFillColor : chartSettings.pointFillColor;
+      var defaultColors = { 'fill': chartSettings.pointFillColor, 'stroke': chartSettings.pointStrokeColor };
+      var aboveThresholdColors = { 'fill': chartSettings.aboveThesholdPointFillColor, 'stroke': chartSettings.aboveThesholdPointStrokeColor }
+
+      if( !threshold || !threshold.color ) {
+        return defaultColors;
+      }
+
+      if( threshold.color == '_default' ) {
+        return defaultColors;
+      } else if( threshold.color == '_aboveThreshold' ) {
+        return aboveThresholdColors;
+      } else if( typeof( threshold.color ) == 'string' ) {
+        return { 'fill': threshold.color, 'stroke': threshold.color };
+      } else {
+        return threshold.color;
+      }
+    }
+
+    var fillColor = function( d ){
+      var color = getColorsForThreshold( d, whichThreshold( d ) );
+      return color.fill
     };
     var strokeColor = function( d ){
-      var chartSettings = getMeasureSettings( d.measure ).chart;
-      return aboveOrBelowThreshold( d ) ? chartSettings.aboveThesholdPointStrokeColor : chartSettings.pointStrokeColor;
+      var color = getColorsForThreshold( d, whichThreshold( d ) );
+      return color.stroke
     };
     var barColor = function( d ){
       return getMeasureSettings( d.measure ).chart.barColor;
@@ -541,55 +586,67 @@
 
 
     // If there are thresholds for any of the measures, add them as gridlines
+    if( interfaceSettings.thresholds.show ) {
+        var thresholdValues = [];
 
-    var thresholdValues = [];
+        d3.entries( measureData ).forEach( function( entry ) {
 
-    d3.entries( measureData ).forEach( function( entry ) {
+          measure = entry.key;
 
-      measure = entry.key;
+          var thresholds = getMeasureSettings( measure ).thresholds;
 
-      var thresholds = getMeasureSettings( measure ).thresholds;
+          if( !thresholds )
+            return;
 
-      if ( thresholds && thresholds.max ){
-        thresholdValues.push( thresholds.max );
+          // Convert into array if only a single threshold is specified
+          if( !Array.isArray(thresholds) )
+            thresholds = [thresholds];
+
+          // Add the threshold limits, if specified
+          for( i = 0; i < thresholds.length; i++ ) {
+            var threshold = thresholds[i];
+            if ( threshold.max && thresholdValues.indexOf(threshold.max) == -1 ){
+              thresholdValues.push( threshold.max );
+            }
+
+            if ( threshold.min && thresholdValues.indexOf(threshold.min) == -1 ){
+              thresholdValues.push( threshold.min );
+            }
+          }
+
+        });
+
+        if ( thresholdValues.length > 0 ){
+
+          thresholdValues.sort( function(a,b){ return a-b; } );
+
+          var gridlineYScale = new Plottable.Scales.Linear();
+          gridlineYScale.domain( yScale.domain() );
+          gridlineYScale.range( yScale.range() );
+          yScaleCallback = function( updatedScale ){
+            gridlineYScale.domain( updatedScale.domain() );
+            gridlineYScale.range( updatedScale.range() );
+          };
+          yScale.onUpdate( yScaleCallback );
+          var yScaleTickGenerator = function( scale ){
+            var domain = scale.domain();
+            var ticks = thresholdValues;
+            return ticks;
+          };
+          gridlineYScale.tickGenerator(yScaleTickGenerator);
+
+          var gridlineYAxis = new Plottable.Axes.Numeric(gridlineYScale, "right")
+          .tickLabelPosition("top")
+          .tickLabelPadding( 5 )
+          .showEndTickLabels(true);
+
+          var gridlines = new Plottable.Components.Gridlines(null, gridlineYScale);
+
+          plots.push( gridlines );
+          plots.push( gridlineYAxis );
+
+        }
       }
-
-      if ( thresholds && thresholds.min ){
-        thresholdValues.push( thresholds.min );
-      }
-
-    });
-
-    if ( thresholdValues.length > 0 ){
-
-      thresholdValues.sort( function(a,b){ return a-b; } );
-
-      var gridlineYScale = new Plottable.Scales.Linear();
-      gridlineYScale.domain( yScale.domain() );
-      gridlineYScale.range( yScale.range() );
-      yScaleCallback = function( updatedScale ){
-        gridlineYScale.domain( updatedScale.domain() );
-        gridlineYScale.range( updatedScale.range() );
-      };
-      yScale.onUpdate( yScaleCallback );
-      var yScaleTickGenerator = function( scale ){
-        var domain = scale.domain();
-        var ticks = thresholdValues;
-        return ticks;
-      };
-      gridlineYScale.tickGenerator(yScaleTickGenerator);
-
-      var gridlineYAxis = new Plottable.Axes.Numeric(gridlineYScale, "right")
-      .tickLabelPosition("top")
-      .tickLabelPadding( 5 )
-      .showEndTickLabels(true);
-
-      var gridlines = new Plottable.Components.Gridlines(null, gridlineYScale);
-
-      plots.push( gridlines );
-      plots.push( gridlineYAxis );
-
-    }
 
     //iterate across the data prepared from the omh json data and add plots
     measures.forEach( function( measure ) {
@@ -981,7 +1038,7 @@
 
       var showHoverPointTooltip = function() {
         if ( hoverPoint && selection ){
-          if( hoverPoint.datum.hasTooltip ){
+          if( hoverPoint.datum.hasTooltip || !interfaceSettings.tooltips.grouped ){
             showTooltipIfInBounds( hoverPoint );
           } else {
             var groupHoverPoint = tooltipHoverPointEntities[ hoverPoint.datum.omhDatum.groupName ][ hoverPoint.index ];
@@ -1046,8 +1103,11 @@
         var content;
 
         var contentCssClass = 'value';
-        if ( aboveOrBelowThreshold( d ) ) {
-          contentCssClass += ' above-threshold';
+        var threshold = whichThreshold(d)
+        if ( threshold && ( threshold.cssClass || threshold.name ) ) {
+          var postfix = ( threshold.cssClass ? threshold.cssClass : threshold.name );
+          postfix = postfix.toLowerCase().replace( /[^a-z0-9-]+/g, '_' );
+          contentCssClass += ' threshold-' + postfix + ' threshold-' + d.measure + '-' + postfix;
         }
 
         //show different tool tip depending on measureList
