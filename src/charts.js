@@ -967,7 +967,7 @@
 
       var showHoverPointTooltip = function() {
         if ( hoverPoint && selection ){
-          if( hoverPoint.datum.hasTooltip ){
+          if( hoverPoint.datum.hasTooltip || !interfaceSettings.tooltips.grouped ){
             showTooltipIfInBounds( hoverPoint );
           } else {
             var groupHoverPoint = tooltipHoverPointEntities[ hoverPoint.datum.omhDatum.groupName ][ hoverPoint.index ];
