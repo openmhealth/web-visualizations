@@ -111,7 +111,8 @@
         'navigation': { 'enabled': true },
         'tooltips': {
           'enabled': true,
-          'timeFormat': 'M/D/YY, h:mma'
+          'timeFormat': 'M/D/YY, h:mma',
+          'grouped': true,
          },
         'panZoom': {
           'enabled': true,
@@ -983,7 +984,14 @@
 
       var highlightNewHoverPoint = function( point ) {
           if( hoverPoint !== null ) {
-            if( point.datum.omhDatum.body !== hoverPoint.datum.omhDatum.body ){
+            // If tooltips are grouped, only the body has to change to move to another point
+            // If tooltips are not grouped, the body or the measuretype has to change
+            var groupTooltips = interfaceSettings.tooltips.grouped;
+            var bodyChanged = point.datum.omhDatum.body !== hoverPoint.datum.omhDatum.body;
+            var measureTypeChanged = point.datum.measure !== hoverPoint.datum.measure;
+            var pointChanged = groupTooltips ? bodyChanged : (bodyChanged || measureTypeChanged);
+
+            if( pointChanged ){
               resetGroup( hoverPoint.datum.omhDatum.groupName, hoverPoint.index );
               hoverPoint = point;
               highlightGroup( hoverPoint.datum.omhDatum.groupName, point.index );
