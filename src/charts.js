@@ -495,17 +495,61 @@
     var plots = [];
 
     //fill and stroke colors are determined by threshold
-    var aboveOrBelowThreshold = function( d ){
+    var whichThreshold = function( d ){
       var thresholds = getMeasureSettings( d.measure ).thresholds;
-      return thresholds && ( ( thresholds.max && d.y > thresholds.max ) || ( thresholds.min && d.y < thresholds.min ));
+
+      var defaultThreshold = { 'name': 'normal', 'color': '_default' };
+
+      // If no thresholds are specified, return default settings
+      if( !thresholds || thresholds.length == 0 ) {
+        return defaultThreshold;
+      }
+
+      // If the thresholds variable is an object, there is only a single threshold
+      if( !Array.isArray(thresholds)) {
+        thresholds = [thresholds];
+      }
+
+      // Find the first threshold that this value falls in to
+      for( i = 0; i < thresholds.length; i++ ) {
+        var threshold = thresholds[i];
+
+        if( threshold && ( !threshold.max || d.y <= threshold.max ) && ( !threshold.min || d.y > threshold.min ) ) {
+          return threshold;
+        }
+      }
+
+      // If nnoe of the thresholds holds, consider it as being 'aboveThreshold'
+      return { 'color': '_aboveThreshold', name: 'above-threshold' };
     };
-    var fillColor = function( d ){
+
+    var getColorsForThreshold = function(d, threshold) {
       var chartSettings = getMeasureSettings( d.measure ).chart;
-      return aboveOrBelowThreshold( d ) ? chartSettings.aboveThesholdPointFillColor : chartSettings.pointFillColor;
+      var defaultColors = { 'fill': chartSettings.pointFillColor, 'stroke': chartSettings.pointStrokeColor };
+      var aboveThresholdColors = { 'fill': chartSettings.aboveThesholdPointFillColor, 'stroke': chartSettings.aboveThesholdPointStrokeColor }
+
+      if( !threshold || !threshold.color ) {
+        return defaultColors;
+      }
+
+      if( threshold.color == '_default' ) {
+        return defaultColors;
+      } else if( threshold.color == '_aboveThreshold' ) {
+        return aboveThresholdColors;
+      } else if( typeof( threshold.color ) == 'string' ) {
+        return { 'fill': threshold.color, 'stroke': threshold.color };
+      } else {
+        return threshold.color;
+      }
+    }
+
+    var fillColor = function( d ){
+      var color = getColorsForThreshold( d, whichThreshold( d ) );
+      return color.fill
     };
     var strokeColor = function( d ){
-      var chartSettings = getMeasureSettings( d.measure ).chart;
-      return aboveOrBelowThreshold( d ) ? chartSettings.aboveThesholdPointStrokeColor : chartSettings.pointStrokeColor;
+      var color = getColorsForThreshold( d, whichThreshold( d ) );
+      return color.stroke
     };
     var barColor = function( d ){
       return getMeasureSettings( d.measure ).chart.barColor;
@@ -538,7 +582,6 @@
 
 
     // If there are thresholds for any of the measures, add them as gridlines
-
     var thresholdValues = [];
 
     d3.entries( measureData ).forEach( function( entry ) {
@@ -547,12 +590,23 @@
 
       var thresholds = getMeasureSettings( measure ).thresholds;
 
-      if ( thresholds && thresholds.max ){
-        thresholdValues.push( thresholds.max );
-      }
+      if( !thresholds )
+        return;
 
-      if ( thresholds && thresholds.min ){
-        thresholdValues.push( thresholds.min );
+      // Convert into array if only a single threshold is specified
+      if( !Array.isArray(thresholds) )
+        thresholds = [thresholds];
+
+      // Add the threshold limits, if specified
+      for( i = 0; i < thresholds.length; i++ ) {
+        var threshold = thresholds[i];
+        if ( threshold.max && thresholdValues.indexOf(threshold.max) == -1 ){
+          thresholdValues.push( threshold.max );
+        }
+
+        if ( threshold.min && thresholdValues.indexOf(threshold.min) == -1 ){
+          thresholdValues.push( threshold.min );
+        }
       }
 
     });
@@ -1024,8 +1078,11 @@
         var content;
 
         var contentCssClass = 'value';
-        if ( aboveOrBelowThreshold( d ) ) {
-          contentCssClass += ' above-threshold';
+        var threshold = whichThreshold(d)
+        if ( threshold && ( threshold.cssClass || threshold.name ) ) {
+          var postfix = ( threshold.cssClass ? threshold.cssClass : threshold.name );
+          postfix = postfix.toLowerCase().replace( /[^a-z0-9-]+/g, '_' );
+          contentCssClass += ' threshold-' + postfix + ' threshold-' + d.measure + '-' + postfix;
         }
 
         //show different tool tip depending on measureList
