@@ -109,6 +109,7 @@
         'timespanButtons': { 'enabled': true },
         'zoomButtons': { 'enabled': true },
         'navigation': { 'enabled': true },
+        'thresholds': { 'show': true },
         'tooltips': {
           'enabled': true,
           'timeFormat': 'M/D/YY, h:mma'
@@ -582,65 +583,67 @@
 
 
     // If there are thresholds for any of the measures, add them as gridlines
-    var thresholdValues = [];
+    if( interfaceSettings.thresholds.show ) {
+        var thresholdValues = [];
 
-    d3.entries( measureData ).forEach( function( entry ) {
+        d3.entries( measureData ).forEach( function( entry ) {
 
-      measure = entry.key;
+          measure = entry.key;
 
-      var thresholds = getMeasureSettings( measure ).thresholds;
+          var thresholds = getMeasureSettings( measure ).thresholds;
 
-      if( !thresholds )
-        return;
+          if( !thresholds )
+            return;
 
-      // Convert into array if only a single threshold is specified
-      if( !Array.isArray(thresholds) )
-        thresholds = [thresholds];
+          // Convert into array if only a single threshold is specified
+          if( !Array.isArray(thresholds) )
+            thresholds = [thresholds];
 
-      // Add the threshold limits, if specified
-      for( i = 0; i < thresholds.length; i++ ) {
-        var threshold = thresholds[i];
-        if ( threshold.max && thresholdValues.indexOf(threshold.max) == -1 ){
-          thresholdValues.push( threshold.max );
-        }
+          // Add the threshold limits, if specified
+          for( i = 0; i < thresholds.length; i++ ) {
+            var threshold = thresholds[i];
+            if ( threshold.max && thresholdValues.indexOf(threshold.max) == -1 ){
+              thresholdValues.push( threshold.max );
+            }
 
-        if ( threshold.min && thresholdValues.indexOf(threshold.min) == -1 ){
-          thresholdValues.push( threshold.min );
+            if ( threshold.min && thresholdValues.indexOf(threshold.min) == -1 ){
+              thresholdValues.push( threshold.min );
+            }
+          }
+
+        });
+
+        if ( thresholdValues.length > 0 ){
+
+          thresholdValues.sort( function(a,b){ return a-b; } );
+
+          var gridlineYScale = new Plottable.Scales.Linear();
+          gridlineYScale.domain( yScale.domain() );
+          gridlineYScale.range( yScale.range() );
+          yScaleCallback = function( updatedScale ){
+            gridlineYScale.domain( updatedScale.domain() );
+            gridlineYScale.range( updatedScale.range() );
+          };
+          yScale.onUpdate( yScaleCallback );
+          var yScaleTickGenerator = function( scale ){
+            var domain = scale.domain();
+            var ticks = thresholdValues;
+            return ticks;
+          };
+          gridlineYScale.tickGenerator(yScaleTickGenerator);
+
+          var gridlineYAxis = new Plottable.Axes.Numeric(gridlineYScale, "right")
+          .tickLabelPosition("top")
+          .tickLabelPadding( 5 )
+          .showEndTickLabels(true);
+
+          var gridlines = new Plottable.Components.Gridlines(null, gridlineYScale);
+
+          plots.push( gridlines );
+          plots.push( gridlineYAxis );
+
         }
       }
-
-    });
-
-    if ( thresholdValues.length > 0 ){
-
-      thresholdValues.sort( function(a,b){ return a-b; } );
-
-      var gridlineYScale = new Plottable.Scales.Linear();
-      gridlineYScale.domain( yScale.domain() );
-      gridlineYScale.range( yScale.range() );
-      yScaleCallback = function( updatedScale ){
-        gridlineYScale.domain( updatedScale.domain() );
-        gridlineYScale.range( updatedScale.range() );
-      };
-      yScale.onUpdate( yScaleCallback );
-      var yScaleTickGenerator = function( scale ){
-        var domain = scale.domain();
-        var ticks = thresholdValues;
-        return ticks;
-      };
-      gridlineYScale.tickGenerator(yScaleTickGenerator);
-
-      var gridlineYAxis = new Plottable.Axes.Numeric(gridlineYScale, "right")
-      .tickLabelPosition("top")
-      .tickLabelPadding( 5 )
-      .showEndTickLabels(true);
-
-      var gridlines = new Plottable.Components.Gridlines(null, gridlineYScale);
-
-      plots.push( gridlines );
-      plots.push( gridlineYAxis );
-
-    }
 
     //iterate across the data prepared from the omh json data and add plots
     measures.forEach( function( measure ) {
