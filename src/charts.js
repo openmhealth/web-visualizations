@@ -115,7 +115,7 @@
           'timeFormat': 'M/D/YY, h:mma',
           'decimalPlaces': 0,
           'contentFormatter': undefined,
-	  'grouped': true,
+          'grouped': true,
          },
         'panZoom': {
           'enabled': true,
