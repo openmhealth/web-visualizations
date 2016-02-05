@@ -103,6 +103,19 @@
 
     var mouseWheelDispatcher = null;
 
+    var defaultTooltipContentFormatter = function( d ) {
+      var content;
+      if( d.omhDatum.groupName === '_systolic_blood_pressure_diastolic_blood_pressure' ){
+        var systolic = d.omhDatum.body.systolic_blood_pressure.value.toFixed( 0 );
+        var diastolic = d.omhDatum.body.diastolic_blood_pressure.value.toFixed( 0 );
+        content = systolic + '/' + diastolic;
+      }else{
+        var decimalPlaces = typeof(settings.userInterface.decimalPlaces) != 'undefined' ? settings.userInterface.decimalPlaces : 1;
+        content = d.y.toFixed( decimalPlaces );
+      }
+      return content;
+    };
+
     var defaultSettings = {
       'userInterface': {
         'toolbar': { 'enabled': true },
@@ -114,7 +127,7 @@
           'enabled': true,
           'timeFormat': 'M/D/YY, h:mma',
           'decimalPlaces': 0,
-          'contentFormatter': undefined,
+          'contentFormatter': defaultTooltipContentFormatter,
           'grouped': true,
          },
         'panZoom': {
