@@ -63,7 +63,6 @@ The following object is the default settings object used by the `OMHWebVisualiza
 
 ```javascript
 'userInterface': {
-'userInterface': {
   'toolbar': { 'enabled': true },
   'timespanButtons': { 'enabled': true },
   'zoomButtons': { 'enabled': true },
