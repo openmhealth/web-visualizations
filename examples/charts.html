@@ -70,11 +70,14 @@
         display: none;
       }
 
-      .omh-tooltip .value.threshold-above-threshold {
+      /* styles for tooltips */
+      .omh-tooltip .value.threshold-systolic_blood_pressure-above-threshold {
         color:#ce5050;
       }
 
-      .omh-tooltip .value.threshold-warning {
+      .omh-tooltip .value.threshold-warning,
+      .omh-tooltip .value.threshold-diastolic_blood_pressure-above-threshold
+       {
         color:#e8ac4e;
       }
 
@@ -151,7 +154,8 @@
             'xAxis':{
               'visible': true
             }
-          }
+          },
+          'legend': true,
         },
         'measures': {
           'distance': {
@@ -166,6 +170,7 @@
               }
           },
           'systolic_blood_pressure': {
+            'seriesName': 'Blood Pressure',
             'thresholds': [
               { 'color':{ 'fill': '#e8ac4e', 'stroke': '#745628' }, 'max': 129, 'name': 'warning' },
               { 'max': 120 },
@@ -181,6 +186,7 @@
             'range': { 'min':60, 'max':140 },
           },
           'diastolic_blood_pressure': {
+              'seriesName': 'Blood Pressure',
               'thresholds': { 'max': 80 },
           }
         }
