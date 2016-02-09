@@ -1149,8 +1149,13 @@
 
       var highlightNewHoverPoint = function( point ) {
           if( hoverPoint !== null ) {
-            // If tooltips are grouped, only the body has to change to move to another point
-            // If tooltips are not grouped, the body or the measuretype has to change
+
+            // When tooltips are grouped, update the hover point if the point passed in
+            // has a different body from the current hover point
+
+            // When tooltips are not grouped, also check if the measure type has changed,
+            // since two points of different types can share the same body (eg diastolic and systolic bp)
+
             var groupTooltips = interfaceSettings.tooltips.grouped;
             var bodyChanged = point.datum.omhDatum.body !== hoverPoint.datum.omhDatum.body;
             var measureTypeChanged = point.datum.measure !== hoverPoint.datum.measure;
@@ -1161,6 +1166,7 @@
               hoverPoint = point;
               highlightGroup( hoverPoint.datum.omhDatum.groupName, point.index );
             }
+
           }else{
             hoverPoint = point;
           }
