@@ -798,6 +798,7 @@
         } );
         xAxis.axisConfigurations( filteredAxisConfigs );
 
+        clusteredBarPlot.addClass( 'clustered-bar-plot-'+measure );
         plots.push( clusteredBarPlot );
 
       } else {
@@ -814,12 +815,16 @@
         pointPlot.addDataset( dataset );
 
         //prepare for plot group
+        linePlot.addClass( 'line-plot-'+measure );
         plots.push( linePlot );
 
       }
 
     });
 
+    // point plot is always added regardless of chart type
+    // because Pointer interactions are attached to it
+    pointPlot.addClass( 'point-plot' );
     plots.push( pointPlot );
 
     var colorScale = null;
