@@ -69,6 +69,15 @@
       svg.plottable.hidden {
         display: none;
       }
+
+      .omh-tooltip .value.threshold-above-threshold {
+        color:#ce5050;
+      }
+
+      .omh-tooltip .value.threshold-warning {
+        color:#e8ac4e;
+      }
+
     </style>
   </head>
 
@@ -157,14 +166,22 @@
               }
           },
           'systolic_blood_pressure': {
-              'thresholds': { 'max': 120 },
-              'range': undefined,
-              'chart': {
-                  'daysShownOnTimeline': { 'min': 0, 'max': Infinity }
-              }
+            'thresholds': [
+              { 'color':{ 'fill': '#e8ac4e', 'stroke': '#745628' }, 'max': 129, 'name': 'warning' },
+              { 'max': 120 },
+              { 'color':{ 'fill': '#e8ac4e', 'stroke': '#745628' }, 'min': 107 }
+            ],
+            'chart': {
+              'pointFillColor' : '#4a90e2',
+              'pointStrokeColor' : '#0066d6',
+              'aboveThesholdPointFillColor' : '#fe0606',
+              'aboveThesholdPointStrokeColor' : '#663333',
+              'daysShownOnTimeline': { 'min': 0, 'max': Infinity }
+            },
+            'range': { 'min':60, 'max':140 },
           },
           'diastolic_blood_pressure': {
-              'thresholds': undefined
+              'thresholds': { 'max': 80 },
           }
         }
     };
