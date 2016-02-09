@@ -40,8 +40,8 @@
       if (merged[attr] === undefined) {
         var val1 = obj1[attr];
         var val2 = obj2[attr];
-
-        if (typeof(val1) === typeof(val2) && typeof(val1) === "object") {
+        // If both are objects, merge them. If not, or if the second value is an array, do not merge them
+        if ( typeof(val1) === typeof(val2) && typeof(val1) === "object" && !( val2 instanceof Array ) ) {
           merged[attr] = root[ parentName ].Utils.mergeObjects(val1 || {}, val2 || {});
         }
         else {
@@ -60,7 +60,6 @@
     for (attrname in obj2){
       set_attr(attrname);
     }
-
     return merged;
   };
 
@@ -103,6 +102,19 @@
 
     var mouseWheelDispatcher = null;
 
+    var defaultTooltipContentFormatter = function( d ) {
+      var content;
+      if( d.omhDatum.groupName === '_systolic_blood_pressure_diastolic_blood_pressure' ){
+        var systolic = d.omhDatum.body.systolic_blood_pressure.value.toFixed( 0 );
+        var diastolic = d.omhDatum.body.diastolic_blood_pressure.value.toFixed( 0 );
+        content = systolic + '/' + diastolic;
+      }else{
+        var decimalPlaces = typeof(settings.userInterface.decimalPlaces) != 'undefined' ? settings.userInterface.decimalPlaces : 1;
+        content = d.y.toFixed( decimalPlaces );
+      }
+      return content;
+    };
+
     var defaultSettings = {
       'userInterface': {
         'toolbar': { 'enabled': true },
@@ -114,8 +126,8 @@
           'enabled': true,
           'timeFormat': 'M/D/YY, h:mma',
           'decimalPlaces': 0,
-          'contentFormatter': undefined,
-	  'grouped': true,
+          'contentFormatter': defaultTooltipContentFormatter,
+          'grouped': true,
          },
         'panZoom': {
           'enabled': true,
@@ -495,36 +507,76 @@
       hidePanZoomHint && hidePanZoomHint();
     };//this is added to the selection when the chart is rendered
 
-    //create a plot with hover states for each data set
-    var plots = [];
+    // these will store sorted lists of thresholds that can simplify threshold coloring
+    var minThresholdsByMeasure = {}, maxThresholdsByMeasure = {};
 
     //fill and stroke colors are determined by threshold
     var whichThreshold = function( d ){
-      var thresholds = getMeasureSettings( d.measure ).thresholds;
 
       var defaultThreshold = { 'name': 'normal', 'color': '_default' };
+      var aboveThreshold = { 'color': '_aboveThreshold', 'name': 'above-threshold' };
+
+      var minThresholds = minThresholdsByMeasure[ d.measure ];
+      var maxThresholds = maxThresholdsByMeasure[ d.measure ];
 
       // If no thresholds are specified, return default settings
-      if( !thresholds || thresholds.length == 0 ) {
+      if( ( !minThresholds && !maxThresholds ) || ( minThresholds.length === 0 && maxThresholds.length === 0 ) ) {
         return defaultThreshold;
       }
 
-      // If the thresholds variable is an object, there is only a single threshold
-      if( !Array.isArray(thresholds)) {
-        thresholds = [thresholds];
-      }
 
-      // Find the first threshold that this value falls in to
-      for( i = 0; i < thresholds.length; i++ ) {
-        var threshold = thresholds[i];
+      // Find the highest min threshold that this value falls above
+      var getMinThreshold = function( d ){
+        // If there is no min threshold, poins should be rendered as default
+        if ( minThresholds.length === 0 ){
+          return defaultThreshold;
+        }
+        for( var i = 0; i < minThresholds.length; i++ ) {
+          var threshold = minThresholds[i];
+          if( threshold && ( !threshold.min || d.y > threshold.min ) ) {
+            return threshold;
+          }
+        }
+        // If the point was not over any mmin, it is rendered as below (aka above)
+        return aboveThreshold;
+      };
 
-        if( threshold && ( !threshold.max || d.y <= threshold.max ) && ( !threshold.min || d.y > threshold.min ) ) {
-          return threshold;
+      // Find the lowest max threshold that this value falls below
+      var getMaxThreshold = function( d ){
+        // If there is no max threshold, poins should be rendered as default
+        if ( maxThresholds.length === 0 ){
+          return defaultThreshold;
+        }
+        for( var i = 0; i < maxThresholds.length; i++ ) {
+          var threshold = maxThresholds[i];
+          if( threshold && ( !threshold.max || d.y <= threshold.max ) ) {
+            return threshold;
+          }
+        }
+        // If the point was not under any max, it is rendered as above
+        return aboveThreshold;
+      };
+
+      var maxThresholdFound = getMaxThreshold( d );
+
+      if ( maxThresholdFound ){
+        if ( maxThresholdFound.hasOwnProperty('name') && maxThresholdFound.name === 'normal' ) {
+
+          var minThresholdFound = getMinThreshold( d );
+
+          if ( minThresholdFound ) {
+            return minThresholdFound;
+          } else {
+            return defaultThreshold;
+          }
+        } else {
+          if ( maxThresholdFound ) { return maxThresholdFound; }
         }
       }
 
-      // If nnoe of the thresholds holds, consider it as being 'aboveThreshold'
-      return { 'color': '_aboveThreshold', name: 'above-threshold' };
+      // If none of the thresholds holds, consider it as being 'aboveThreshold'
+      return aboveThreshold;
+
     };
 
     var getColorsForThreshold = function(d, threshold) {
@@ -545,19 +597,23 @@
       } else {
         return threshold.color;
       }
-    }
+    };
 
     var fillColor = function( d ){
       var color = getColorsForThreshold( d, whichThreshold( d ) );
-      return color.fill
+      return color.fill;
     };
     var strokeColor = function( d ){
       var color = getColorsForThreshold( d, whichThreshold( d ) );
-      return color.stroke
+      return color.stroke;
     };
     var barColor = function( d ){
       return getMeasureSettings( d.measure ).chart.barColor;
     };
+
+
+    //create a plot with hover states for each data set
+    var plots = [];
 
     //set up points
     var pointPlot = new Plottable.Plots.Scatter()
@@ -587,20 +643,53 @@
 
     // If there are thresholds for any of the measures, add them as gridlines
     if( interfaceSettings.thresholds.show ) {
+
         var thresholdValues = [];
 
         d3.entries( measureData ).forEach( function( entry ) {
 
-          measure = entry.key;
+          var measure = entry.key;
 
           var thresholds = getMeasureSettings( measure ).thresholds;
 
-          if( !thresholds )
-            return;
-
-          // Convert into array if only a single threshold is specified
-          if( !Array.isArray(thresholds) )
+          // if the thresholds variable is an object, there is only a single threshold
+          // so convert it into an array
+          if( !Array.isArray(thresholds) ) {
             thresholds = [thresholds];
+          }
+          
+          // seprate thresholds into max and min for readability
+          var filterThresholds = function( type ){
+            return function( item ){
+              return item.hasOwnProperty( type );
+            };
+          };
+
+          // sort them so we can choose the right level more easily
+          var sortThresholds = function( type ){
+            return function( a, b ){
+              if ( type === 'min' ){
+                return b.min - a.min;
+              } else {
+                return a.max - b.max;
+              }
+            };
+          };
+
+          var maxThresholds = thresholds.filter( filterThresholds('max') ).sort( sortThresholds('max') );
+          var minThresholds = thresholds.filter( filterThresholds('min') ).sort( sortThresholds('min') );
+
+          // default color should always be used for points below the first thresholds
+          // because there is no way to decide whether to use max or min ( they overlap here )
+          if ( maxThresholds.length > 0 ) { maxThresholds[0].color = '_default'; maxThresholds[0].name = 'normal'; }
+          if ( minThresholds.length > 0 ) { minThresholds[0].color = '_default'; maxThresholds[0].name = 'normal'; }
+
+          maxThresholdsByMeasure[ measure ] = maxThresholds;
+          minThresholdsByMeasure[ measure ] = minThresholds;
+
+          if( !thresholds ) {
+            return;
+          }
 
           // Add the threshold limits, if specified
           for( i = 0; i < thresholds.length; i++ ) {
@@ -615,7 +704,6 @@
           }
 
         });
-
         if ( thresholdValues.length > 0 ){
 
           thresholdValues.sort( function(a,b){ return a-b; } );
@@ -637,8 +725,9 @@
 
           var gridlineYAxis = new Plottable.Axes.Numeric(gridlineYScale, "right")
           .tickLabelPosition("top")
-          .tickLabelPadding( 5 )
-          .showEndTickLabels(true);
+          .tickLabelPadding( 3 )
+          .showEndTickLabels(true)
+          .addClass("gridlines-axis");
 
           var gridlines = new Plottable.Components.Gridlines(null, gridlineYScale);
 
@@ -646,7 +735,7 @@
           plots.push( gridlineYAxis );
 
         }
-      }
+    }
 
     //iterate across the data prepared from the omh json data and add plots
     measures.forEach( function( measure ) {
@@ -709,6 +798,7 @@
         } );
         xAxis.axisConfigurations( filteredAxisConfigs );
 
+        clusteredBarPlot.addClass( 'clustered-bar-plot-'+measure );
         plots.push( clusteredBarPlot );
 
       } else {
@@ -725,12 +815,16 @@
         pointPlot.addDataset( dataset );
 
         //prepare for plot group
+        linePlot.addClass( 'line-plot-'+measure );
         plots.push( linePlot );
 
       }
 
     });
 
+    // point plot is always added regardless of chart type
+    // because Pointer interactions are attached to it
+    pointPlot.addClass( 'point-plot' );
     plots.push( pointPlot );
 
     var colorScale = null;
@@ -1055,8 +1149,13 @@
 
       var highlightNewHoverPoint = function( point ) {
           if( hoverPoint !== null ) {
-            // If tooltips are grouped, only the body has to change to move to another point
-            // If tooltips are not grouped, the body or the measuretype has to change
+
+            // When tooltips are grouped, update the hover point if the point passed in
+            // has a different body from the current hover point
+
+            // When tooltips are not grouped, also check if the measure type has changed,
+            // since two points of different types can share the same body (eg diastolic and systolic bp)
+
             var groupTooltips = interfaceSettings.tooltips.grouped;
             var bodyChanged = point.datum.omhDatum.body !== hoverPoint.datum.omhDatum.body;
             var measureTypeChanged = point.datum.measure !== hoverPoint.datum.measure;
@@ -1067,6 +1166,7 @@
               hoverPoint = point;
               highlightGroup( hoverPoint.datum.omhDatum.groupName, point.index );
             }
+
           }else{
             hoverPoint = point;
           }
