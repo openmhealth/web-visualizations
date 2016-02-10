@@ -245,12 +245,15 @@ Thresholds of type `max` and `min` can be specified using the `options` paramete
 The points on a line graph can be colored differently, depending on where they fall in relation to a threshold.
 
 The simplest way is to color a point differently if it exceeds a 'max' threshold or falls below a 'min' threshold. This is acchieved by any given measure's `chart.aboveThesholdPointFillColor` and `chart.aboveThesholdPointStrokeColor` properties in the `options` object. By default, this is set to the light orange color in the previous example. Here is a chart with systolic blood pressure's above-threshold color properties set to red:
+
 ![Above Threshold Color](http://www.openmhealth.org/media/viz_example_threshold_color.png "Above Threshold Color")
 
 Note that if a `min` type threshold is added to systolic blood pressure, points the excede the `min` threshold will also be drawn in red:
+
 ![Above Threshold Color with Minimum](http://www.openmhealth.org/media/viz_example_threshold_color_min.png "Above Threshold Color with Minimum")
 
 Points that fall between two thresholds can also be colored differently. This is acchieved by setting the `color` attribute of a threshold when it is in a list of thresholds. When this property is set for a threshold, all points that fall inside the threshold ( below the `max` or above the `min` ) but outside any previous thresholds, will be colored accordingly. Here is a chart with a band of light orange poings added between two maximum thresholds:
+
 ![Above Threshold Color with Colored Range](http://www.openmhealth.org/media/viz_example_threshold_color_band.png "Above Threshold Color with Colored Range")
 
 All thresholds except the lowest `max` and highest `min` can use the `color` property. The points in the area below the lowest `max` and above the highest `min` can not be colored by a threshold's `color` property because there is no meaningful way to choose between the `min` or `max` color. Therefore, points in this range will always be colored by the measure's `chart.pointFillColor` and `chart.pointStrokeColor`.
