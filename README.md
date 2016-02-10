@@ -234,6 +234,14 @@ As an example, the data will be quantized by hour using `OMHWebVisualizations.QU
 And here is a chart of the same data *quantized* by hour. The points before 05:00 in the zoomed-in view above have been accumulated into a single point, shown in dark blue:
 ![Quantized Data](http://www.openmhealth.org/media/viz_example_quantized_data.png "Quantized Data")
 
+#### Thresholds
+
+Lines representing thresholds can be drawn on charts. Each line is labelled with its y value, unless that label will overlap another threshold's label.
+
+Thresholds of type 'max' and 'min' can be specified using the `options` parameter, passed in during construction.
+
+The points on line graphs can be colored differently, depending on where they fall in relation to a threshold. The simplest way is to color a point differently if it exceeds a 'max' threshold or falls below a 'min' threshold. This is acchieved by any given measure's `chart.aboveThesholdPointFillColor` and `chart.aboveThesholdPointStrokeColor` properties in the `options` object.
+
 ###Rendering a chart
 
 Once a chart has been constructed, it must be rendered to an `<svg>` element. Render the chart by calling:
