@@ -238,9 +238,15 @@ And here is a chart of the same data *quantized* by hour. The points before 05:0
 
 Lines representing thresholds can be drawn on charts. Each line is labelled with its y value, unless that label will overlap another threshold's label.
 
-Thresholds of type 'max' and 'min' can be specified using the `options` parameter, passed in during construction.
+Thresholds of type `max` and `min` can be specified using the `options` parameter, passed in during construction. For some measures, thresholds are enabled by default. To disable thresholds, the `userInterface.tooltips.show` property of the options object can be set to `false`.
 
-The points on line graphs can be colored differently, depending on where they fall in relation to a threshold. The simplest way is to color a point differently if it exceeds a 'max' threshold or falls below a 'min' threshold. This is acchieved by any given measure's `chart.aboveThesholdPointFillColor` and `chart.aboveThesholdPointStrokeColor` properties in the `options` object.
+The points on a line graph can be colored differently, depending on where they fall in relation to a threshold.
+
+The simplest way is to color a point differently if it exceeds a 'max' threshold or falls below a 'min' threshold. This is acchieved by any given measure's `chart.aboveThesholdPointFillColor` and `chart.aboveThesholdPointStrokeColor` properties in the `options` object. By default, this is set to a light orange color.
+
+Points that fall between two thresholds can also be colored differently. This is acchieved by setting the `color` attribute of a threshold when it is in a list of thresholds. When this property is set for a threshold, all points that fall inside the threshold ( below the `max` or above the `min` ) but outside any previous thresholds, will be colored accordingly.
+
+All thresholds except the lowest `max` and highest `min` can use the `color` property. The points in the area below the lowest `max` and above the highest `min` can not be colored by a threshold's `color` property because there is no meaningful way to choose between the `min` or `max` color. Therefore, points in this range will always be colored by the measure's `chart.pointFillColor` and `chart.pointStrokeColor`.
 
 ###Rendering a chart
 
