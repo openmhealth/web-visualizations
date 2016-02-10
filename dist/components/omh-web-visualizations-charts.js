@@ -1211,15 +1211,15 @@
         }
 
         //show different tool tip depending on measureList
-        var title;
-        if( settings.userInterface.tooltips && typeof(settings.userInterface.tooltips.contentFormatter) != 'undefined' ) {
-          title = settings.userInterface.tooltips.contentFormatter(d);
+        var formattedData;
+        if( settings.userInterface.tooltips && typeof( settings.userInterface.tooltips.contentFormatter ) != 'undefined' ) {
+          formattedData = settings.userInterface.tooltips.contentFormatter( d );
         } else {
-          var decimalPlaces = typeof(settings.userInterface.decimalPlaces) != 'undefined' ? settings.userInterface.decimalPlaces : 1;
-          title = d.y.toFixed( decimalPlaces );
+          var decimalPlaces = typeof( settings.userInterface.decimalPlaces ) != 'undefined' ? settings.userInterface.decimalPlaces : 1;
+          formattedData = d.y.toFixed( decimalPlaces );
         }
 
-        content = '<div class="' + contentCssClass + '">' + title + '</div>';
+        content = '<div class="' + contentCssClass + '">' + formattedData + '</div>';
 
         var timeFormat = interfaceSettings.tooltips.timeFormat;
         content += '<div class="time">' + moment( d.x ).format( timeFormat ) + '</div>';
