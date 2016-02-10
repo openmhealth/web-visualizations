@@ -234,7 +234,7 @@ As an example, the data will be quantized by hour using `OMHWebVisualizations.QU
 And here is a chart of the same data *quantized* by hour. The points before 05:00 in the zoomed-in view above have been accumulated into a single point, shown in dark blue:
 ![Quantized Data](http://www.openmhealth.org/media/viz_example_quantized_data.png "Quantized Data")
 
-#### Thresholds
+### Thresholds
 
 Lines representing thresholds can be drawn on charts. Each line is labelled with its y value, unless that label will overlap another threshold's label.
 
