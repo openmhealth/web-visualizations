@@ -247,7 +247,7 @@ Property | Description
 ---: | ---
 *max* | A maximum value. Above this value, points will be colored according to the measure's `chart.aboveThesholdPointFillColor` and `chart.aboveThesholdPointStrokeColor` properties.
 *min* | A minimum value. Below this value, points will be colored according to the measure's `chart.aboveThesholdPointFillColor` and `chart.aboveThesholdPointStrokeColor` properties.
-*color* | A color object that affects any points below the threshold that already exceed a more restrictive threshold. This only effects thresholds in lists, and it has no effect on the points below the most restrictive threshold (eg the lowest `max`). This is explained in more detail below.
+*color* | A color object that affects any points below the threshold that already exceed a more restrictive threshold. This is only used by thresholds in lists, and it has no effect on the points below the most restrictive threshold (eg the lowest `max`). This is explained in more detail below.
 *name* | A name to identify the threshold when styling tooltips for points below it using css.
 
 On a chart of type `line`, a labeled horizontal rule is drawn all the way across the chart for each threshold, and the points can be colored differently, depending on where they fall in relation to the thresholds.
