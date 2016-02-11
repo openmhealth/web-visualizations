@@ -258,6 +258,19 @@ Points that fall between two thresholds can also be colored differently. This is
 
 All thresholds except the lowest `max` and highest `min` can use the `color` property. The points in the area below the lowest `max` and above the highest `min` can not be colored by a threshold's `color` property because there is no meaningful way to choose between the `min` or `max` color. Therefore, points in this range will always be colored by the measure's `chart.pointFillColor` and `chart.pointStrokeColor`.
 
+###Tooltips
+
+Tooltips can be enabled, disabled, and configured using the `userInterface.tooltips` property of the `options` object passed into the constructor. The propertirs of `userInterface.tooltips` are explained in the following table:
+
+Property | Description
+---: | ---
+*enabled* | Whether to show tooltips when the user hovers on a point.
+*timeFormat* | A string representing the [time format](http://momentjs.com/docs/#/displaying/format/) for the time field in the tooltip.
+*decimalPlaces* | The number of decimal places to show by default when redering a data point value in the tooltip.
+*contentFormatter* | A function that takes a D3 data point and returns a string. Used to render the data point in the tooltip. If undefined, the data point's y value will be truncated to the number of decimal places specified in the `decimalPlaces` parameter and converted to a string.
+*grouped* | Whether to show a single common tooltip for data points of different measure types that are found together in the body of a single data point.
+
+
 ###Rendering a chart
 
 Once a chart has been constructed, it must be rendered to an `<svg>` element. Render the chart by calling:
