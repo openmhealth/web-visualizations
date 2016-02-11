@@ -268,13 +268,13 @@ All thresholds except the lowest `max` and highest `min` can use the `color` pro
 
 ###Tooltips
 
-Tooltips can be enabled, disabled, and configured using the `userInterface.tooltips` property of the `options` object passed into the constructor. The propertirs of `userInterface.tooltips` are explained in the following table:
+Tooltips can be enabled, disabled, and configured using the `userInterface.tooltips` property of the `options` object passed into the constructor ([see 'Configuring a Chart'](#configuring_a_chart)). The properties of `userInterface.tooltips` are explained in the following table:
 
 Property | Description
 ---: | ---
 *enabled* | Whether to show tooltips when the user hovers on a point.
 *timeFormat* | A string representing the [time format](http://momentjs.com/docs/#/displaying/format/) for the time field in the tooltip.
-*decimalPlaces* | The number of decimal places to show by default when redering a data point value in the tooltip.
+*decimalPlaces* | The number of decimal places to show by default when rendering a data point value in the tooltip.
 *contentFormatter* | A function that takes a D3 data point and returns a string. Used to render the data point in the tooltip. If undefined, the data point's y value will be truncated to the number of decimal places specified in the `decimalPlaces` parameter and converted to a string.
 *grouped* | Whether to show a single common tooltip for data points of different measure types that are found together in the body of a single data point.
 
