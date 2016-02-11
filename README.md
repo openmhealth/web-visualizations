@@ -305,7 +305,7 @@ Here is the css used for the systolic tooltip:
 And again, in the same chart, we see a tooltip that has been colored light orange to match its point in the first measure:
 ![Within Threshold Tooltip with Custom Color](http://www.openmhealth.org/media/viz_example_threshold_warning_tip.png "Within Threshold Tooltip with Custom Color")
 
-Here more css used for the any tooltips shown within a threshold named `warning`:
+Here is more css used for the any tooltips shown within a threshold named `warning`:
 ```css
 .omh-tooltip .value.threshold-warning {
    color:#e8ac4e;
