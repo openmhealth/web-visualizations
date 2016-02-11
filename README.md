@@ -280,8 +280,11 @@ Property | Description
 
 
 In the following chart, we see a tooltip that has been colored light orange to match its point in the diastolic blood pressure series:
+
 ![Above Threshold Tooltip](http://www.openmhealth.org/media/viz_example_threshold_above_tip_2.png "Above Threshold Tooltip")
+
 And here is the css used for the diastolic tooltip:
+
 ```css
 .omh-tooltip .value.threshold-diastolic_blood_pressure-above-threshold {
   color:#e8ac4e;
@@ -290,7 +293,9 @@ And here is the css used for the diastolic tooltip:
 
 In the same chart, we see a tooltip that has been colored red to match its point in the systolic blood pressure series:
 ![Above Threshold Tooltip with Custom Color](http://www.openmhealth.org/media/viz_example_threshold_above_tip_1.png "Above Threshold Tooltip with Custom Color")
+
 Here is the css used for the systolic tooltip:
+
 ```css
 .omh-tooltip .value.threshold-systolic_blood_pressure-above-threshold {
   color:#ce5050;
@@ -299,12 +304,17 @@ Here is the css used for the systolic tooltip:
 
 And again, in the same chart, we see a tooltip that has been colored light orange to match its point in the first measure:
 ![Within Threshold Tooltip with Custom Color](http://www.openmhealth.org/media/viz_example_threshold_warning_tip.png "Within Threshold Tooltip with Custom Color")
+
+Here more css used for the any tooltips shown within a threshold named `warning`:
+
 ```css
 .omh-tooltip .value.threshold-warning {
    color:#e8ac4e;
 }
 ```
+
 In order for this to work, the corresponding threshold has its `name` property set to `warning` as follows:
+
 ```javascript
 {
    'max': 129,
