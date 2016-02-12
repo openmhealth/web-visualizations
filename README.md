@@ -156,8 +156,8 @@ If you look carefully at the default settings object, you'll also notice that so
      'lineColor' : '#dedede',
      'pointFillColor' : '#4a90e2',
      'pointStrokeColor' : '#0066d6',
-     'aboveThesholdPointFillColor' : '#e8ac4e',
-     'aboveThesholdPointStrokeColor' : '#745628',
+     'aboveThresholdPointFillColor' : '#e8ac4e',
+     'aboveThresholdPointStrokeColor' : '#745628',
      'barColor' : '#4a90e2',
      'daysShownOnTimeline': { 'min': 1, 'max': 1000 },
    },
@@ -245,14 +245,14 @@ To configure the individual thresholds for a measure, a `thresholds` property ca
 
 Property | Description
 ---: | ---
-*max* | A maximum value. Above this value, points will be colored according to the measure's `chart.aboveThesholdPointFillColor` and `chart.aboveThesholdPointStrokeColor` properties.
-*min* | A minimum value. Below this value, points will be colored according to the measure's `chart.aboveThesholdPointFillColor` and `chart.aboveThesholdPointStrokeColor` properties.
+*max* | A maximum value. Above this value, points will be colored according to the measure's `chart.aboveThresholdPointFillColor` and `chart.aboveThresholdPointStrokeColor` properties.
+*min* | A minimum value. Below this value, points will be colored according to the measure's `chart.aboveThresholdPointFillColor` and `chart.aboveThresholdPointStrokeColor` properties.
 *color* | A color object that affects any points below the threshold that already exceed a more restrictive threshold. This is only used by thresholds in lists, and it has no effect on the points below the most restrictive threshold (eg the lowest `max`). This is explained in more detail below.
 *name* | A name to identify the threshold when styling tooltips for points below it using css.
 
 On a chart of type `line`, a labeled horizontal rule is drawn all the way across the chart for each threshold, and the points can be colored differently, depending on where they fall in relation to the thresholds.
 
-The simplest behavior colors a point differently if it exceeds a `max` threshold or falls below a `min` threshold. This is acchieved by measure's `chart.aboveThesholdPointFillColor` and `chart.aboveThesholdPointStrokeColor` properties in the `options` object. By default, this is set to the light orange color in the previous example. Here is a chart with systolic blood pressure's `chart.aboveThesholdPointFillColor` and `chart.aboveThesholdPointStrokeColor` properties set to red:
+The simplest behavior colors a point differently if it exceeds a `max` threshold or falls below a `min` threshold. This is acchieved by measure's `chart.aboveThresholdPointFillColor` and `chart.aboveThresholdPointStrokeColor` properties in the `options` object. By default, this is set to the light orange color in the previous example. Here is a chart with systolic blood pressure's `chart.aboveThresholdPointFillColor` and `chart.aboveThresholdPointStrokeColor` properties set to red:
 
 ![Above Threshold Color](http://www.openmhealth.org/media/viz_example_threshold_color.png "Above Threshold Color")
 
