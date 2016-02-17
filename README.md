@@ -30,7 +30,7 @@ If you'd like to experiment with the library using a demonstration page,
 1. Make your changes
 1. To publish your changes to the `dist` directory, run [gulp](http://gulpjs.com/)
     * `gulp`
-1. To see the result
+1. To see the results on the example page
     * `gulp watch` and open [http://localhost:8080/examples/charts.html](http://localhost:8080/examples/charts.html) in your browser
 1. If you leave it running, gulp will watch for changes in the background and update `dist` as needed
 
