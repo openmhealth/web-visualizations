@@ -73,7 +73,13 @@ gulp.task('generate-concatenated-script', function() {
     .pipe(notify({ message: 'Scripts concat task complete' }));
 });
 gulp.task('generate-component-scripts', function(){
-  return gulp.src('src/*.js')
+  return gulp.src([
+      'src/ChartConfiguration.js',
+      'src/DataParser.js',
+      'src/ChartInteractions.js',
+      'src/ChartStyles.js',
+      'src/Charts.js'
+    ])
     .pipe(jshint('.jshintrc'))
     .pipe(jshint.reporter('default'))
     .pipe(rename({ prefix: 'omh-web-visualizations-' }))
