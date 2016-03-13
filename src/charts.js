@@ -144,6 +144,10 @@
 
         };
 
+        // return the measures that this chart can show
+        this.getMeasures = function(){
+            return measures;
+        };
         // return the styles used to render the plots
         this.getStyles = function(){
             return styles;

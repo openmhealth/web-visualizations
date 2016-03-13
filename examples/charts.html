@@ -325,8 +325,9 @@
 
                 showDatapointDetailsMessage( 'Click on a point to see details here...' );
 
-                addDangerZone( scatterPlot, components.gridlines.values );
-
+                if ( chart.getMeasures().indexOf('systolic_blood_pressure') > -1 ) {
+                    addDangerZone( scatterPlot, components.gridlines.values );
+                }
             }
 
         } );
@@ -455,7 +456,9 @@
         // the step_count options if it has been chosen in the menu.
 
         // This allows us to change the appearance of step_count data,
-        // which normally defaults to a bar graph.
+        // which normally defaults to a bar graph when shown with
+        // minutes_of_moderate_activity, to a line graph when
+        // shown on its own.
 
         var chartOptions = options;
 
@@ -466,6 +469,7 @@
             chartOptions[ 'measures' ][ 'step_count' ] = {
                 'range': undefined,
                 'timeQuantizationLevel': OMHWebVisualizations.DataParser.QUANTIZE_MONTH,
+                'thresholds': { 'min': 10000 },
                 'chart': {
                     'type': 'line',
                     'daysShownOnTimeline': undefined
