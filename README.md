@@ -169,7 +169,8 @@ If you look carefully at the default settings object, you'll also notice that so
 }
 ```
 
-To override these defaults, simply specify them in the corresponding `measures` section of the `options` object passed to `OMHWebVisualization.Chart(...)`. If you would like to graph `heart_rate` data with a blue line and no tooltips, for example, you'd use the following settings object:
+To override these defaults, edit the default styles, and specify the interface settings in the `options` object passed to `OMHWebVisualization.Chart(...)`.
+If you would like to graph `heart_rate` data with a blue line and no tooltips, for example, you'd use the following settings object to turn off tooltips:
 
 ```javascript
 {
@@ -178,14 +179,30 @@ To override these defaults, simply specify them in the corresponding `measures` 
       'enabled': false,
      }
   },
-  'measures': {
-    'heart_rate': {
-      'chart': {
-        'lineColor' : '#4a90e2'
-      }
-    }
-  }
 }
+```
+
+And the following code would change the line color:
+```
+// get the existing styles from the chart so we can alter them
+var chartStyles = chart.getStyles();
+var linePlot = chart.getPlots( Plottable.Plots.Line )[ 0 ];
+
+// initialize new styles with the existing ones
+var plotStylesWithBlueLines = chartStyles.getStylesForPlot( linePlot );
+
+// add blue line style
+plotStylesWithBlueLines.push(
+        {
+            'name': 'blue-lines',
+            'attributes': {
+                'stroke': '#4a90e2'
+            }
+        }
+);
+
+// replace styles for the plot with extended blue-line styles
+chartStyles.setStylesForPlot( plotStylesWithBlueLines, linePlot );
 ```
 This will produce a chart that looks something like the following screenshot:
 
@@ -195,7 +212,7 @@ This will produce a chart that looks something like the following screenshot:
 
 Quantization reduces the dataset's size by summarizing each group of points that fall into a common time range, or "bucket," with a single point that represents their bucket's range.
 
-Currently, quantized data point values within each subsequent quantization bucket are *summed*. This is useful for additive measures like `step_count`, which accumulate naturally over time. It should not be used for measures that are not additive, such as `blood_pressure`.
+Currently, quantized data point values within each subsequent quantization bucket are *averaged* for most measures and *summed* for `step_count` and `minutes_moderate_activity`.
 
 If you wish to configure the `timeQuantizationLevel` for a measure, you will need the following constants:
 
@@ -219,6 +236,7 @@ var options = {
           'range': { 'min':0, 'max':10000 },
           'units': 'm',
           'timeQuantizationLevel': OMHWebVisualizations.DataParser.QUANTIZE_MONTH,
+          'quantizedDataConsolidationFunction': OMHWebVisualizations.DataParser.consolidators.summation,
           'seriesName': 'Distance',
           'chart': {
               'type' : 'clustered_bar',
