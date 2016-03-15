@@ -62,80 +62,84 @@ The `options` parameter of the `OMHWebVisualization.Chart(...)` function is divi
 The following object is the default settings object used by the `OMHWebVisualization.Chart(...)` function when its `options` parameter is empty. You can specify any subset of these settings to override them:
 
 ```javascript
+
 'userInterface': {
-  'toolbar': { 'enabled': true },
-  'timespanButtons': { 'enabled': true },
-  'zoomButtons': { 'enabled': true },
-  'navigation': { 'enabled': true },
-  'thresholds': { 'show': true },
-  'tooltips': {
-    'enabled': true,
-    'timeFormat': 'M/D/YY, h:mma',
-    'decimalPlaces': 0,
-    'contentFormatter': defaultTooltipContentFormatter,
-    'grouped': true,
-   },
-  'panZoom': {
-    'enabled': true,
-    'showHint': true
-  },
-  'axes': {
-    'yAxis':{
-      'visible': true
+    'toolbar': { 'enabled': true },
+    'timespanButtons': { 'enabled': true },
+    'zoomButtons': { 'enabled': true },
+    'navigation': { 'enabled': true },
+    'thresholds': { 'show': true },
+    'tooltips': {
+        'enabled': true,
+        'timeFormat': 'M/D/YY, h:mma',
+        'decimalPlaces': 0,
+        'contentFormatter': OMHWebVisualizations.ChartStyles.formatters.defaultTooltip,
+        'grouped': true
     },
-    'xAxis':{
-      'visible': true
+    'panZoom': {
+        'enabled': true,
+        'showHint': true
+    },
+    'axes': {
+        'yAxis': {
+            'visible': true
+        },
+        'xAxis': {
+            'visible': true
+        }
     }
-  }
 },
 'measures': {
-  'body_weight' : {
-    'valueKeyPath': 'body.body_weight.value',
-    'range': { 'min': 0, 'max': 100 },
-    'units': 'kg',
-    'thresholds': { 'max': 57 },
-  },
-  'heart_rate': {
-    'valueKeyPath': 'body.heart_rate.value',
-    'range': { 'min': 30, 'max': 150 },
-    'units': 'bpm',
-  },
-  'step_count': {
-    'valueKeyPath': 'body.step_count',
-    'range': { 'min': 0, 'max': 1500 },
-    'units': 'Steps',
-    'seriesName': 'Steps',
-    'timeQuantizationLevel': OMHWebVisualizations.QUANTIZE_DAY,
-    'chart': {
-      'type':'clustered_bar',
-      'barColor' : '#eeeeee',
-      'daysShownOnTimeline': { 'min': 7, 'max': 90 },
+    'body_weight': {
+        'valueKeyPath': 'body.body_weight.value',
+        'range': { 'min': 0, 'max': 100 },
+        'units': 'kg',
+        'thresholds': { 'max': 57 }
     },
-  },
-  'minutes_moderate_activity': {
-    'valueKeyPath': 'body.minutes_moderate_activity.value',
-    'range': { 'min': 0, 'max': 300 },
-    'units': 'Minutes',
-    'seriesName': 'Minutes of moderate activity',
-    'timeQuantizationLevel': OMHWebVisualizations.QUANTIZE_DAY,
-    'chart': {
-      'type':'clustered_bar',
-      'daysShownOnTimeline': { 'min': 7, 'max': 90 },
+    'heart_rate': {
+        'valueKeyPath': 'body.heart_rate.value',
+        'range': { 'min': 30, 'max': 150 },
+        'units': 'bpm'
     },
-  },
-  'systolic_blood_pressure': {
-    'valueKeyPath': 'body.systolic_blood_pressure.value',
-    'range': { 'min': 30, 'max': 200 },
-    'units': 'mmHg',
-    'thresholds':  { 'max': 120 },
-  },
-  'diastolic_blood_pressure': {
-    'valueKeyPath': 'body.diastolic_blood_pressure.value',
-    'range': { 'min': 30, 'max': 200 },
-    'units': 'mmHg',
-    'thresholds':  { 'max': 80 },
-  }
+    'step_count': {
+        'valueKeyPath': 'body.step_count',
+        'range': { 'min': 0, 'max': 1500 },
+        'units': 'Steps',
+        'seriesName': 'Steps',
+        'timeQuantizationLevel': OMHWebVisualizations.DataParser.QUANTIZE_DAY,
+        'quantizedDataConsolidationFunction': OMHWebVisualizations.DataParser.consolidators.summation,
+        'chart': {
+            'type': 'clustered_bar',
+            'barColor': '#eeeeee',
+            'daysShownOnTimeline': { 'min': 7, 'max': 90 }
+        },
+    },
+    'minutes_moderate_activity': {
+        'valueKeyPath': 'body.minutes_moderate_activity.value',
+        'range': { 'min': 0, 'max': 300 },
+        'units': 'Minutes',
+        'seriesName': 'Minutes of moderate activity',
+        'timeQuantizationLevel': OMHWebVisualizations.DataParser.QUANTIZE_DAY,
+        'quantizedDataConsolidationFunction': OMHWebVisualizations.DataParser.consolidators.summation,
+        'chart': {
+            'type': 'clustered_bar',
+            'daysShownOnTimeline': { 'min': 7, 'max': 90 }
+        },
+    },
+    'systolic_blood_pressure': {
+        'valueKeyPath': 'body.systolic_blood_pressure.value',
+        'range': { 'min': 30, 'max': 200 },
+        'units': 'mmHg',
+        'thresholds': { 'max': 120 }
+    },
+    'diastolic_blood_pressure': {
+        'valueKeyPath': 'body.diastolic_blood_pressure.value',
+        'range': { 'min': 30, 'max': 200 },
+        'units': 'mmHg',
+        'thresholds': { 'max': 80 }
+    }
 }
+
 ```
 
 For example, using these default settings to graph `heart_rate` data will generate a chart that looks like this:
@@ -149,18 +153,19 @@ If you look carefully at the default settings object, you'll also notice that so
    'range': { 'min': 0, 'max': 100 },
    'units': 'Units',
    'seriesName': 'Series',
-   'timeQuantizationLevel': OMHWebVisualizations.QUANTIZE_NONE,
+   'timeQuantizationLevel': OMHWebVisualizations.DataParser.QUANTIZE_NONE,
+   'quantizedDataConsolidationFunction': OMHWebVisualizations.DataParser.consolidators.average,
    'chart': {
-     'type':'line',
-     'pointSize': 9,
-     'lineColor' : '#dedede',
-     'pointFillColor' : '#4a90e2',
-     'pointStrokeColor' : '#0066d6',
-     'aboveThresholdPointFillColor' : '#e8ac4e',
-     'aboveThresholdPointStrokeColor' : '#745628',
-     'barColor' : '#4a90e2',
-     'daysShownOnTimeline': { 'min': 1, 'max': 1000 },
-   },
+       'type': 'line',
+       'pointSize': 9,
+       'lineColor': '#dedede',
+       'pointFillColor': '#4a90e2',
+       'pointStrokeColor': '#0066d6',
+       'aboveThresholdPointFillColor': '#e8ac4e',
+       'aboveThresholdPointStrokeColor': '#745628',
+       'barColor': '#4a90e2',
+       'daysShownOnTimeline': { 'min': 1, 'max': 1000 },
+   }
 }
 ```
 
