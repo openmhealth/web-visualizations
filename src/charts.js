@@ -32,7 +32,7 @@
         var configuration = new OMHWebVisualizations.ChartConfiguration( options );
         var parser = new OMHWebVisualizations.DataParser( data, measures, configuration );
         var styles = new OMHWebVisualizations.ChartStyles( configuration );
-        var interactions = new OMHWebVisualizations.ChartInteractions( element, measures[0], configuration, parser, styles );
+        var interactions = new OMHWebVisualizations.ChartInteractions( element, measures[ 0 ], configuration, parser, styles );
         this.initialized = false;
 
         // if the element passed in is a jQuery element, then get the dom element
@@ -53,7 +53,7 @@
         var xScale = new Plottable.Scales.Time();
         var yScale = new Plottable.Scales.Linear();
         var yScaleCallback = null;
-        var domain = configuration.getMeasureSettings( measures[0] ).range;
+        var domain = configuration.getMeasureSettings( measures[ 0 ] ).range;
         if ( domain ) {
             yScale.domainMin( domain.min ).domainMax( domain.max );
         }
@@ -64,7 +64,7 @@
 
         var yAxis = new Plottable.Axes.Numeric( yScale, 'left' );
 
-        var yLabel = new Plottable.Components.AxisLabel( configuration.getMeasureSettings( measures[0] ).units, '0' )
+        var yLabel = new Plottable.Components.AxisLabel( configuration.getMeasureSettings( measures[ 0 ] ).units, '0' )
             .padding( 5 )
             .xAlignment( 'right' )
             .yAlignment( 'top' );
@@ -74,7 +74,7 @@
         var plots = [];
 
         //set up points
-        var pointPlot = new Plottable.Plots.Scatter()
+        var scatterPlot = new Plottable.Plots.Scatter()
             .x( function ( d ) {
                 return d.x;
             }, xScale )
@@ -82,7 +82,7 @@
                 return d.y;
             }, yScale );
 
-        styles.setStylesForPlot( styles.getDefaultStylesForPlot( pointPlot ), pointPlot );
+        styles.setStylesForPlot( styles.getDefaultStylesForPlot( scatterPlot ), scatterPlot );
 
         //prepare for clustered bars
         var clusteredBarPlots = [];
@@ -98,17 +98,17 @@
 
         // If there are thresholds for any of the measures, add them as gridlines
 
-        var thresholdValues = [];
+        var gridlineValues = [];
         var gridlines;
         var gridlineYAxis;
 
-        var addToThresholdValues = function ( thresholds ) {
+        var addGridlineValues = function ( thresholds ) {
 
             if ( thresholds.max ) {
-                thresholdValues.push( thresholds.max );
+                gridlineValues.push( thresholds.max );
             }
             if ( thresholds.min ) {
-                thresholdValues.push( thresholds.min );
+                gridlineValues.push( thresholds.min );
             }
 
         };
@@ -120,14 +120,14 @@
                 var thresholds = configuration.getMeasureSettings( measure ).thresholds;
 
                 if ( thresholds ) {
-                    addToThresholdValues( thresholds );
+                    addGridlineValues( thresholds );
                 }
 
             } );
 
-            if ( thresholdValues.length > 0 ) {
+            if ( gridlineValues.length > 0 ) {
 
-                thresholdValues.sort( function ( a, b ) {
+                gridlineValues.sort( function ( a, b ) {
                     return a - b;
                 } );
 
@@ -140,7 +140,7 @@
                 };
                 yScale.onUpdate( yScaleCallback );
                 var yScaleTickGenerator = function ( scale ) {
-                    var ticks = thresholdValues;
+                    var ticks = gridlineValues;
                     return ticks;
                 };
                 gridlineYScale.tickGenerator( yScaleTickGenerator );
@@ -251,7 +251,7 @@
 
                 //add data
                 linePlot.addDataset( dataset );
-                pointPlot.addDataset( dataset );
+                scatterPlot.addDataset( dataset );
 
                 //prepare for plot group
                 linePlot.addClass( 'line-plot-' + measure );
@@ -263,8 +263,8 @@
 
         // point plot is always added regardless of chart type
         // because Pointer interactions are attached to it
-        pointPlot.addClass( 'point-plot' );
-        plots.push( pointPlot );
+        scatterPlot.addClass( 'point-plot' );
+        plots.push( scatterPlot );
 
         var colorScale = null;
         var legend = null;
@@ -375,7 +375,7 @@
                 'gridlines': {
                     'gridlines': gridlines,
                     'yAxis': gridlineYAxis,
-                    'values': thresholdValues
+                    'values': gridlineValues
                 },
                 'legends': [ legend ],
                 'xAxes': xAxes,
@@ -393,33 +393,79 @@
 
         };
 
-        // return the measures that this chart can show
-        this.getMeasures = function(){
+        /**
+         * Get the plots that are shown in this chart as Plottable.js components
+         * @param plotClass - optional parameter gets only plots of the type eg Plottable.Plots.Scatter
+         * @returns {*}
+         */
+        this.getPlots = function ( plotClass ) {
+            if ( plotClass ) {
+                return plots.filter( function ( plot ) {
+                    return plot instanceof plotClass;
+                } );
+            } else {
+                return plots;
+            }
+        };
+
+        /**
+         * Add a gridline to the chart at the value
+         * @param {number} value - the location on the y axis of the gridline
+         */
+        this.addGridline = function ( value ) {
+            gridlineValues.push( value );
+        };
+
+        /**
+         * Get the measures that this chart can show
+         * @returns {Array}
+         */
+        this.getMeasures = function () {
             return measures;
         };
-        // return the styles used to render the plots
-        this.getStyles = function(){
+
+        /**
+         * Get styles used to render the plots
+         * @returns {ChartStyles}
+         */
+        this.getStyles = function () {
             return styles;
         };
-        // return the interactions used to present the plots
-        this.getInteractions = function(){
+
+        /**
+         * Get the interactions used to present the plots
+         * @returns {ChartInteractions}
+         */
+        this.getInteractions = function () {
             return interactions;
         };
-        // return the configuration used to render the plots
-        this.getConfiguration = function(){
+        /**
+         * Get the configuration used to render the plots
+         * @returns {ChartConfiguration}
+         */
+        this.getConfiguration = function () {
             return configuration;
         };
-        // return the parser used to process the data
-        this.getParser = function(){
+        /**
+         * Get the parser used to process the data
+         * @returns {DataParser}
+         */
+        this.getParser = function () {
             return parser;
         };
 
-        //public method for getting the d3 selection
+        /**
+         * Get the D3 selection that this chart is rendered to
+         * @returns {*}
+         */
         this.getD3Selection = function () {
             return selection;
         };
 
-        //render chart
+        /**
+         * Render the chart to the svg element
+         * @param svgElement
+         */
         this.renderTo = function ( svgElement ) {
 
             if ( !this.initialized ) {
@@ -440,7 +486,7 @@
             styles.addToSelection( selection );
 
             //add tooltips to rendered point plot entities
-            interactions.addTooltipsToEntities( pointPlot.entities() );
+            interactions.addTooltipsToEntities( scatterPlot.entities() );
 
         };
 
