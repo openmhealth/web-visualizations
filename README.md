@@ -199,14 +199,14 @@ Currently, quantized data point values within each subsequent quantization bucke
 
 If you wish to configure the `timeQuantizationLevel` for a measure, you will need the following constants:
 
-* `OMHWebVisualizations.QUANTIZE_YEAR`
-* `OMHWebVisualizations.QUANTIZE_MONTH`
-* `OMHWebVisualizations.QUANTIZE_DAY`
-* `OMHWebVisualizations.QUANTIZE_HOUR`
-* `OMHWebVisualizations.QUANTIZE_MINUTE`
-* `OMHWebVisualizations.QUANTIZE_SECOND`
-* `OMHWebVisualizations.QUANTIZE_MILLISECOND`
-* `OMHWebVisualizations.QUANTIZE_NONE`
+* `OMHWebVisualizations.DataParser.QUANTIZE_YEAR`
+* `OMHWebVisualizations.DataParser.QUANTIZE_MONTH`
+* `OMHWebVisualizations.DataParser.QUANTIZE_DAY`
+* `OMHWebVisualizations.DataParser.QUANTIZE_HOUR`
+* `OMHWebVisualizations.DataParser.QUANTIZE_MINUTE`
+* `OMHWebVisualizations.DataParser.QUANTIZE_SECOND`
+* `OMHWebVisualizations.DataParser.QUANTIZE_MILLISECOND`
+* `OMHWebVisualizations.DataParser.QUANTIZE_NONE`
 
 These can be used in an `options` object as follows:
 
@@ -218,7 +218,7 @@ var options = {
           'valueKeyPath': 'body.distance.value',
           'range': { 'min':0, 'max':10000 },
           'units': 'm',
-          'timeQuantizationLevel': OMHWebVisualizations.QUANTIZE_MONTH,
+          'timeQuantizationLevel': OMHWebVisualizations.DataParser.QUANTIZE_MONTH,
           'seriesName': 'Distance',
           'chart': {
               'type' : 'clustered_bar',
@@ -233,7 +233,7 @@ var options = {
 Here is a chart of some *unquantized* data:
 ![Unquantized Data](http://www.openmhealth.org/media/viz_example_unquantized_data.png "Unquantized Data")
 
-As an example, the data will be quantized by hour using `OMHWebVisualizations.QUANTIZE_HOUR`. Thus all points in the hour from 04:00 to 05:00 will be *summed* into a single point. The *unquantized* points in this hour are shown below in a zoomed-in view of the minutes just before 05:00:
+As an example, the data will be quantized by hour using `OMHWebVisualizations.DataParser.QUANTIZE_HOUR`. Thus all points in the hour from 04:00 to 05:00 will be *summed* into a single point. The *unquantized* points in this hour are shown below in a zoomed-in view of the minutes just before 05:00:
 ![Unquantized Data Detail](http://www.openmhealth.org/media/viz_example_unquantized_data_detail1.png "Unquantized Data Detail")
 
 And here is a chart of the same data *quantized* by hour. The points before 05:00 in the zoomed-in view above have been accumulated into a single point, shown in dark blue:
@@ -244,32 +244,29 @@ And here is a chart of the same data *quantized* by hour. The points before 05:0
 Lines representing thresholds can be drawn on charts. Each line is labelled with its `y` value, unless that label will overlap another threshold's label. Here are two maximum thresholds with default appearance:
 ![Default Maximum Thresholds](http://www.openmhealth.org/media/viz_example_threshold_basic.png "Default Maximum Thresholds")
 
-Thresholds of type `max` and `min` can be specified using the `options` parameter, passed in during construction ([see 'Configuring a Chart'](#configuring_a_chart)). For some measures, thresholds are enabled by default. To disable thresholds, the `userInterface.thresholds.show` property of the `options` object can be set to `false`.
+Thresholds of type `max` and `min` can be specified using the `options` parameter, passed in during construction ([see 'Configuring a Chart'](#configuring_a_chart)). For some measures, thresholds are enabled by default. To disable them for just one measure, set the measure's `thresholds` setting to `undefined` in the `options` object. To disable thresholds entirely, the `userInterface.thresholds.show` property of the `options` object can be set to `false`.
 
-To configure the individual thresholds for a measure, a `thresholds` property can be added to the measure's section in the `options` object. The `thresholds` property can be specified either as a single threshold object, or as an array of threshold objects with arbitrary length. The following properties may be specified in each threshold object:
+To configure the individual thresholds for a measure, a `thresholds` property can be added to the measure's section in the `options` object. The `thresholds` property must be specified as a single threshold object. In the threshold object, a `min` and a `max` field can be specified.
 
 Property | Description
 ---: | ---
-*max* | A maximum value. Above this value, points will be colored according to the measure's `chart.aboveThresholdPointFillColor` and `chart.aboveThresholdPointStrokeColor` properties.
-*min* | A minimum value. Below this value, points will be colored according to the measure's `chart.aboveThresholdPointFillColor` and `chart.aboveThresholdPointStrokeColor` properties.
-*color* | A color object that affects any points below the threshold that already exceed a more restrictive threshold. This is only used by thresholds in lists, and it has no effect on the points below the most restrictive threshold (eg the lowest `max`). This is explained in more detail below.
-*name* | A name to identify the threshold when styling tooltips for points below it using CSS.
+*max* | A maximum value. Above this value, points will be colored according to the default styles returned by ChartStyles.getDefaultStylesForPlot().
+*min* | A minimum value. Below this value, points will be colored according to the default styles returned by ChartStyles.getDefaultStylesForPlot().
 
-On a chart of type `line`, a labeled horizontal rule is drawn all the way across the chart for each threshold, and the points can be colored differently, depending on where they fall in relation to the thresholds.
+On a chart of type `line`, a labeled horizontal rule is drawn all the way across the chart for each threshold, and the points are colored differently, depending on where they fall in relation to the thresholds.
 
-The simplest behavior colors a point differently if it exceeds a `max` threshold or falls below a `min` threshold. This is achieved by the measure's `chart.aboveThresholdPointFillColor` and `chart.aboveThresholdPointStrokeColor` properties in the `options` object. By default, this is set to the light orange color in the previous example. Here is a chart with systolic blood pressure's `chart.aboveThresholdPointFillColor` and `chart.aboveThresholdPointStrokeColor` properties set to red:
+By default, a point is colored differently if it exceeds a `max` threshold or falls below a `min` threshold. This is achieved by the settings returned by ChartStyles.getDefaultStylesForPlot(). By default, this is set to the light orange color in the previous example.
 
+### Extending the default thresholds with ChartStyles
+
+To add more thresholds and change the colors of the points they affect, you can call `chart.addGridline()` and customize the chart's `ChartStyles` object before rendering the chart.
+Below are some examples of what can be done. See `examples/charts.html` for code samples.
+
+Change the color of points above the threshold:
 ![Above Threshold Color](http://www.openmhealth.org/media/viz_example_threshold_color.png "Above Threshold Color")
 
-Note that if a `min` type threshold is added to systolic blood pressure, points the excede the `min` threshold will also be drawn in red:
-
-![Above Threshold Color with Minimum](http://www.openmhealth.org/media/viz_example_threshold_color_min.png "Above Threshold Color with Minimum")
-
-Points that fall between two thresholds can also be colored differently. This is achieved by setting the `color` attribute of a threshold when it is in a list of thresholds. When this property is set for a threshold, all points that fall inside the threshold ( below the `max` or above the `min` ) but outside any previous thresholds, will be colored accordingly. Here is a chart with a band of light orange poings added between two maximum thresholds:
-
+Add a range in the chart that is colored differently:
 ![Above Threshold Color with Colored Range](http://www.openmhealth.org/media/viz_example_threshold_color_band.png "Above Threshold Color with Colored Range")
-
-All thresholds except the lowest `max` and highest `min` can use the `color` property. The points in the area below the lowest `max` and above the highest `min` can not be colored by a threshold's `color` property because there is no meaningful way to choose between the `min` or `max` color. Therefore, points in this range will always be colored by the measure's `chart.pointFillColor` and `chart.pointStrokeColor`.
 
 ###Tooltips
 
@@ -280,7 +277,7 @@ Property | Description
 *enabled* | Whether to show tooltips when the user hovers on a point.
 *timeFormat* | A string representing the [time format](http://momentjs.com/docs/#/displaying/format/) for the time field in the tooltip.
 *decimalPlaces* | The number of decimal places to show by default when rendering a data point value in the tooltip.
-*contentFormatter* | A function that takes a D3 data point and returns a string. Used to render the data point in the tooltip. If undefined, the data point's `y` value will be truncated to the number of decimal places specified in the `decimalPlaces` parameter and converted to a string.
+*contentFormatter* | A function that takes a D3 data point and returns a string. Used to render the data point in the tooltip. If undefined, the data point's `y` value will be truncated by a default formatter to the number of decimal places specified in the `decimalPlaces` parameter and converted to a string.
 *grouped* | Whether to show a single common tooltip for data points of different measure types that are found together in the body of a single data point.
 
 
@@ -288,10 +285,18 @@ In the following chart, we see a tooltip that has been colored light orange to m
 
 ![Above Threshold Tooltip](http://www.openmhealth.org/media/viz_example_threshold_above_tip_2.png "Above Threshold Tooltip")
 
-And here is the CSS used for the diastolic tooltip:
+And here is the CSS used for the tooltip:
 ```css
-.omh-tooltip .value.threshold-diastolic_blood_pressure-above-threshold {
-  color:#e8ac4e;
+.omh-tooltip.above .value {
+  color: #e8ac4e;
+}
+```
+
+
+You can restrict the tooltip colors to only `diastolic_blood_pressure` as follows:
+```css
+.omh-tooltip.diastolic_blood_pressure.above .value {
+  color: #e8ac4e;
 }
 ```
 
@@ -301,7 +306,7 @@ In the same chart, we see a tooltip that has been colored red to match its point
 
 Here is the CSS used for the systolic tooltip:
 ```css
-.omh-tooltip .value.threshold-systolic_blood_pressure-above-threshold {
+.omh-tooltip.systolic_blood_pressure.above .value {
   color:#ce5050;
 }
 ```
@@ -312,21 +317,21 @@ And again, in the same chart, we see a tooltip that has been colored light orang
 
 Here is more CSS used for any tooltips shown within a threshold named `warning`:
 ```css
-.omh-tooltip .value.threshold-warning {
+.omh-tooltip.warning .value {
    color:#e8ac4e;
 }
 ```
-In order for this to work, the corresponding threshold has its `name` property set to `warning` as follows:
+In order for this to work, the corresponding style's `name` property is set to `warning` as follows:
 ```javascript
 {
-   'max': 129,
-   'color':{ 'fill': '#e8ac4e', 'stroke': '#745628' },
-   'name': 'warning'
+   'name': 'warning',
+   'filters': chartStyles.filters.above( 129 ),
+   'attributes':{ 'fill': '#e8ac4e', 'stroke': '#745628' }
 }
 ```
+(where chartStyles is an instance of OMHWebVisualizations.ChartStyles)
 
-
-All of the examples above are available in `charts.html` in the `example` directory.
+See `examples/charts.html` for code samples.
 
 
 ###Rendering a chart
