@@ -88,7 +88,7 @@
                         'filters': [ filters.aboveThresholdMax() ],
                         'attributes': {
                             'fill': '#e8ac4e',
-                            'stroke': '#745628',
+                            'stroke': '#745628'
                         }
                     },
                     {
@@ -96,7 +96,7 @@
                         'filters': [ filters.belowThresholdMin() ],
                         'attributes': {
                             'fill': '#e8ac4e',
-                            'stroke': '#745628',
+                            'stroke': '#745628'
                         }
                     }
                 ],
@@ -115,19 +115,20 @@
                     {
                         'name': 'default',
                         'attributes': {
-                            'fill': '#4a90e2',
+                            'fill': '#4a90e2'
                         }
                     },
                     {
                         'name': 'secondary',
-                        'filters': [ function ( d ) {
-                            return !d.primary;
-                        } ],
+                        'filters': [
+                            function ( d ) {
+                                return !d.primary;
+                            }
+                        ],
                         'attributes': {
-                            'fill': '#eeeeee',
+                            'fill': '#eeeeee'
                         }
                     }
-
                 ]
 
             };
