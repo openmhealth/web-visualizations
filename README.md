@@ -176,6 +176,9 @@ If you would like to graph `heart_rate` data with a blue line and no tooltips, f
 
 And the following code would change the line color:
 ```javascript
+
+// ...initialize the chart here...
+
 // get the existing styles from the chart so we can alter them
 var chartStyles = chart.getStyles();
 var linePlot = chart.getPlots( Plottable.Plots.Line )[ 0 ];
@@ -195,6 +198,9 @@ plotStylesWithBlueLines.push(
 
 // replace styles for the plot with extended blue-line styles
 chartStyles.setStylesForPlot( plotStylesWithBlueLines, linePlot );
+
+// ...render the chart here...
+
 ```
 This will produce a chart that looks something like the following screenshot:
 
