@@ -258,6 +258,7 @@
 
         /**
          * Returns the styles that have been set for the particular plot instance passed in
+         * If the returned styles are edited, they must be passed to setStylesForPlot() to affect the chart
          * @param plot
          * @returns {*}
          */
@@ -376,6 +377,12 @@
     };
 
     ChartStyles.formatters = {};
+    /**
+     * Returns the formatted data point value for use in a tooltip.
+     * Note: this function must be bound to a ChartConfiguration object to properly handle the number of decimal places
+     * @param d
+     * @returns {*}
+     */
     ChartStyles.formatters.defaultTooltip = function ( d ) {
         var content;
         if ( d.omhDatum.groupName === '_systolic_blood_pressure_diastolic_blood_pressure' ) {
@@ -383,6 +390,7 @@
             var diastolic = d.omhDatum.body.diastolic_blood_pressure.value.toFixed( 0 );
             content = systolic + '/' + diastolic;
         } else {
+            var settings = this.getInterfaceSettings().tooltips;
             var decimalPlaces = typeof( settings.decimalPlaces ) !== 'undefined' ? settings.decimalPlaces : 1;
             content = d.y.toFixed( decimalPlaces );
         }
