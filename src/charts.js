@@ -14,45 +14,10 @@
  * limitations under the License.
  */
 
-
 ( function ( root, factory ) {
 
     var parentName = 'OMHWebVisualizations';
     root[ parentName ] = factory( root, parentName );
-
-    // Add a Utils namespace for functions that are not directly Chart related
-    root[ parentName ].Utils = {};
-
-    // Function merges defaults and options into one config settings object
-    root[ parentName ].Utils.mergeObjects = function ( obj1, obj2 ) {
-        var merged = {};
-
-        function set_attr( attr ) {
-            if ( merged[ attr ] === undefined ) {
-                var val1 = obj1[ attr ];
-                var val2 = obj2[ attr ];
-                // If both are objects, merge them. If not, or if the second value is an array, do not merge them
-                if ( typeof(val1) === typeof(val2) && typeof(val1) === "object" && !( val2 instanceof Array ) ) {
-                    merged[ attr ] = root[ parentName ].Utils.mergeObjects( val1 || {}, val2 || {} );
-                }
-                else {
-                    merged[ attr ] = val1;
-                    if ( obj2.hasOwnProperty( attr ) ) {
-                        merged[ attr ] = val2;
-                    }
-                }
-            }
-        }
-
-        for ( var attrname in obj1 ) {
-            set_attr( attrname );
-        }
-
-        for ( attrname in obj2 ) {
-            set_attr( attrname );
-        }
-        return merged;
-    };
 
 
 }( this, function ( root, parentName ) {
@@ -64,10 +29,10 @@
         var selection;
         var measures = measureList.split( /\s*,\s*/ );
         var table = null;
-        var configuration = new OMHWebVisualizations.ChartConfiguration( measures, options );
+        var configuration = new OMHWebVisualizations.ChartConfiguration( options );
         var parser = new OMHWebVisualizations.DataParser( data, measures, configuration );
         var styles = new OMHWebVisualizations.ChartStyles( configuration );
-        var interactions = new OMHWebVisualizations.ChartInteractions( element, configuration, parser, styles );
+        var interactions = new OMHWebVisualizations.ChartInteractions( element, measures[0], configuration, parser, styles );
         this.initialized = false;
 
         // if the element passed in is a jQuery element, then get the dom element
@@ -84,98 +49,11 @@
 
         element.classed( 'omh-chart-container', true );
 
-        //save a ref to a destroy method
-        this.destroy = function () {
-            interactions.destroy();
-            table && table.destroy();
-            yScaleCallback && yScale.offUpdate( yScaleCallback );
-        };
-
-        //public method for getting the plottable chart component
-        this.getComponents = function () {
-
-            if ( !this.initialized ) {
-                return {};
-            }
-
-            //init the axes, scales, and labels objects with the default measure components
-            var yScales = {};
-            yScales[ measures[ 0 ] ] = yScale;
-            var yAxes = {};
-            yAxes[ measures[ 0 ] ] = yAxis;
-            var yLabels = {};
-            yLabels[ measures[ 0 ] ] = yLabel;
-            var xScales = {};
-            xScales[ measures[ 0 ] ] = xScale;
-            var xAxes = {};
-            xAxes[ measures[ 0 ] ] = xAxis;
-            var colorScales = {};
-            colorScales[ measures[ 0 ] ] = colorScale;
-
-            //populate the axes, scales, and labels objects with the secondary measure components
-            secondaryYAxes.forEach( function ( axisComponents ) {
-                yScales[ axisComponents.measure ] = axisComponents.scale;
-                yAxes[ axisComponents.measure ] = axisComponents.axis;
-                yLabels[ axisComponents.measure ] = axisComponents.label;
-            } );
-
-            return {
-                'xScales': xScales,
-                'yScales': yScales,
-                'colorScales': colorScales,
-                'gridlines': {
-                    'gridlines': gridlines,
-                    'yAxis': gridlineYAxis,
-                    'values': thresholdValues
-                },
-                'legends': [ legend ],
-                'xAxes': xAxes,
-                'yAxes': yAxes,
-                'plots': plots,
-                'yLabels': yLabels,
-                'table': table,
-                'tooltip': interactions.getTooltip(),
-                'toolbar': interactions.getToolbar(),
-                'panZoomInteractions': {
-                    'plotGroup': interactions.getPanZoomInteraction(),
-                    'xAxis': interactions.getpanZoomInteractionXAxis()
-                }
-            };
-
-        };
-
-        // return the measures that this chart can show
-        this.getMeasures = function(){
-            return measures;
-        };
-        // return the styles used to render the plots
-        this.getStyles = function(){
-            return styles;
-        };
-        // return the interactions used to present the plots
-        this.getInteractions = function(){
-            return interactions;
-        };
-        // return the configuration used to render the plots
-        this.getConfiguration = function(){
-            return configuration;
-        };
-        // return the parser used to process the data
-        this.getParser = function(){
-            return parser;
-        };
-
-        //public method for getting the d3 selection
-        this.getD3Selection = function () {
-            return selection;
-        };
-
-
         // set up axes
         var xScale = new Plottable.Scales.Time();
         var yScale = new Plottable.Scales.Linear();
         var yScaleCallback = null;
-        var domain = configuration.getPrimaryMeasureSettings().range;
+        var domain = configuration.getMeasureSettings( measures[0] ).range;
         if ( domain ) {
             yScale.domainMin( domain.min ).domainMax( domain.max );
         }
@@ -186,7 +64,7 @@
 
         var yAxis = new Plottable.Axes.Numeric( yScale, 'left' );
 
-        var yLabel = new Plottable.Components.AxisLabel( configuration.getPrimaryMeasureSettings().units, '0' )
+        var yLabel = new Plottable.Components.AxisLabel( configuration.getMeasureSettings( measures[0] ).units, '0' )
             .padding( 5 )
             .xAlignment( 'right' )
             .yAlignment( 'top' );
@@ -454,6 +332,92 @@
             'xScale': xScale,
             'xAxis': xAxis
         } );
+
+        //save a ref to a destroy method
+        this.destroy = function () {
+            interactions.destroy();
+            table && table.destroy();
+            yScaleCallback && yScale.offUpdate( yScaleCallback );
+        };
+
+        //public method for getting the plottable chart component
+        this.getComponents = function () {
+
+            if ( !this.initialized ) {
+                return {};
+            }
+
+            //init the axes, scales, and labels objects with the default measure components
+            var yScales = {};
+            yScales[ measures[ 0 ] ] = yScale;
+            var yAxes = {};
+            yAxes[ measures[ 0 ] ] = yAxis;
+            var yLabels = {};
+            yLabels[ measures[ 0 ] ] = yLabel;
+            var xScales = {};
+            xScales[ measures[ 0 ] ] = xScale;
+            var xAxes = {};
+            xAxes[ measures[ 0 ] ] = xAxis;
+            var colorScales = {};
+            colorScales[ measures[ 0 ] ] = colorScale;
+
+            //populate the axes, scales, and labels objects with the secondary measure components
+            secondaryYAxes.forEach( function ( axisComponents ) {
+                yScales[ axisComponents.measure ] = axisComponents.scale;
+                yAxes[ axisComponents.measure ] = axisComponents.axis;
+                yLabels[ axisComponents.measure ] = axisComponents.label;
+            } );
+
+            return {
+                'xScales': xScales,
+                'yScales': yScales,
+                'colorScales': colorScales,
+                'gridlines': {
+                    'gridlines': gridlines,
+                    'yAxis': gridlineYAxis,
+                    'values': thresholdValues
+                },
+                'legends': [ legend ],
+                'xAxes': xAxes,
+                'yAxes': yAxes,
+                'plots': plots,
+                'yLabels': yLabels,
+                'table': table,
+                'tooltip': interactions.getTooltip(),
+                'toolbar': interactions.getToolbar(),
+                'panZoomInteractions': {
+                    'plotGroup': interactions.getPanZoomInteraction(),
+                    'xAxis': interactions.getpanZoomInteractionXAxis()
+                }
+            };
+
+        };
+
+        // return the measures that this chart can show
+        this.getMeasures = function(){
+            return measures;
+        };
+        // return the styles used to render the plots
+        this.getStyles = function(){
+            return styles;
+        };
+        // return the interactions used to present the plots
+        this.getInteractions = function(){
+            return interactions;
+        };
+        // return the configuration used to render the plots
+        this.getConfiguration = function(){
+            return configuration;
+        };
+        // return the parser used to process the data
+        this.getParser = function(){
+            return parser;
+        };
+
+        //public method for getting the d3 selection
+        this.getD3Selection = function () {
+            return selection;
+        };
 
         //render chart
         this.renderTo = function ( svgElement ) {

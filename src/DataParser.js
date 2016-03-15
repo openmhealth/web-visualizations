@@ -1,3 +1,6 @@
+/**
+ * @namespace DataParser
+ */
 ( function ( root, factory ) {
 
     var parentName = 'OMHWebVisualizations';
@@ -6,8 +9,16 @@
 }( this, function ( root, parentName ) {
 
         var parent = root.hasOwnProperty( parentName ) ? root[ parentName ] : {};
+        var DataParser;
 
-        parent.DataParser = function ( data, measures, configuration ) {
+        /**
+         * Creates an object that parses omh data into a format usable Plottable.js
+         * @param {{}} data - The data to parse now
+         * @param {{}} measures - Strings representing the measures to extract from the data
+         * @param {OMHWebVisualizations.ChartConfiguration} configuration - a configuration object containing options for parsing data
+         * @constrtor
+         */
+        DataParser = function ( data, measures, configuration ) {
 
             var measureData = null;
             var keyPathArrays = {};
@@ -29,7 +40,7 @@
                 "yr": 'y'
             };
 
-            /**
+            /*
              *
              * Initialization
              *
@@ -55,6 +66,12 @@
              *
              * */
 
+            /**
+             * Get the value found at a key path
+             * @param {object} obj - the object to search for the key path
+             * @param {string} keyPath - the path where the desired value should be found
+             * @returns {*}
+             */
             this.resolveKeyPath = function ( obj, keyPath ) {
                 if ( obj === undefined ) {
                     return obj;
@@ -78,6 +95,13 @@
                 return obj;
             };
 
+            /**
+             * Get the display date for a datum that has specified an interval rather than a point in time
+             * @param {object} omhDatum - the omh formatted datum
+             * @param {object} dateProvider - an object that provides dates. Moment.js is used by default.
+             * @param {number} quantizationLevel - constant defined statically to represent the quantization level, e.g. OMHWebVisualizations.DataParser.QUANTIZE_DAY
+             * @returns {Date}
+             */
             this.getIntervalDisplayDate = function ( omhDatum, dateProvider, quantizationLevel ) {
 
                 var interval = omhDatum.body[ 'effective_time_frame' ][ 'time_interval' ];
@@ -116,7 +140,13 @@
 
             };
 
-            this.quantizeDate = function( date, quantizationLevel ){
+            /**
+             * Quantize a date to a quantization level
+             * @param {Date} date - the date to quantize
+             * @param {number} quantizationLevel - constant defined statically to represent the quantization level, e.g. OMHWebVisualizations.DataParser.QUANTIZE
+             * @returns {Date} - the quantized date
+             */
+            this.quantizeDate = function ( date, quantizationLevel ) {
 
                 //quantize the points
                 var month = quantizationLevel <= OMHWebVisualizations.DataParser.QUANTIZE_MONTH ? date.getMonth() : 6;
@@ -131,8 +161,13 @@
             };
 
 
-
-            //parse out the data into an array that can be used by plottable
+            /**
+             * Parse out the data into an array that can be used by Plottable.js
+             * @param omhData - the data to parse, formatted according to Open mHealth schemas
+             * @param measuresToParse - the measures to pull out of the data
+             * @param dateProvider - an object that provides dates. Moment.js is used by default.
+             * @returns {array} - an array of data ready for use in a Plottable.js plot
+             */
             this.parseOmhData = function ( omhData, measuresToParse, dateProvider ) {
 
                 var _self = this;
@@ -215,29 +250,44 @@
             };
 
 
-            // consolidate data points at the same time coordinates
+            /**
+             * Consolidate Plottable.js data points at the same time coordinates
+             * @param {string} measure - the measure will be used to look up the consolidation settings in the ChartConfiguration
+             * @param {Array} data - the Plottable.js data the should be consolidated
+             */
             this.consolidateData = function ( measure, data ) {
                 var consolidator = configuration.getMeasureSettings( measure ).quantizedDataConsolidationFunction;
                 consolidator( data[ measure ] );
             };
 
-            //return the data for the measure
+            /**
+             * Get the data for the measure
+             * @param {string} measure - return any data found for the measure
+             * @returns {Array}
+             */
             this.getMeasureData = function ( measure ) {
                 return measureData[ measure ];
             };
 
-            //return the data organized by measure
+            /**
+             * Get all data found, organized by measure
+             * @returns {Array}
+             */
             this.getAllMeasureData = function () {
                 return measureData;
             };
 
-            //see if there is data for the measure
+            /**
+             * See if there is data for the measure
+             * @param measure
+             * @returns {boolean}
+             */
             this.hasMeasureData = function ( measure ) {
                 return measureData.hasOwnProperty( measure );
             };
 
 
-            /**
+            /*
              *
              * Initialize the object
              *
@@ -246,23 +296,32 @@
 
         };
 
+
         // Add constants for quantization
-        parent.DataParser.QUANTIZE_YEAR = 6;
-        parent.DataParser.QUANTIZE_MONTH = 5;
-        parent.DataParser.QUANTIZE_DAY = 4;
-        parent.DataParser.QUANTIZE_HOUR = 3;
-        parent.DataParser.QUANTIZE_MINUTE = 2;
-        parent.DataParser.QUANTIZE_SECOND = 1;
-        parent.DataParser.QUANTIZE_MILLISECOND = 0;
-        parent.DataParser.QUANTIZE_NONE = -1;
+        DataParser.QUANTIZE_YEAR = 6;
+        DataParser.QUANTIZE_MONTH = 5;
+        DataParser.QUANTIZE_DAY = 4;
+        DataParser.QUANTIZE_HOUR = 3;
+        DataParser.QUANTIZE_MINUTE = 2;
+        DataParser.QUANTIZE_SECOND = 1;
+        DataParser.QUANTIZE_MILLISECOND = 0;
+        DataParser.QUANTIZE_NONE = -1;
 
-        // static collection of methods for consolidating data points
-        // that sit at the same point in time after quantization
-        parent.DataParser.consolidators = {};
+        /**
+         * DataParser.consolidators
+         * A static collection of methods for consolidating data points
+         * That sit at the same point in time after quantization
+         * @type {{}}
+         */
+        DataParser.consolidators = {};
 
-        // consolidate by summation
-        // provenance data for the first (chronologically) will be preserved
-        parent.DataParser.consolidators.summation = function ( data ) {
+        /***
+         * DataParser.consolidators.summation
+         * Consolidate by summation
+         * Provenance data for the first point (chronologically) will be preserved
+         * @param data
+         */
+        DataParser.consolidators.summation = function ( data ) {
             data.sort( function ( a, b ) {
                 return a.x.getTime() - b.x.getTime();
             } );
@@ -279,9 +338,14 @@
             }
         };
 
-        // consolidate by average
-        // provenance data for the first (chronologically) will be preserved
-        parent.DataParser.consolidators.average = function ( data ) {
+
+        /***
+         * DataParser.consolidators.average
+         * Consolidate by averaging
+         * Provenance data for the first point( chronologically ) will be preserved
+         * @param data
+         */
+        DataParser.consolidators.average = function ( data ) {
             parent.DataParser.consolidators.summation( data );
             for ( var i = 0; i < data.length; i++ ) {
                 var count = data[ i ].consolidatedData ? data[ i ].consolidatedData.length : 0;
@@ -291,6 +355,8 @@
                 }
             }
         };
+
+        parent.DataParser = DataParser;
 
         return parent;
 

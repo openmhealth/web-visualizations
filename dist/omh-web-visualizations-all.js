@@ -7,7 +7,7 @@
 
     var parent = root.hasOwnProperty( parentName ) ? root[ parentName ] : {};
 
-    parent.ChartConfiguration = function ( measures, settings ) {
+    parent.ChartConfiguration = function ( settings ) {
 
         var mergedSettings;
         var measureNames;
@@ -120,7 +120,7 @@
                 'aboveThresholdPointStrokeColor': '#745628',
                 'barColor': '#4a90e2',
                 'daysShownOnTimeline': { 'min': 1, 'max': 1000 },
-            },
+            }
         };
 
         /**
@@ -128,11 +128,10 @@
          * Initialization
          *
          * */
-
         var initialize = function () {
 
             mergedSettings = parent.Utils.mergeObjects( defaultSettings, settings );
-            measureNames = d3.keys( mergedSettings.measures );
+            measureNames = Object.keys( mergedSettings.measures );
 
             measureNames.forEach( function ( measure ) {
                 mergedSettings.measures[ measure ] = parent.Utils.mergeObjects( genericMeasureDefaults, mergedSettings.measures[ measure ] );
@@ -142,10 +141,6 @@
 
         this.getMeasureSettings = function ( measure ) {
             return mergedSettings.measures[ measure ];
-        };
-
-        this.getPrimaryMeasureSettings = function () {
-            return mergedSettings.measures[ measures[ 0 ] ];
         };
 
         this.getInterfaceSettings = function () {
@@ -176,7 +171,7 @@
 
         var parent = root.hasOwnProperty( parentName ) ? root[ parentName ] : {};
 
-        parent.ChartInteractions = function ( element, configuration, parser, styles ) {
+        parent.ChartInteractions = function ( element, primaryMeasure, configuration, parser, styles ) {
 
             var MS_PER_DAY = 86400000;
 
@@ -404,7 +399,7 @@
 
                 //limit the width of the timespan
                 //eg so that bars do not have times under them etc
-                var limits = configuration.getPrimaryMeasureSettings().chart.daysShownOnTimeline;
+                var limits = configuration.getMeasureSettings( primaryMeasure ).chart.daysShownOnTimeline;
                 minZoomDays = limits ? limits.min : false;
                 maxZoomDays = limits ? limits.max : false;
 
@@ -806,10 +801,17 @@
             }
         };
 
-        //expose filters as a public member
+        /**
+         * A list of useful filters to help with conditional styling
+         * @type {{measure: filters.'measure', above: filters.'above', aboveThresholdMax: filters.'aboveThresholdMax', below: filters.'below', belowThresholdMin: filters.'belowThresholdMin', dailyBeforeHour: filters.'dailyBeforeHour'}}
+         */
         this.filters = filters;
 
-        //allow access to default styles
+        /**
+         * Get a fresh copy of default styles for the plot
+         * @param plot
+         * @returns {*}
+         */
         this.getDefaultStylesForPlot = function ( plot ) {
 
             // define these defaults every time this function is called,
@@ -887,7 +889,12 @@
             return defaultStyleForPlot;
         };
 
-        //check if the point meets the conditions of all filters in the array
+        /**
+         * Check if the point meets the conditions of all filters in the array
+         * @param filters
+         * @param d
+         * @returns {boolean}
+         */
         this.applyFilters = function ( filters, d ) {
 
             for ( j = 0; j < filters.length; j++ ) {
@@ -900,7 +907,13 @@
 
         };
 
-        //returns an attribute accessor function based on the attribute styles passed in
+        /**
+         * Returns an attribute accessor function based on the attribute styles passed in.
+         * If none of the filters in the styles match, the default accessor is used.
+         * @param attributeStyles
+         * @param defaultAccessor
+         * @returns {function(this:parent.ChartStyles)}
+         */
         this.getAttributeValueAccessor = function ( attributeStyles, defaultAccessor ) {
 
             return function ( d ) {
@@ -915,7 +928,11 @@
 
         };
 
-        //re-index the style info by the attribute so we can assess priority more easily
+        /**
+         * Re-index the style info by the attribute to assess attribute priority more easily
+         * @param styles
+         * @returns {{}}
+         */
         this.getStylesKeyedByAttributeName = function ( styles ) {
 
             var keyedByAttributeName = {};
@@ -929,7 +946,12 @@
                     if ( !keyedByAttributeName[ attributeName ] ) {
                         keyedByAttributeName[ attributeName ] = [];
                     }
-                    var filtersAndValue = { 'filters': style.filters, 'value': style.attributes[ attributeName ] };
+                    var filtersAndValue = {};
+                    filtersAndValue.value = style.attributes[ attributeName ];
+                    if ( style.filters ) {
+                        filtersAndValue.filters = style.filters;
+                    }
+
                     keyedByAttributeName[ attributeName ].push( filtersAndValue );
 
                 } );
@@ -940,6 +962,14 @@
 
         };
 
+        /**
+         * Get the value of the property by checking the point against the filters
+         * Returns null if there is no match.
+         * @param d
+         * @param propertyName
+         * @param propertiesWithFilters
+         * @returns {*}
+         */
         this.getFilteredProperty = function ( d, propertyName, propertiesWithFilters ) {
 
             // iterate in reverse order so the last styles added are the first returned
@@ -962,14 +992,23 @@
 
         };
 
-        // resolves the attribute based on filters
+        /**
+         * Resolves the attribute based on filters
+         * @param attributeStyles
+         * @param d
+         * @returns {*}
+         */
         this.resolveAttributeValue = function ( attributeStyles, d ) {
 
             return this.getFilteredProperty( d, 'value', attributeStyles );
 
         };
 
-        // allow access to styles
+        /**
+         * Returns the styles that have been set for the particular plot instance passed in
+         * @param plot
+         * @returns {*}
+         */
         this.getStylesForPlot = function ( plot ) {
             for ( var i in plotStyles ) {
                 if ( plotStyles[ i ].plot === plot ) {
@@ -978,7 +1017,11 @@
             }
         };
 
-        // allow access to styles
+        /**
+         * Set the styles that should be used for the plot instance
+         * @param styles
+         * @param plot
+         */
         this.setStylesForPlot = function ( styles, plot ) {
 
             var currentPlotStyles = this.getStylesForPlot( plot );
@@ -993,7 +1036,12 @@
 
         };
 
-        // get the name of the style that a datum is using, based on its filters
+        /**
+         * Get the name of the style that a datum is rendered with, based on its filters
+         * @param d
+         * @param plot
+         * @returns {*}
+         */
         this.resolveStyleNameForDatumInPlot = function ( d, plot ) {
 
             var styles = this.getStylesForPlot( plot );
@@ -1007,7 +1055,11 @@
         };
 
 
-        // associate the styles with the points using the plottable accessors
+        /**
+         * Associate the styles with the data points that match their filters using the plot's Plottable.js accessors
+         * @param styles
+         * @param plot
+         */
         this.assignAttributesToPlot = function ( styles, plot ) {
 
             var stylesKeyedByAttributeName = this.getStylesKeyedByAttributeName( styles );
@@ -1027,6 +1079,11 @@
 
         };
 
+        /**
+         * Add styling information to the D3 selection passed in
+         * This includes that gradient used behind the unit label in the y axis
+         * @param selection
+         */
         this.addToSelection = function ( selection ) {
 
             // add the gradient that is used in y axis label
@@ -1070,6 +1127,7 @@
 
 } ) );
 
+
 /*
  * Copyright 2015 Open mHealth
  *
@@ -1086,45 +1144,10 @@
  * limitations under the License.
  */
 
-
 ( function ( root, factory ) {
 
     var parentName = 'OMHWebVisualizations';
     root[ parentName ] = factory( root, parentName );
-
-    // Add a Utils namespace for functions that are not directly Chart related
-    root[ parentName ].Utils = {};
-
-    // Function merges defaults and options into one config settings object
-    root[ parentName ].Utils.mergeObjects = function ( obj1, obj2 ) {
-        var merged = {};
-
-        function set_attr( attr ) {
-            if ( merged[ attr ] === undefined ) {
-                var val1 = obj1[ attr ];
-                var val2 = obj2[ attr ];
-                // If both are objects, merge them. If not, or if the second value is an array, do not merge them
-                if ( typeof(val1) === typeof(val2) && typeof(val1) === "object" && !( val2 instanceof Array ) ) {
-                    merged[ attr ] = root[ parentName ].Utils.mergeObjects( val1 || {}, val2 || {} );
-                }
-                else {
-                    merged[ attr ] = val1;
-                    if ( obj2.hasOwnProperty( attr ) ) {
-                        merged[ attr ] = val2;
-                    }
-                }
-            }
-        }
-
-        for ( var attrname in obj1 ) {
-            set_attr( attrname );
-        }
-
-        for ( attrname in obj2 ) {
-            set_attr( attrname );
-        }
-        return merged;
-    };
 
 
 }( this, function ( root, parentName ) {
@@ -1136,10 +1159,10 @@
         var selection;
         var measures = measureList.split( /\s*,\s*/ );
         var table = null;
-        var configuration = new OMHWebVisualizations.ChartConfiguration( measures, options );
+        var configuration = new OMHWebVisualizations.ChartConfiguration( options );
         var parser = new OMHWebVisualizations.DataParser( data, measures, configuration );
         var styles = new OMHWebVisualizations.ChartStyles( configuration );
-        var interactions = new OMHWebVisualizations.ChartInteractions( element, configuration, parser, styles );
+        var interactions = new OMHWebVisualizations.ChartInteractions( element, measures[0], configuration, parser, styles );
         this.initialized = false;
 
         // if the element passed in is a jQuery element, then get the dom element
@@ -1156,98 +1179,11 @@
 
         element.classed( 'omh-chart-container', true );
 
-        //save a ref to a destroy method
-        this.destroy = function () {
-            interactions.destroy();
-            table && table.destroy();
-            yScaleCallback && yScale.offUpdate( yScaleCallback );
-        };
-
-        //public method for getting the plottable chart component
-        this.getComponents = function () {
-
-            if ( !this.initialized ) {
-                return {};
-            }
-
-            //init the axes, scales, and labels objects with the default measure components
-            var yScales = {};
-            yScales[ measures[ 0 ] ] = yScale;
-            var yAxes = {};
-            yAxes[ measures[ 0 ] ] = yAxis;
-            var yLabels = {};
-            yLabels[ measures[ 0 ] ] = yLabel;
-            var xScales = {};
-            xScales[ measures[ 0 ] ] = xScale;
-            var xAxes = {};
-            xAxes[ measures[ 0 ] ] = xAxis;
-            var colorScales = {};
-            colorScales[ measures[ 0 ] ] = colorScale;
-
-            //populate the axes, scales, and labels objects with the secondary measure components
-            secondaryYAxes.forEach( function ( axisComponents ) {
-                yScales[ axisComponents.measure ] = axisComponents.scale;
-                yAxes[ axisComponents.measure ] = axisComponents.axis;
-                yLabels[ axisComponents.measure ] = axisComponents.label;
-            } );
-
-            return {
-                'xScales': xScales,
-                'yScales': yScales,
-                'colorScales': colorScales,
-                'gridlines': {
-                    'gridlines': gridlines,
-                    'yAxis': gridlineYAxis,
-                    'values': thresholdValues
-                },
-                'legends': [ legend ],
-                'xAxes': xAxes,
-                'yAxes': yAxes,
-                'plots': plots,
-                'yLabels': yLabels,
-                'table': table,
-                'tooltip': interactions.getTooltip(),
-                'toolbar': interactions.getToolbar(),
-                'panZoomInteractions': {
-                    'plotGroup': interactions.getPanZoomInteraction(),
-                    'xAxis': interactions.getpanZoomInteractionXAxis()
-                }
-            };
-
-        };
-
-        // return the measures that this chart can show
-        this.getMeasures = function(){
-            return measures;
-        };
-        // return the styles used to render the plots
-        this.getStyles = function(){
-            return styles;
-        };
-        // return the interactions used to present the plots
-        this.getInteractions = function(){
-            return interactions;
-        };
-        // return the configuration used to render the plots
-        this.getConfiguration = function(){
-            return configuration;
-        };
-        // return the parser used to process the data
-        this.getParser = function(){
-            return parser;
-        };
-
-        //public method for getting the d3 selection
-        this.getD3Selection = function () {
-            return selection;
-        };
-
-
         // set up axes
         var xScale = new Plottable.Scales.Time();
         var yScale = new Plottable.Scales.Linear();
         var yScaleCallback = null;
-        var domain = configuration.getPrimaryMeasureSettings().range;
+        var domain = configuration.getMeasureSettings( measures[0] ).range;
         if ( domain ) {
             yScale.domainMin( domain.min ).domainMax( domain.max );
         }
@@ -1258,7 +1194,7 @@
 
         var yAxis = new Plottable.Axes.Numeric( yScale, 'left' );
 
-        var yLabel = new Plottable.Components.AxisLabel( configuration.getPrimaryMeasureSettings().units, '0' )
+        var yLabel = new Plottable.Components.AxisLabel( configuration.getMeasureSettings( measures[0] ).units, '0' )
             .padding( 5 )
             .xAlignment( 'right' )
             .yAlignment( 'top' );
@@ -1527,6 +1463,92 @@
             'xAxis': xAxis
         } );
 
+        //save a ref to a destroy method
+        this.destroy = function () {
+            interactions.destroy();
+            table && table.destroy();
+            yScaleCallback && yScale.offUpdate( yScaleCallback );
+        };
+
+        //public method for getting the plottable chart component
+        this.getComponents = function () {
+
+            if ( !this.initialized ) {
+                return {};
+            }
+
+            //init the axes, scales, and labels objects with the default measure components
+            var yScales = {};
+            yScales[ measures[ 0 ] ] = yScale;
+            var yAxes = {};
+            yAxes[ measures[ 0 ] ] = yAxis;
+            var yLabels = {};
+            yLabels[ measures[ 0 ] ] = yLabel;
+            var xScales = {};
+            xScales[ measures[ 0 ] ] = xScale;
+            var xAxes = {};
+            xAxes[ measures[ 0 ] ] = xAxis;
+            var colorScales = {};
+            colorScales[ measures[ 0 ] ] = colorScale;
+
+            //populate the axes, scales, and labels objects with the secondary measure components
+            secondaryYAxes.forEach( function ( axisComponents ) {
+                yScales[ axisComponents.measure ] = axisComponents.scale;
+                yAxes[ axisComponents.measure ] = axisComponents.axis;
+                yLabels[ axisComponents.measure ] = axisComponents.label;
+            } );
+
+            return {
+                'xScales': xScales,
+                'yScales': yScales,
+                'colorScales': colorScales,
+                'gridlines': {
+                    'gridlines': gridlines,
+                    'yAxis': gridlineYAxis,
+                    'values': thresholdValues
+                },
+                'legends': [ legend ],
+                'xAxes': xAxes,
+                'yAxes': yAxes,
+                'plots': plots,
+                'yLabels': yLabels,
+                'table': table,
+                'tooltip': interactions.getTooltip(),
+                'toolbar': interactions.getToolbar(),
+                'panZoomInteractions': {
+                    'plotGroup': interactions.getPanZoomInteraction(),
+                    'xAxis': interactions.getpanZoomInteractionXAxis()
+                }
+            };
+
+        };
+
+        // return the measures that this chart can show
+        this.getMeasures = function(){
+            return measures;
+        };
+        // return the styles used to render the plots
+        this.getStyles = function(){
+            return styles;
+        };
+        // return the interactions used to present the plots
+        this.getInteractions = function(){
+            return interactions;
+        };
+        // return the configuration used to render the plots
+        this.getConfiguration = function(){
+            return configuration;
+        };
+        // return the parser used to process the data
+        this.getParser = function(){
+            return parser;
+        };
+
+        //public method for getting the d3 selection
+        this.getD3Selection = function () {
+            return selection;
+        };
+
         //render chart
         this.renderTo = function ( svgElement ) {
 
@@ -1562,6 +1584,9 @@
 ;
 
 
+/**
+ * @namespace DataParser
+ */
 ( function ( root, factory ) {
 
     var parentName = 'OMHWebVisualizations';
@@ -1570,8 +1595,16 @@
 }( this, function ( root, parentName ) {
 
         var parent = root.hasOwnProperty( parentName ) ? root[ parentName ] : {};
+        var DataParser;
 
-        parent.DataParser = function ( data, measures, configuration ) {
+        /**
+         * Creates an object that parses omh data into a format usable Plottable.js
+         * @param {{}} data - The data to parse now
+         * @param {{}} measures - Strings representing the measures to extract from the data
+         * @param {OMHWebVisualizations.ChartConfiguration} configuration - a configuration object containing options for parsing data
+         * @constrtor
+         */
+        DataParser = function ( data, measures, configuration ) {
 
             var measureData = null;
             var keyPathArrays = {};
@@ -1593,7 +1626,7 @@
                 "yr": 'y'
             };
 
-            /**
+            /*
              *
              * Initialization
              *
@@ -1619,6 +1652,12 @@
              *
              * */
 
+            /**
+             * Get the value found at a key path
+             * @param {object} obj - the object to search for the key path
+             * @param {string} keyPath - the path where the desired value should be found
+             * @returns {*}
+             */
             this.resolveKeyPath = function ( obj, keyPath ) {
                 if ( obj === undefined ) {
                     return obj;
@@ -1642,6 +1681,13 @@
                 return obj;
             };
 
+            /**
+             * Get the display date for a datum that has specified an interval rather than a point in time
+             * @param {object} omhDatum - the omh formatted datum
+             * @param {object} dateProvider - an object that provides dates. Moment.js is used by default.
+             * @param {number} quantizationLevel - constant defined statically to represent the quantization level, e.g. OMHWebVisualizations.DataParser.QUANTIZE_DAY
+             * @returns {Date}
+             */
             this.getIntervalDisplayDate = function ( omhDatum, dateProvider, quantizationLevel ) {
 
                 var interval = omhDatum.body[ 'effective_time_frame' ][ 'time_interval' ];
@@ -1680,7 +1726,13 @@
 
             };
 
-            this.quantizeDate = function( date, quantizationLevel ){
+            /**
+             * Quantize a date to a quantization level
+             * @param {Date} date - the date to quantize
+             * @param {number} quantizationLevel - constant defined statically to represent the quantization level, e.g. OMHWebVisualizations.DataParser.QUANTIZE
+             * @returns {Date} - the quantized date
+             */
+            this.quantizeDate = function ( date, quantizationLevel ) {
 
                 //quantize the points
                 var month = quantizationLevel <= OMHWebVisualizations.DataParser.QUANTIZE_MONTH ? date.getMonth() : 6;
@@ -1695,8 +1747,13 @@
             };
 
 
-
-            //parse out the data into an array that can be used by plottable
+            /**
+             * Parse out the data into an array that can be used by Plottable.js
+             * @param omhData - the data to parse, formatted according to Open mHealth schemas
+             * @param measuresToParse - the measures to pull out of the data
+             * @param dateProvider - an object that provides dates. Moment.js is used by default.
+             * @returns {array} - an array of data ready for use in a Plottable.js plot
+             */
             this.parseOmhData = function ( omhData, measuresToParse, dateProvider ) {
 
                 var _self = this;
@@ -1779,29 +1836,44 @@
             };
 
 
-            // consolidate data points at the same time coordinates
+            /**
+             * Consolidate Plottable.js data points at the same time coordinates
+             * @param {string} measure - the measure will be used to look up the consolidation settings in the ChartConfiguration
+             * @param {Array} data - the Plottable.js data the should be consolidated
+             */
             this.consolidateData = function ( measure, data ) {
                 var consolidator = configuration.getMeasureSettings( measure ).quantizedDataConsolidationFunction;
                 consolidator( data[ measure ] );
             };
 
-            //return the data for the measure
+            /**
+             * Get the data for the measure
+             * @param {string} measure - return any data found for the measure
+             * @returns {Array}
+             */
             this.getMeasureData = function ( measure ) {
                 return measureData[ measure ];
             };
 
-            //return the data organized by measure
+            /**
+             * Get all data found, organized by measure
+             * @returns {Array}
+             */
             this.getAllMeasureData = function () {
                 return measureData;
             };
 
-            //see if there is data for the measure
+            /**
+             * See if there is data for the measure
+             * @param measure
+             * @returns {boolean}
+             */
             this.hasMeasureData = function ( measure ) {
                 return measureData.hasOwnProperty( measure );
             };
 
 
-            /**
+            /*
              *
              * Initialize the object
              *
@@ -1810,23 +1882,32 @@
 
         };
 
+
         // Add constants for quantization
-        parent.DataParser.QUANTIZE_YEAR = 6;
-        parent.DataParser.QUANTIZE_MONTH = 5;
-        parent.DataParser.QUANTIZE_DAY = 4;
-        parent.DataParser.QUANTIZE_HOUR = 3;
-        parent.DataParser.QUANTIZE_MINUTE = 2;
-        parent.DataParser.QUANTIZE_SECOND = 1;
-        parent.DataParser.QUANTIZE_MILLISECOND = 0;
-        parent.DataParser.QUANTIZE_NONE = -1;
+        DataParser.QUANTIZE_YEAR = 6;
+        DataParser.QUANTIZE_MONTH = 5;
+        DataParser.QUANTIZE_DAY = 4;
+        DataParser.QUANTIZE_HOUR = 3;
+        DataParser.QUANTIZE_MINUTE = 2;
+        DataParser.QUANTIZE_SECOND = 1;
+        DataParser.QUANTIZE_MILLISECOND = 0;
+        DataParser.QUANTIZE_NONE = -1;
 
-        // static collection of methods for consolidating data points
-        // that sit at the same point in time after quantization
-        parent.DataParser.consolidators = {};
+        /**
+         * DataParser.consolidators
+         * A static collection of methods for consolidating data points
+         * That sit at the same point in time after quantization
+         * @type {{}}
+         */
+        DataParser.consolidators = {};
 
-        // consolidate by summation
-        // provenance data for the first (chronologically) will be preserved
-        parent.DataParser.consolidators.summation = function ( data ) {
+        /***
+         * DataParser.consolidators.summation
+         * Consolidate by summation
+         * Provenance data for the first point (chronologically) will be preserved
+         * @param data
+         */
+        DataParser.consolidators.summation = function ( data ) {
             data.sort( function ( a, b ) {
                 return a.x.getTime() - b.x.getTime();
             } );
@@ -1843,9 +1924,14 @@
             }
         };
 
-        // consolidate by average
-        // provenance data for the first (chronologically) will be preserved
-        parent.DataParser.consolidators.average = function ( data ) {
+
+        /***
+         * DataParser.consolidators.average
+         * Consolidate by averaging
+         * Provenance data for the first point( chronologically ) will be preserved
+         * @param data
+         */
+        DataParser.consolidators.average = function ( data ) {
             parent.DataParser.consolidators.summation( data );
             for ( var i = 0; i < data.length; i++ ) {
                 var count = data[ i ].consolidatedData ? data[ i ].consolidatedData.length : 0;
@@ -1856,7 +1942,72 @@
             }
         };
 
+        parent.DataParser = DataParser;
+
         return parent;
 
     }
 ) );
+( function ( root, factory ) {
+
+    var parentName = 'OMHWebVisualizations';
+    root[ parentName ] = factory( root, parentName );
+
+}( this, function ( root, parentName ) {
+
+    var parent = root.hasOwnProperty( parentName ) ? root[ parentName ] : {};
+    var Utils;
+
+    /**
+     * No need to construct utils, because it is static. Placeholder for future use.
+     * @constructor
+     */
+    Utils = function () {
+    };
+
+    /**
+     * Merges the properties of two objects.
+     * @param obj1 - The base object
+     * @param obj2 - The object with priority in the case of shared properties
+     * @returns {{}}
+     */
+    Utils.mergeObjects = function ( obj1, obj2 ) {
+
+        var merged = {};
+
+        function set_attr( attr ) {
+            if ( merged[ attr ] === undefined ) {
+                var val1 = obj1[ attr ];
+                var val2 = obj2[ attr ];
+                // If both are objects, merge them. If not, or if the second value is an array, do not merge them
+                if ( typeof(val1) === typeof(val2) && typeof(val1) === "object" && !( val2 instanceof Array ) ) {
+                    merged[ attr ] = parent.Utils.mergeObjects( val1 || {}, val2 || {} );
+                }
+                else {
+                    merged[ attr ] = val1;
+                    if ( obj2.hasOwnProperty( attr ) ) {
+                        merged[ attr ] = val2;
+                    }
+                }
+            }
+        }
+
+        for ( var attrname in obj1 ) {
+            set_attr( attrname );
+        }
+
+        for ( attrname in obj2 ) {
+            set_attr( attrname );
+        }
+
+        return merged;
+
+    };
+
+    parent.Utils = Utils;
+
+    return parent;
+
+} ) );
+
+

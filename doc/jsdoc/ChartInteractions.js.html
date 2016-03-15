@@ -1,4 +1,31 @@
-( function ( root, factory ) {
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: ChartInteractions.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: ChartInteractions.js</h1>
+
+    
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>( function ( root, factory ) {
 
     var parentName = 'OMHWebVisualizations';
     root[ parentName ] = factory( root, parentName );
@@ -198,8 +225,8 @@
                 //make the tooltip follow the plot on pan...
                 dragInteraction = new Plottable.Interactions.Drag();
                 dragCallback = function () {
-                    hidePanZoomHint && hidePanZoomHint();
-                    ( tooltip && showHoverPointTooltip ) && showHoverPointTooltip();
+                    hidePanZoomHint &amp;&amp; hidePanZoomHint();
+                    ( tooltip &amp;&amp; showHoverPointTooltip ) &amp;&amp; showHoverPointTooltip();
                 };
                 dragInteraction.onDrag( dragCallback );
 
@@ -208,9 +235,9 @@
             var initializeMouseWheelInteraction = function () {
                 //...and on zoom
                 mouseWheelCallback = function () {
-                    showHoverPointTooltip && showHoverPointTooltip();
-                    clearZoomLevelButtonActiveStates && clearZoomLevelButtonActiveStates();
-                    hidePanZoomHint && hidePanZoomHint();
+                    showHoverPointTooltip &amp;&amp; showHoverPointTooltip();
+                    clearZoomLevelButtonActiveStates &amp;&amp; clearZoomLevelButtonActiveStates();
+                    hidePanZoomHint &amp;&amp; hidePanZoomHint();
                 };//this is added to the selection when the chart is rendered
             };
 
@@ -260,7 +287,7 @@
                         d3.entries( zoomLevels ).forEach( function ( entry ) {
                             var days = entry.value;
                             var label = entry.key;
-                            if ( ( !maxZoomDays || days <= maxZoomDays ) && ( !minZoomDays || days >= minZoomDays ) ) {
+                            if ( ( !maxZoomDays || days &lt;= maxZoomDays ) &amp;&amp; ( !minZoomDays || days >= minZoomDays ) ) {
                                 var $button = toolbar.append( "span" ).classed( 'time-button', true ).text( label );
                                 $button.on( 'click', function () {
                                     clearZoomLevelButtonActiveStates();
@@ -275,8 +302,8 @@
                     if ( settings.zoomButtons.enabled ) {
 
                         var zoomPercentageIncrements = {
-                            '&#8722;': -20,
-                            '&#43;': 20,
+                            '&amp;#8722;': -20,
+                            '&amp;#43;': 20,
                         };
                         toolbar.append( "span" ).classed( 'zoom-buttons-label', true ).text( ' Zoom: ' );
                         d3.entries( zoomPercentageIncrements ).forEach( function ( entry ) {
@@ -293,7 +320,7 @@
                     }
 
                     if ( settings.navigation.enabled ) {
-                        var $prevButton = toolbar.append( 'span', ":first-child" ).classed( 'previous-time-period-button', true ).text( '< prev' );
+                        var $prevButton = toolbar.append( 'span', ":first-child" ).classed( 'previous-time-period-button', true ).text( '&lt; prev' );
                         $prevButton.on( 'click', function () {
                             shiftVisibleTimeByPercentageIncrement( -100 );
                         } );
@@ -348,10 +375,10 @@
                     // this is important when panning while hovering,
                     // since the point may leave the chart bounds
                     var showTooltipIfInBounds = function ( entity ) {
-                        if ( entity && selection ) {
+                        if ( entity &amp;&amp; selection ) {
                             if ( entity.selection[ 0 ][ 0 ].getBoundingClientRect().left >
-                                selection[ 0 ][ 0 ].getBoundingClientRect().left &&
-                                entity.selection[ 0 ][ 0 ].getBoundingClientRect().right <
+                                selection[ 0 ][ 0 ].getBoundingClientRect().left &amp;&amp;
+                                entity.selection[ 0 ][ 0 ].getBoundingClientRect().right &lt;
                                 selection[ 0 ][ 0 ].getBoundingClientRect().right
                             ) {
                                 showToolTip( entity );
@@ -363,7 +390,7 @@
 
                     // the callback that shows the tooltip for a point
                     showHoverPointTooltip = function () {
-                        if ( hoverPoint && selection ) {
+                        if ( hoverPoint &amp;&amp; selection ) {
                             if ( hoverPoint.datum.primary || !settings.tooltips.grouped ) {
                                 showTooltipIfInBounds( hoverPoint );
                             } else {
@@ -413,18 +440,18 @@
 
                         //show different tool tip depending on content formatter
                         var formattedData;
-                        if ( settings.tooltips && typeof( settings.tooltips.contentFormatter ) !== 'undefined' ) {
+                        if ( settings.tooltips &amp;&amp; typeof( settings.tooltips.contentFormatter ) !== 'undefined' ) {
                             formattedData = settings.tooltips.contentFormatter( d );
                         } else {
                             var decimalPlaces = typeof( settings.decimalPlaces ) !== 'undefined' ? settings.decimalPlaces : 1;
                             formattedData = d.y.toFixed( decimalPlaces );
                         }
 
-                        var content = '<div class="value">' + formattedData + '</div>';
+                        var content = '&lt;div class="value">' + formattedData + '&lt;/div>';
 
                         var timeFormat = settings.tooltips.timeFormat;
-                        content += '<div class="time">' + moment( d.x ).format( timeFormat ) + '</div>';
-                        content += '<div class="provider">' + d.provider + '</div>';
+                        content += '&lt;div class="time">' + moment( d.x ).format( timeFormat ) + '&lt;/div>';
+                        content += '&lt;div class="provider">' + d.provider + '&lt;/div>';
                         return content;
 
                     };
@@ -441,7 +468,7 @@
                         className = className.toLowerCase().replace( /[^a-z0-9]+/g, '_' );
                         var contentCssClass = d.measure + ' ' + className;
 
-                        return '<div class="omh-tooltip ' + contentCssClass + '">' + getTipContent( d ) + '</div>';
+                        return '&lt;div class="omh-tooltip ' + contentCssClass + '">' + getTipContent( d ) + '&lt;/div>';
 
                     } );
                 }
@@ -483,7 +510,7 @@
                 // add tooltips to the first scatter plot found
                 for ( var i in components.plots ) {
                     var plot = components.plots[ i ];
-                    if ( plot instanceof Plottable.Plots.Scatter && plot.datasets() && plot.datasets().length > 0 ) {
+                    if ( plot instanceof Plottable.Plots.Scatter &amp;&amp; plot.datasets() &amp;&amp; plot.datasets().length > 0 ) {
                         attachTooltipsToPlot( plot );
                         break;
                     }
@@ -498,7 +525,7 @@
                 }
 
                 // add pan/zoom hint label to the plots
-                if ( settings.enabled && settings.showHint ) {
+                if ( settings.enabled &amp;&amp; settings.showHint ) {
                     components.plots.push( panZoomHint );
                 }
 
@@ -516,14 +543,14 @@
                 selection = d3Selection;
 
                 //remove mouse wheel dispatcher callback from the previous selection if there is one
-                mouseWheelDispatcher && mouseWheelDispatcher.offWheel( mouseWheelCallback );
+                mouseWheelDispatcher &amp;&amp; mouseWheelDispatcher.offWheel( mouseWheelCallback );
 
                 //and add it to this one
                 mouseWheelDispatcher = new Plottable.Dispatchers.Mouse.getDispatcher( selection[ 0 ][ 0 ] )
                     .onWheel( mouseWheelCallback );
 
                 // add tooltip
-                tooltip && selection.call( tooltip );
+                tooltip &amp;&amp; selection.call( tooltip );
 
             };
 
@@ -558,13 +585,13 @@
 
             this.destroy = function () {
 
-                pointer && pointer.offPointerMove( pointerMove );
-                pointer && pointer.detachFrom( pointerPlot );
-                dragInteraction && dragInteraction.detachFrom( table );
-                tooltip && tooltip.destroy();
-                mouseWheelDispatcher && mouseWheelDispatcher.offWheel( mouseWheelCallback );
-                showHoverPointTooltip && dragInteraction.offDrag( showHoverPointTooltip );
-                toolbar && toolbar.remove();
+                pointer &amp;&amp; pointer.offPointerMove( pointerMove );
+                pointer &amp;&amp; pointer.detachFrom( pointerPlot );
+                dragInteraction &amp;&amp; dragInteraction.detachFrom( table );
+                tooltip &amp;&amp; tooltip.destroy();
+                mouseWheelDispatcher &amp;&amp; mouseWheelDispatcher.offWheel( mouseWheelCallback );
+                showHoverPointTooltip &amp;&amp; dragInteraction.offDrag( showHoverPointTooltip );
+                toolbar &amp;&amp; toolbar.remove();
 
             };
 
@@ -582,4 +609,26 @@
 
     }
 ) )
-;
+;</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Index</a></h2><h3>Namespaces</h3><ul><li><a href="DataParser.html">DataParser</a></li></ul>
+</nav>
+
+<br clear="both">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha5</a> on Mon Mar 14 2016 17:47:23 GMT-0700 (PDT)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
