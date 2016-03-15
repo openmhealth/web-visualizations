@@ -318,6 +318,7 @@ You can restrict the tooltip colors to only `diastolic_blood_pressure` as follow
 
 
 In the same chart, we see a tooltip that has been colored red to match its point below the minimum threshold in the systolic blood pressure series:
+
 ![Above Threshold Tooltip with Custom Color](http://www.openmhealth.org/media/viz_example_threshold_above_tip_1.png "Above Threshold Tooltip with Custom Color")
 
 Here is the CSS used for the systolic tooltip:
@@ -330,6 +331,7 @@ Here is the CSS used for the systolic tooltip:
 
 And again, in the same chart, we see a tooltip that has been colored light orange to match its point in the first measure:
 ![Within Threshold Tooltip with Custom Color](http://www.openmhealth.org/media/viz_example_threshold_warning_tip.png "Within Threshold Tooltip with Custom Color")
+
 The point shown above has matched a chart style named `warning`:
 In order for this to work, the corresponding chart style's `name` property is set to `warning` as follows:
 ```javascript
