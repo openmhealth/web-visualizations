@@ -12,19 +12,6 @@
         var mergedSettings;
         var measureNames;
 
-        var defaultTooltipContentFormatter = function ( d ) {
-            var content;
-            if ( d.omhDatum.groupName === '_systolic_blood_pressure_diastolic_blood_pressure' ) {
-                var systolic = d.omhDatum.body.systolic_blood_pressure.value.toFixed( 0 );
-                var diastolic = d.omhDatum.body.diastolic_blood_pressure.value.toFixed( 0 );
-                content = systolic + '/' + diastolic;
-            } else {
-                var decimalPlaces = typeof( settings.decimalPlaces ) !== 'undefined' ? settings.decimalPlaces : 1;
-                content = d.y.toFixed( decimalPlaces );
-            }
-            return content;
-        };
-
         var defaultSettings = {
             'userInterface': {
                 'toolbar': { 'enabled': true },
@@ -36,8 +23,8 @@
                     'enabled': true,
                     'timeFormat': 'M/D/YY, h:mma',
                     'decimalPlaces': 0,
-                    'contentFormatter': defaultTooltipContentFormatter,
-                    'grouped': true,
+                    'contentFormatter': parent.ChartStyles.formatters.defaultTooltip.bind( this ),
+                    'grouped': true
                 },
                 'panZoom': {
                     'enabled': true,
@@ -57,12 +44,12 @@
                     'valueKeyPath': 'body.body_weight.value',
                     'range': { 'min': 0, 'max': 100 },
                     'units': 'kg',
-                    'thresholds': { 'max': 57 },
+                    'thresholds': { 'max': 57 }
                 },
                 'heart_rate': {
                     'valueKeyPath': 'body.heart_rate.value',
                     'range': { 'min': 30, 'max': 150 },
-                    'units': 'bpm',
+                    'units': 'bpm'
                 },
                 'step_count': {
                     'valueKeyPath': 'body.step_count',
@@ -73,9 +60,8 @@
                     'quantizedDataConsolidationFunction': parent.DataParser.consolidators.summation,
                     'chart': {
                         'type': 'clustered_bar',
-                        'barColor': '#eeeeee',
-                        'daysShownOnTimeline': { 'min': 7, 'max': 90 },
-                    },
+                        'daysShownOnTimeline': { 'min': 7, 'max': 90 }
+                    }
                 },
                 'minutes_moderate_activity': {
                     'valueKeyPath': 'body.minutes_moderate_activity.value',
@@ -86,20 +72,20 @@
                     'quantizedDataConsolidationFunction': parent.DataParser.consolidators.summation,
                     'chart': {
                         'type': 'clustered_bar',
-                        'daysShownOnTimeline': { 'min': 7, 'max': 90 },
-                    },
+                        'daysShownOnTimeline': { 'min': 7, 'max': 90 }
+                    }
                 },
                 'systolic_blood_pressure': {
                     'valueKeyPath': 'body.systolic_blood_pressure.value',
                     'range': { 'min': 30, 'max': 200 },
                     'units': 'mmHg',
-                    'thresholds': { 'max': 120 },
+                    'thresholds': { 'max': 120 }
                 },
                 'diastolic_blood_pressure': {
                     'valueKeyPath': 'body.diastolic_blood_pressure.value',
                     'range': { 'min': 30, 'max': 200 },
                     'units': 'mmHg',
-                    'thresholds': { 'max': 80 },
+                    'thresholds': { 'max': 80 }
                 }
             }
         };
@@ -112,14 +98,7 @@
             'quantizedDataConsolidationFunction': parent.DataParser.consolidators.average,
             'chart': {
                 'type': 'line',
-                'pointSize': 9,
-                'lineColor': '#dedede',
-                'pointFillColor': '#4a90e2',
-                'pointStrokeColor': '#0066d6',
-                'aboveThresholdPointFillColor': '#e8ac4e',
-                'aboveThresholdPointStrokeColor': '#745628',
-                'barColor': '#4a90e2',
-                'daysShownOnTimeline': { 'min': 1, 'max': 1000 },
+                'daysShownOnTimeline': { 'min': 1, 'max': 1000 }
             }
         };
 
@@ -305,27 +284,23 @@
 
             var attachPanZoomInteractionToComponents = function ( components ) {
 
-                if ( settings.panZoom.enabled ) {
+                //set up pan/zoom
+                panZoomInteraction = new Plottable.Interactions.PanZoom();
+                panZoomInteractionXAxis = new Plottable.Interactions.PanZoom();
 
-                    //set up pan/zoom
-                    panZoomInteraction = new Plottable.Interactions.PanZoom();
-                    panZoomInteractionXAxis = new Plottable.Interactions.PanZoom();
+                panZoomInteraction.addXScale( components.xScale );
+                panZoomInteraction.attachTo( components.plotGroup );
+                panZoomInteractionXAxis.addXScale( components.xScale );
+                panZoomInteractionXAxis.attachTo( components.xAxis );
 
-                    panZoomInteraction.addXScale( components.xScale );
-                    panZoomInteraction.attachTo( components.plotGroup );
-                    panZoomInteractionXAxis.addXScale( components.xScale );
-                    panZoomInteractionXAxis.attachTo( components.xAxis );
+                if ( minZoomDays ) {
+                    panZoomInteraction.minDomainExtent( components.xScale, minZoomDays * MS_PER_DAY );
+                    panZoomInteractionXAxis.minDomainExtent( components.xScale, minZoomDays * MS_PER_DAY );
+                }
 
-                    if ( minZoomDays ) {
-                        panZoomInteraction.minDomainExtent( components.xScale, minZoomDays * MS_PER_DAY );
-                        panZoomInteractionXAxis.minDomainExtent( components.xScale, minZoomDays * MS_PER_DAY );
-                    }
-
-                    if ( maxZoomDays ) {
-                        panZoomInteraction.maxDomainExtent( components.xScale, maxZoomDays * MS_PER_DAY );
-                        panZoomInteractionXAxis.maxDomainExtent( components.xScale, maxZoomDays * MS_PER_DAY );
-                    }
-
+                if ( maxZoomDays ) {
+                    panZoomInteraction.maxDomainExtent( components.xScale, maxZoomDays * MS_PER_DAY );
+                    panZoomInteractionXAxis.maxDomainExtent( components.xScale, maxZoomDays * MS_PER_DAY );
                 }
 
             };
@@ -645,29 +620,35 @@
             this.addToComponents = function ( components ) {
 
                 // add tooltips to the first scatter plot found
-                for ( var i in components.plots ) {
-                    var plot = components.plots[ i ];
-                    if ( plot instanceof Plottable.Plots.Scatter && plot.datasets() && plot.datasets().length > 0 ) {
-                        attachTooltipsToPlot( plot );
-                        break;
+                if ( settings.tooltips.enabled ) {
+                    for ( var i in components.plots ) {
+                        var plot = components.plots[ i ];
+                        if ( plot instanceof Plottable.Plots.Scatter && plot.datasets() && plot.datasets().length > 0 ) {
+                            attachTooltipsToPlot( plot );
+                            break;
+                        }
                     }
                 }
 
-                // add pan/zoom interactions
-                attachPanZoomInteractionToComponents( components );
 
                 //do not let user scale graph too far, and start chart in range
                 if ( maxZoomDays ) {
                     limitScaleExtents( components.xScale );
                 }
 
-                // add pan/zoom hint label to the plots
-                if ( settings.enabled && settings.showHint ) {
-                    components.plots.push( panZoomHint );
+                if ( settings.panZoom.enabled ) {
+
+                    // add pan/zoom interactions
+                    attachPanZoomInteractionToComponents( components );
+
+                    if ( settings.panZoom.showHint ) {
+                        // add pan/zoom hint label to the plots
+                        components.plots.push( panZoomHint );
+                    }
+
+                    dragInteraction.attachTo( components.table );
+
                 }
-
-                dragInteraction.attachTo( components.table );
-
 
                 table = components.table;// reference kept so interaction can be destroyed later
                 xScale = components.xScale; // reference kept so zoom toolbar can modify timeline
@@ -755,8 +736,9 @@
 }( this, function ( root, parentName ) {
 
     var parent = root.hasOwnProperty( parentName ) ? root[ parentName ] : {};
+    var ChartStyles;
 
-    parent.ChartStyles = function ( configuration ) {
+    ChartStyles = function ( configuration ) {
 
         var plotStyles = [];
 
@@ -836,7 +818,7 @@
                         'filters': [ filters.aboveThresholdMax() ],
                         'attributes': {
                             'fill': '#e8ac4e',
-                            'stroke': '#745628',
+                            'stroke': '#745628'
                         }
                     },
                     {
@@ -844,7 +826,7 @@
                         'filters': [ filters.belowThresholdMin() ],
                         'attributes': {
                             'fill': '#e8ac4e',
-                            'stroke': '#745628',
+                            'stroke': '#745628'
                         }
                     }
                 ],
@@ -863,19 +845,20 @@
                     {
                         'name': 'default',
                         'attributes': {
-                            'fill': '#4a90e2',
+                            'fill': '#4a90e2'
                         }
                     },
                     {
                         'name': 'secondary',
-                        'filters': [ function ( d ) {
-                            return !d.primary;
-                        } ],
+                        'filters': [
+                            function ( d ) {
+                                return !d.primary;
+                            }
+                        ],
                         'attributes': {
-                            'fill': '#eeeeee',
+                            'fill': '#eeeeee'
                         }
                     }
-
                 ]
 
             };
@@ -1006,6 +989,7 @@
 
         /**
          * Returns the styles that have been set for the particular plot instance passed in
+         * If the returned styles are edited, they must be passed to setStylesForPlot() to affect the chart
          * @param plot
          * @returns {*}
          */
@@ -1123,6 +1107,29 @@
 
     };
 
+    ChartStyles.formatters = {};
+    /**
+     * Returns the formatted data point value for use in a tooltip.
+     * Note: this function must be bound to a ChartConfiguration object to properly handle the number of decimal places
+     * @param d
+     * @returns {*}
+     */
+    ChartStyles.formatters.defaultTooltip = function ( d ) {
+        var content;
+        if ( d.omhDatum.groupName === '_systolic_blood_pressure_diastolic_blood_pressure' ) {
+            var systolic = d.omhDatum.body.systolic_blood_pressure.value.toFixed( 0 );
+            var diastolic = d.omhDatum.body.diastolic_blood_pressure.value.toFixed( 0 );
+            content = systolic + '/' + diastolic;
+        } else {
+            var settings = this.getInterfaceSettings().tooltips;
+            var decimalPlaces = typeof( settings.decimalPlaces ) !== 'undefined' ? settings.decimalPlaces : 1;
+            content = d.y.toFixed( decimalPlaces );
+        }
+        return content;
+    };
+
+    parent.ChartStyles = ChartStyles;
+
     return parent;
 
 } ) );
@@ -1162,7 +1169,7 @@
         var configuration = new OMHWebVisualizations.ChartConfiguration( options );
         var parser = new OMHWebVisualizations.DataParser( data, measures, configuration );
         var styles = new OMHWebVisualizations.ChartStyles( configuration );
-        var interactions = new OMHWebVisualizations.ChartInteractions( element, measures[0], configuration, parser, styles );
+        var interactions = new OMHWebVisualizations.ChartInteractions( element, measures[ 0 ], configuration, parser, styles );
         this.initialized = false;
 
         // if the element passed in is a jQuery element, then get the dom element
@@ -1183,7 +1190,7 @@
         var xScale = new Plottable.Scales.Time();
         var yScale = new Plottable.Scales.Linear();
         var yScaleCallback = null;
-        var domain = configuration.getMeasureSettings( measures[0] ).range;
+        var domain = configuration.getMeasureSettings( measures[ 0 ] ).range;
         if ( domain ) {
             yScale.domainMin( domain.min ).domainMax( domain.max );
         }
@@ -1194,7 +1201,7 @@
 
         var yAxis = new Plottable.Axes.Numeric( yScale, 'left' );
 
-        var yLabel = new Plottable.Components.AxisLabel( configuration.getMeasureSettings( measures[0] ).units, '0' )
+        var yLabel = new Plottable.Components.AxisLabel( configuration.getMeasureSettings( measures[ 0 ] ).units, '0' )
             .padding( 5 )
             .xAlignment( 'right' )
             .yAlignment( 'top' );
@@ -1204,7 +1211,7 @@
         var plots = [];
 
         //set up points
-        var pointPlot = new Plottable.Plots.Scatter()
+        var scatterPlot = new Plottable.Plots.Scatter()
             .x( function ( d ) {
                 return d.x;
             }, xScale )
@@ -1212,7 +1219,7 @@
                 return d.y;
             }, yScale );
 
-        styles.setStylesForPlot( styles.getDefaultStylesForPlot( pointPlot ), pointPlot );
+        styles.setStylesForPlot( styles.getDefaultStylesForPlot( scatterPlot ), scatterPlot );
 
         //prepare for clustered bars
         var clusteredBarPlots = [];
@@ -1228,17 +1235,17 @@
 
         // If there are thresholds for any of the measures, add them as gridlines
 
-        var thresholdValues = [];
+        var gridlineValues = [];
         var gridlines;
         var gridlineYAxis;
 
-        var addToThresholdValues = function ( thresholds ) {
+        var addGridlineValues = function ( thresholds ) {
 
             if ( thresholds.max ) {
-                thresholdValues.push( thresholds.max );
+                gridlineValues.push( thresholds.max );
             }
             if ( thresholds.min ) {
-                thresholdValues.push( thresholds.min );
+                gridlineValues.push( thresholds.min );
             }
 
         };
@@ -1250,14 +1257,14 @@
                 var thresholds = configuration.getMeasureSettings( measure ).thresholds;
 
                 if ( thresholds ) {
-                    addToThresholdValues( thresholds );
+                    addGridlineValues( thresholds );
                 }
 
             } );
 
-            if ( thresholdValues.length > 0 ) {
+            if ( gridlineValues.length > 0 ) {
 
-                thresholdValues.sort( function ( a, b ) {
+                gridlineValues.sort( function ( a, b ) {
                     return a - b;
                 } );
 
@@ -1270,7 +1277,7 @@
                 };
                 yScale.onUpdate( yScaleCallback );
                 var yScaleTickGenerator = function ( scale ) {
-                    var ticks = thresholdValues;
+                    var ticks = gridlineValues;
                     return ticks;
                 };
                 gridlineYScale.tickGenerator( yScaleTickGenerator );
@@ -1381,7 +1388,7 @@
 
                 //add data
                 linePlot.addDataset( dataset );
-                pointPlot.addDataset( dataset );
+                scatterPlot.addDataset( dataset );
 
                 //prepare for plot group
                 linePlot.addClass( 'line-plot-' + measure );
@@ -1391,10 +1398,10 @@
 
         } );
 
-        // point plot is always added regardless of chart type
+        // scatter plot is always added regardless of chart type
         // because Pointer interactions are attached to it
-        pointPlot.addClass( 'point-plot' );
-        plots.push( pointPlot );
+        scatterPlot.addClass( 'point-plot' );
+        plots.push( scatterPlot );
 
         var colorScale = null;
         var legend = null;
@@ -1505,7 +1512,7 @@
                 'gridlines': {
                     'gridlines': gridlines,
                     'yAxis': gridlineYAxis,
-                    'values': thresholdValues
+                    'values': gridlineValues
                 },
                 'legends': [ legend ],
                 'xAxes': xAxes,
@@ -1523,33 +1530,79 @@
 
         };
 
-        // return the measures that this chart can show
-        this.getMeasures = function(){
+        /**
+         * Get the plots that are shown in this chart as Plottable.js components
+         * @param plotClass - optional parameter gets only plots of the type eg Plottable.Plots.Scatter
+         * @returns {*}
+         */
+        this.getPlots = function ( plotClass ) {
+            if ( plotClass ) {
+                return plots.filter( function ( plot ) {
+                    return plot instanceof plotClass;
+                } );
+            } else {
+                return plots;
+            }
+        };
+
+        /**
+         * Add a gridline to the chart at the value
+         * @param {number} value - the location on the y axis of the gridline
+         */
+        this.addGridline = function ( value ) {
+            gridlineValues.push( value );
+        };
+
+        /**
+         * Get the measures that this chart can show
+         * @returns {Array}
+         */
+        this.getMeasures = function () {
             return measures;
         };
-        // return the styles used to render the plots
-        this.getStyles = function(){
+
+        /**
+         * Get styles used to render the plots
+         * @returns {ChartStyles}
+         */
+        this.getStyles = function () {
             return styles;
         };
-        // return the interactions used to present the plots
-        this.getInteractions = function(){
+
+        /**
+         * Get the interactions used to present the plots
+         * @returns {ChartInteractions}
+         */
+        this.getInteractions = function () {
             return interactions;
         };
-        // return the configuration used to render the plots
-        this.getConfiguration = function(){
+        /**
+         * Get the configuration used to render the plots
+         * @returns {ChartConfiguration}
+         */
+        this.getConfiguration = function () {
             return configuration;
         };
-        // return the parser used to process the data
-        this.getParser = function(){
+        /**
+         * Get the parser used to process the data
+         * @returns {DataParser}
+         */
+        this.getParser = function () {
             return parser;
         };
 
-        //public method for getting the d3 selection
+        /**
+         * Get the D3 selection that this chart is rendered to
+         * @returns {*}
+         */
         this.getD3Selection = function () {
             return selection;
         };
 
-        //render chart
+        /**
+         * Render the chart to the svg element
+         * @param svgElement
+         */
         this.renderTo = function ( svgElement ) {
 
             if ( !this.initialized ) {
@@ -1570,7 +1623,7 @@
             styles.addToSelection( selection );
 
             //add tooltips to rendered point plot entities
-            interactions.addTooltipsToEntities( pointPlot.entities() );
+            interactions.addTooltipsToEntities( scatterPlot.entities() );
 
         };
 

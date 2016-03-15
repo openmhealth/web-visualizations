@@ -69,15 +69,17 @@
             font-weight: normal;
             border-bottom: 1px solid #eee;
         }
-        .datapoint-details hr{
+
+        .datapoint-details hr {
             width: 100%;
             margin-left: auto;
             margin-right: auto;
             height: 1px;
-            background-color:#eee;
-            color:#eee;
+            background-color: #eee;
+            color: #eee;
             border: 0 none;
         }
+
         .loading-message {
             font-style: italic;
             padding-top: 150px;
@@ -263,8 +265,8 @@
             // then display the consolidation type and the points that were used
             var dataString = '';
             for ( var i in datum.consolidatedData ) {
-                dataString += JSON.stringify( datum.consolidatedData[ i ], replacer, 4 ) +'\n\n';
-                if ( i < datum.consolidatedData.length-1 ){
+                dataString += JSON.stringify( datum.consolidatedData[ i ], replacer, 4 ) + '\n\n';
+                if ( i < datum.consolidatedData.length - 1 ) {
                     dataString += '<hr>\n';
                 }
             }
@@ -332,9 +334,36 @@
 
         } );
 
-        if ( chart.getMeasures().indexOf('systolic_blood_pressure') > -1 ) {
+        if ( chart.getMeasures().indexOf( 'systolic_blood_pressure' ) > -1 ) {
             addDangerZone();
         }
+        if ( chart.getMeasures().indexOf( 'heart_rate' ) > -1 ) {
+            addBlueLines();
+        }
+
+    };
+
+    var addBlueLines = function () {
+
+        // get the existing styles from the chart so we can alter them
+        var chartStyles = chart.getStyles();
+        var linePlot = chart.getPlots( Plottable.Plots.Line )[ 0 ];
+
+        // initialize new styles with the existing ones
+        var plotStylesWithBlueLines = chartStyles.getStylesForPlot( linePlot );
+
+        // add blue line style
+        plotStylesWithBlueLines.push(
+                {
+                    'name': 'blue-lines',
+                    'attributes': {
+                        'stroke': '#4a90e2'
+                    }
+                }
+        );
+
+        // replace styles for the plot with extended blue-line styles
+        chartStyles.setStylesForPlot( plotStylesWithBlueLines, linePlot );
 
     };
 
@@ -342,7 +371,7 @@
 
         // get the existing styles from the chart so we can alter them
         var chartStyles = chart.getStyles();
-        var scatterPlot = chart.getPlots( Plottable.Plots.Scatter )[0];
+        var scatterPlot = chart.getPlots( Plottable.Plots.Scatter )[ 0 ];
 
         // the value where a grid line is drawn,
         // above which points are colored red
@@ -372,7 +401,7 @@
                 }
         );
 
-        // add the new danger zone styles to the plot
+        // replace styles for the plot with the extended danger-zone styles
         chartStyles.setStylesForPlot( plotStylesWithDanger, scatterPlot );
 
         // add a gridline for the danger zone
@@ -485,6 +514,12 @@
                     'daysShownOnTimeline': undefined
                 }
             };
+
+        } else if ( measureList === 'heart_rate' ) {
+
+            chartOptions = cloneObject( options );
+
+            chartOptions.userInterface.tooltips.enabled = false;
 
         }
 
