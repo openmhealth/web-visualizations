@@ -23,7 +23,7 @@
                     'enabled': true,
                     'timeFormat': 'M/D/YY, h:mma',
                     'decimalPlaces': 0,
-                    'contentFormatter': parent.ChartStyles.formatters.defaultTooltip,
+                    'contentFormatter': parent.ChartStyles.formatters.defaultTooltip.bind( this ),
                     'grouped': true
                 },
                 'panZoom': {
