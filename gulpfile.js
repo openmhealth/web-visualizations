@@ -19,117 +19,119 @@
  */
 
 //Load Karma
-var KarmaServer = require('karma').Server;
+var KarmaServer = require( 'karma' ).Server;
 
 // Load plugins
-var gulp = require('gulp'),
-    less = require('gulp-less'),
-    autoprefixer = require('gulp-autoprefixer'),
-    minifycss = require('gulp-minify-css'),
-    jshint = require('gulp-jshint'),
-    uglify = require('gulp-uglify'),
-    rename = require('gulp-rename'),
-    concat = require('gulp-concat'),
-    notify = require('gulp-notify'),
-    cache = require('gulp-cache'),
-    connect = require('gulp-connect'),
-    // livereload = require('gulp-livereload'),
-    del = require('del');
+var gulp = require( 'gulp' ),
+    less = require( 'gulp-less' ),
+    autoprefixer = require( 'gulp-autoprefixer' ),
+    minifycss = require( 'gulp-minify-css' ),
+    jshint = require( 'gulp-jshint' ),
+    uglify = require( 'gulp-uglify' ),
+    rename = require( 'gulp-rename' ),
+    concat = require( 'gulp-concat' ),
+    notify = require( 'gulp-notify' ),
+    cache = require( 'gulp-cache' ),
+    connect = require( 'gulp-connect' ),
+    jsdoc = require( 'gulp-jsdoc' ),
+// livereload = require('gulp-livereload'),
+    del = require( 'del' );
 
 // Styles
-gulp.task('generate-concatenated-styles', function() {
-  return gulp.src(['src/*.less','!src/styles-common.less'])
-    .pipe(concat('omh-web-visualizations-all.css'))
-    .pipe(less())
-    .pipe(autoprefixer('last 2 version'))
-    .pipe(gulp.dest('dist'))
-    .pipe(rename({ suffix: '.min' }))
-    .pipe(minifycss())
-    .pipe(gulp.dest('dist'))
-    .pipe(notify({ message: 'Concatenated styles task complete' }));
-});
-gulp.task('generate-component-styles', function() {
-  return gulp.src(['src/*.less','!src/styles-common.less'])
-    .pipe(less())
-    .pipe(autoprefixer('last 2 version'))
-    .pipe(rename({ prefix: 'omh-web-visualizations-' }))
-    .pipe(gulp.dest('dist/components'))
-    .pipe(rename({ suffix: '.min' }))
-    .pipe(minifycss())
-    .pipe(gulp.dest('dist/components'))
-    .pipe(notify({ message: 'Component styles task complete' }));
-});
+gulp.task( 'generate-concatenated-styles', function () {
+    return gulp.src( [ 'src/*.less', '!src/styles-common.less' ] )
+        .pipe( concat( 'omh-web-visualizations-all.css' ) )
+        .pipe( less() )
+        .pipe( autoprefixer( 'last 2 version' ) )
+        .pipe( gulp.dest( 'dist' ) )
+        .pipe( rename( { suffix: '.min' } ) )
+        .pipe( minifycss() )
+        .pipe( gulp.dest( 'dist' ) )
+        .pipe( notify( { message: 'Concatenated styles task complete' } ) );
+} );
+gulp.task( 'generate-component-styles', function () {
+    return gulp.src( [ 'src/*.less', '!src/styles-common.less' ] )
+        .pipe( less() )
+        .pipe( autoprefixer( 'last 2 version' ) )
+        .pipe( rename( { prefix: 'omh-web-visualizations-' } ) )
+        .pipe( gulp.dest( 'dist/components' ) )
+        .pipe( rename( { suffix: '.min' } ) )
+        .pipe( minifycss() )
+        .pipe( gulp.dest( 'dist/components' ) )
+        .pipe( notify( { message: 'Component styles task complete' } ) );
+} );
 
 // Scripts
-gulp.task('generate-concatenated-script', function() {
-  return gulp.src('src/*.js')
-    .pipe(jshint('.jshintrc'))
-    .pipe(jshint.reporter('default'))
-    .pipe(concat('omh-web-visualizations-all.js'))
-    .pipe(gulp.dest('dist'))
-    .pipe(rename({ suffix: '.min' }))
-    .pipe(uglify())
-    .pipe(gulp.dest('dist'))
-    .pipe(notify({ message: 'Scripts concat task complete' }));
-});
-gulp.task('generate-component-scripts', function(){
-  return gulp.src('src/*.js')
-    .pipe(jshint('.jshintrc'))
-    .pipe(jshint.reporter('default'))
-    .pipe(rename({ prefix: 'omh-web-visualizations-' }))
-    .pipe(gulp.dest('dist/components'))
-    .pipe(rename({ suffix: '.min' }))
-    .pipe(uglify())
-    .pipe(gulp.dest('dist/components'))
-    .pipe(notify({ message: 'Scripts copy task complete' }));
-});
+gulp.task( 'generate-concatenated-script', function () {
+    return gulp.src( 'src/*.js' )
+        .pipe( jshint( '.jshintrc' ) )
+        .pipe( jshint.reporter( 'default' ) )
+        .pipe( concat( 'omh-web-visualizations-all.js' ) )
+        .pipe( gulp.dest( 'dist' ) )
+        .pipe( rename( { suffix: '.min' } ) )
+        .pipe( uglify() )
+        .pipe( gulp.dest( 'dist' ) )
+        .pipe( notify( { message: 'Scripts concat task complete' } ) );
+} );
+gulp.task( 'generate-component-scripts', function () {
+    return gulp.src( 'src/*.js' )
+        .pipe( jshint( '.jshintrc' ) )
+        .pipe( jsdoc() )
+        .pipe( jshint.reporter( 'default' ) )
+        .pipe( rename( { prefix: 'omh-web-visualizations-' } ) )
+        .pipe( gulp.dest( 'dist/components' ) )
+        .pipe( rename( { suffix: '.min' } ) )
+        .pipe( uglify() )
+        .pipe( gulp.dest( 'dist/components' ) )
+        .pipe( notify( { message: 'Scripts copy task complete' } ) );
+} );
 
 // Run test once and exit
-gulp.task('test-scripts', function (done) {
-  new KarmaServer({
-    configFile: __dirname + '/karma.conf.js',
-    singleRun: true,
-    autoWatch: false
-    }, function() {
+gulp.task( 'test-scripts', function ( done ) {
+    new KarmaServer( {
+        configFile: __dirname + '/karma.conf.js',
+        singleRun: true,
+        autoWatch: false
+    }, function () {
         done();
-  }).start();
-});
+    } ).start();
+} );
 
 // Watch for file changes and re-run tests on each change
-gulp.task('tdd', function (done) {
-  new KarmaServer({
-    configFile: __dirname + '/karma.conf.js'
-  }, done).start();
-});
+gulp.task( 'tdd', function ( done ) {
+    new KarmaServer( {
+        configFile: __dirname + '/karma.conf.js'
+    }, done ).start();
+} );
 
 // Clean
-gulp.task('clean', function(cb) {
-    del(['dist'], cb);
-});
+gulp.task( 'clean', function ( cb ) {
+    del( [ 'dist' ], cb );
+} );
 
 // Default task
-gulp.task('default', ['clean'], function() {
-    gulp.start(['generate-component-styles','generate-concatenated-styles'], ['generate-component-scripts','generate-concatenated-script']);
-});
+gulp.task( 'default', [ 'clean' ], function () {
+    gulp.start( [ 'generate-component-styles', 'generate-concatenated-styles' ], [ 'generate-component-scripts', 'generate-concatenated-script' ] );
+} );
 
 // Watch
-gulp.task('watch', function() {
+gulp.task( 'watch', function () {
 
-  // Watch .scss files
-  gulp.watch('src/*.less', ['generate-component-styles','generate-concatenated-styles']);
+    // Watch .scss files
+    gulp.watch( 'src/*.less', [ 'generate-component-styles', 'generate-concatenated-styles' ] );
 
-  // Watch .js files
-  gulp.watch(['src/*.js','test/*.js'], ['test-scripts','generate-component-scripts','generate-concatenated-script']);
+    // Watch .js files
+    gulp.watch( [ 'src/*.js', 'test/*.js' ], [ 'test-scripts', 'generate-component-scripts', 'generate-concatenated-script' ] );
 
-  // Create LiveReload server
-  // livereload.listen();
+    // Create LiveReload server
+    // livereload.listen();
 
-  // Watch any files in dist/, reload on change
-  gulp.watch(['dist/**']).on('change', connect.reload);
+    // Watch any files in dist/, reload on change
+    gulp.watch( [ 'dist/**' ] ).on( 'change', connect.reload );
 
-  connect.server({
-    livereload: true
-  });
-  
+    connect.server( {
+        livereload: true
+    } );
 
-});
+
+} );
