@@ -141,27 +141,23 @@
 
             var attachPanZoomInteractionToComponents = function ( components ) {
 
-                if ( settings.panZoom.enabled ) {
+                //set up pan/zoom
+                panZoomInteraction = new Plottable.Interactions.PanZoom();
+                panZoomInteractionXAxis = new Plottable.Interactions.PanZoom();
 
-                    //set up pan/zoom
-                    panZoomInteraction = new Plottable.Interactions.PanZoom();
-                    panZoomInteractionXAxis = new Plottable.Interactions.PanZoom();
+                panZoomInteraction.addXScale( components.xScale );
+                panZoomInteraction.attachTo( components.plotGroup );
+                panZoomInteractionXAxis.addXScale( components.xScale );
+                panZoomInteractionXAxis.attachTo( components.xAxis );
 
-                    panZoomInteraction.addXScale( components.xScale );
-                    panZoomInteraction.attachTo( components.plotGroup );
-                    panZoomInteractionXAxis.addXScale( components.xScale );
-                    panZoomInteractionXAxis.attachTo( components.xAxis );
+                if ( minZoomDays ) {
+                    panZoomInteraction.minDomainExtent( components.xScale, minZoomDays * MS_PER_DAY );
+                    panZoomInteractionXAxis.minDomainExtent( components.xScale, minZoomDays * MS_PER_DAY );
+                }
 
-                    if ( minZoomDays ) {
-                        panZoomInteraction.minDomainExtent( components.xScale, minZoomDays * MS_PER_DAY );
-                        panZoomInteractionXAxis.minDomainExtent( components.xScale, minZoomDays * MS_PER_DAY );
-                    }
-
-                    if ( maxZoomDays ) {
-                        panZoomInteraction.maxDomainExtent( components.xScale, maxZoomDays * MS_PER_DAY );
-                        panZoomInteractionXAxis.maxDomainExtent( components.xScale, maxZoomDays * MS_PER_DAY );
-                    }
-
+                if ( maxZoomDays ) {
+                    panZoomInteraction.maxDomainExtent( components.xScale, maxZoomDays * MS_PER_DAY );
+                    panZoomInteractionXAxis.maxDomainExtent( components.xScale, maxZoomDays * MS_PER_DAY );
                 }
 
             };
@@ -481,29 +477,35 @@
             this.addToComponents = function ( components ) {
 
                 // add tooltips to the first scatter plot found
-                for ( var i in components.plots ) {
-                    var plot = components.plots[ i ];
-                    if ( plot instanceof Plottable.Plots.Scatter && plot.datasets() && plot.datasets().length > 0 ) {
-                        attachTooltipsToPlot( plot );
-                        break;
+                if ( settings.tooltips.enabled ) {
+                    for ( var i in components.plots ) {
+                        var plot = components.plots[ i ];
+                        if ( plot instanceof Plottable.Plots.Scatter && plot.datasets() && plot.datasets().length > 0 ) {
+                            attachTooltipsToPlot( plot );
+                            break;
+                        }
                     }
                 }
 
-                // add pan/zoom interactions
-                attachPanZoomInteractionToComponents( components );
 
                 //do not let user scale graph too far, and start chart in range
                 if ( maxZoomDays ) {
                     limitScaleExtents( components.xScale );
                 }
 
-                // add pan/zoom hint label to the plots
-                if ( settings.enabled && settings.showHint ) {
-                    components.plots.push( panZoomHint );
+                if ( settings.panZoom.enabled ) {
+
+                    // add pan/zoom interactions
+                    attachPanZoomInteractionToComponents( components );
+
+                    if ( settings.panZoom.showHint ) {
+                        // add pan/zoom hint label to the plots
+                        components.plots.push( panZoomHint );
+                    }
+
+                    dragInteraction.attachTo( components.table );
+
                 }
-
-                dragInteraction.attachTo( components.table );
-
 
                 table = components.table;// reference kept so interaction can be destroyed later
                 xScale = components.xScale; // reference kept so zoom toolbar can modify timeline
