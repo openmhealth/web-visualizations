@@ -311,18 +311,18 @@ And here is the CSS used for the tooltip:
 
 You can restrict the tooltip colors to only `diastolic_blood_pressure` as follows:
 ```css
-.omh-tooltip.diastolic_blood_pressure.above .value {
+.omh-tooltip.diastolic_blood_pressure.b .value {
   color: #e8ac4e;
 }
 ```
 
 
-In the same chart, we see a tooltip that has been colored red to match its point in the systolic blood pressure series:
+In the same chart, we see a tooltip that has been colored red to match its point below the minimum threshold in the systolic blood pressure series:
 ![Above Threshold Tooltip with Custom Color](http://www.openmhealth.org/media/viz_example_threshold_above_tip_1.png "Above Threshold Tooltip with Custom Color")
 
 Here is the CSS used for the systolic tooltip:
 ```css
-.omh-tooltip.systolic_blood_pressure.above .value {
+.omh-tooltip.systolic_blood_pressure.below .value {
   color:#ce5050;
 }
 ```
@@ -330,24 +330,24 @@ Here is the CSS used for the systolic tooltip:
 
 And again, in the same chart, we see a tooltip that has been colored light orange to match its point in the first measure:
 ![Within Threshold Tooltip with Custom Color](http://www.openmhealth.org/media/viz_example_threshold_warning_tip.png "Within Threshold Tooltip with Custom Color")
-
-Here is more CSS used for any tooltips shown within a threshold named `warning`:
-```css
-.omh-tooltip.warning .value {
-   color:#e8ac4e;
-}
-```
-In order for this to work, the corresponding style's `name` property is set to `warning` as follows:
+The point shown above has matched a chart style named `warning`:
+In order for this to work, the corresponding chart style's `name` property is set to `warning` as follows:
 ```javascript
 {
    'name': 'warning',
-   'filters': chartStyles.filters.above( 129 ),
+   'filters': chartStyles.filters.above( 120 ),
    'attributes':{ 'fill': '#e8ac4e', 'stroke': '#745628' }
 }
 ```
 (where chartStyles is an instance of OMHWebVisualizations.ChartStyles)
 
-See `examples/charts.html` for code samples.
+And here is the CSS used to style tooltip
+```css
+.omh-tooltip.warning .value {
+   color:#e8ac4e;
+}
+```
+See `examples/charts.html` for js and css code samples.
 
 
 ###Rendering a chart
