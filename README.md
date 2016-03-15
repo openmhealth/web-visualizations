@@ -110,7 +110,6 @@ The following object is the default settings object used by the `OMHWebVisualiza
         'quantizedDataConsolidationFunction': OMHWebVisualizations.DataParser.consolidators.summation,
         'chart': {
             'type': 'clustered_bar',
-            'barColor': '#eeeeee',
             'daysShownOnTimeline': { 'min': 7, 'max': 90 }
         },
     },
@@ -157,13 +156,6 @@ If you look carefully at the default settings object, you'll also notice that so
    'quantizedDataConsolidationFunction': OMHWebVisualizations.DataParser.consolidators.average,
    'chart': {
        'type': 'line',
-       'pointSize': 9,
-       'lineColor': '#dedede',
-       'pointFillColor': '#4a90e2',
-       'pointStrokeColor': '#0066d6',
-       'aboveThresholdPointFillColor': '#e8ac4e',
-       'aboveThresholdPointStrokeColor': '#745628',
-       'barColor': '#4a90e2',
        'daysShownOnTimeline': { 'min': 1, 'max': 1000 },
    }
 }
