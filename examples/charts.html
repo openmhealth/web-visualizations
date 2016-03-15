@@ -174,6 +174,9 @@
             },
             'thresholds': {
                 'show': true
+            },
+            'tooltips': {
+                'decimalPlaces': 4
             }
         },
         'measures': {
@@ -325,16 +328,21 @@
 
                 showDatapointDetailsMessage( 'Click on a point to see details here...' );
 
-                if ( chart.getMeasures().indexOf('systolic_blood_pressure') > -1 ) {
-                    addDangerZone( scatterPlot, components.gridlines.values );
-                }
             }
 
         } );
 
+        if ( chart.getMeasures().indexOf('systolic_blood_pressure') > -1 ) {
+            addDangerZone();
+        }
+
     };
 
-    var addDangerZone = function ( scatterPlot, gridlineValues ) {
+    var addDangerZone = function () {
+
+        // get the existing styles from the chart so we can alter them
+        var chartStyles = chart.getStyles();
+        var scatterPlot = chart.getPlots( Plottable.Plots.Scatter )[0];
 
         // the value where a grid line is drawn,
         // above which points are colored red
@@ -343,15 +351,16 @@
         // these filter functions are used to determine which
         // points will be rendered with the style's attributes
         var dangerFilter = function ( d ) {
+            // a filter function takes a datum and returns a boolean
             return d.y >= dangerValue;
         };
-        var systolicFilter = function ( d ) {
-            return d.measure === 'systolic_blood_pressure';
-        };
 
-        // get the existing styles from the chart and alter them
-        var chartStyles = chart.getStyles();
+        // ChartStyles.filters contains a number of useful filters
+        var systolicFilter = chartStyles.filters.measure( 'systolic_blood_pressure' );
+
+        // initialize new styles with the existing ones
         var plotStylesWithDanger = chartStyles.getStylesForPlot( scatterPlot );
+
         // add a 'danger zone' for systolic, using the filters defined above
         plotStylesWithDanger.push(
                 {
@@ -362,11 +371,12 @@
                     }
                 }
         );
+
         // add the new danger zone styles to the plot
         chartStyles.setStylesForPlot( plotStylesWithDanger, scatterPlot );
 
         // add a gridline for the danger zone
-        gridlineValues.push( dangerValue );
+        chart.addGridline( dangerValue );
 
     };
 
