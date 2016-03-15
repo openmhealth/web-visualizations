@@ -6,8 +6,9 @@
 }( this, function ( root, parentName ) {
 
     var parent = root.hasOwnProperty( parentName ) ? root[ parentName ] : {};
+    var ChartStyles;
 
-    parent.ChartStyles = function ( configuration ) {
+    ChartStyles = function ( configuration ) {
 
         var plotStyles = [];
 
@@ -373,6 +374,22 @@
         };
 
     };
+
+    ChartStyles.formatters = {};
+    ChartStyles.formatters.defaultTooltip = function ( d ) {
+        var content;
+        if ( d.omhDatum.groupName === '_systolic_blood_pressure_diastolic_blood_pressure' ) {
+            var systolic = d.omhDatum.body.systolic_blood_pressure.value.toFixed( 0 );
+            var diastolic = d.omhDatum.body.diastolic_blood_pressure.value.toFixed( 0 );
+            content = systolic + '/' + diastolic;
+        } else {
+            var decimalPlaces = typeof( settings.decimalPlaces ) !== 'undefined' ? settings.decimalPlaces : 1;
+            content = d.y.toFixed( decimalPlaces );
+        }
+        return content;
+    };
+
+    parent.ChartStyles = ChartStyles;
 
     return parent;
 

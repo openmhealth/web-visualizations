@@ -12,19 +12,6 @@
         var mergedSettings;
         var measureNames;
 
-        var defaultTooltipContentFormatter = function ( d ) {
-            var content;
-            if ( d.omhDatum.groupName === '_systolic_blood_pressure_diastolic_blood_pressure' ) {
-                var systolic = d.omhDatum.body.systolic_blood_pressure.value.toFixed( 0 );
-                var diastolic = d.omhDatum.body.diastolic_blood_pressure.value.toFixed( 0 );
-                content = systolic + '/' + diastolic;
-            } else {
-                var decimalPlaces = typeof( settings.decimalPlaces ) !== 'undefined' ? settings.decimalPlaces : 1;
-                content = d.y.toFixed( decimalPlaces );
-            }
-            return content;
-        };
-
         var defaultSettings = {
             'userInterface': {
                 'toolbar': { 'enabled': true },
@@ -36,8 +23,8 @@
                     'enabled': true,
                     'timeFormat': 'M/D/YY, h:mma',
                     'decimalPlaces': 0,
-                    'contentFormatter': defaultTooltipContentFormatter,
-                    'grouped': true,
+                    'contentFormatter': parent.ChartStyles.formatters.defaultTooltip,
+                    'grouped': true
                 },
                 'panZoom': {
                     'enabled': true,
@@ -57,12 +44,12 @@
                     'valueKeyPath': 'body.body_weight.value',
                     'range': { 'min': 0, 'max': 100 },
                     'units': 'kg',
-                    'thresholds': { 'max': 57 },
+                    'thresholds': { 'max': 57 }
                 },
                 'heart_rate': {
                     'valueKeyPath': 'body.heart_rate.value',
                     'range': { 'min': 30, 'max': 150 },
-                    'units': 'bpm',
+                    'units': 'bpm'
                 },
                 'step_count': {
                     'valueKeyPath': 'body.step_count',
@@ -74,8 +61,8 @@
                     'chart': {
                         'type': 'clustered_bar',
                         'barColor': '#eeeeee',
-                        'daysShownOnTimeline': { 'min': 7, 'max': 90 },
-                    },
+                        'daysShownOnTimeline': { 'min': 7, 'max': 90 }
+                    }
                 },
                 'minutes_moderate_activity': {
                     'valueKeyPath': 'body.minutes_moderate_activity.value',
@@ -86,20 +73,20 @@
                     'quantizedDataConsolidationFunction': parent.DataParser.consolidators.summation,
                     'chart': {
                         'type': 'clustered_bar',
-                        'daysShownOnTimeline': { 'min': 7, 'max': 90 },
-                    },
+                        'daysShownOnTimeline': { 'min': 7, 'max': 90 }
+                    }
                 },
                 'systolic_blood_pressure': {
                     'valueKeyPath': 'body.systolic_blood_pressure.value',
                     'range': { 'min': 30, 'max': 200 },
                     'units': 'mmHg',
-                    'thresholds': { 'max': 120 },
+                    'thresholds': { 'max': 120 }
                 },
                 'diastolic_blood_pressure': {
                     'valueKeyPath': 'body.diastolic_blood_pressure.value',
                     'range': { 'min': 30, 'max': 200 },
                     'units': 'mmHg',
-                    'thresholds': { 'max': 80 },
+                    'thresholds': { 'max': 80 }
                 }
             }
         };
@@ -119,7 +106,7 @@
                 'aboveThresholdPointFillColor': '#e8ac4e',
                 'aboveThresholdPointStrokeColor': '#745628',
                 'barColor': '#4a90e2',
-                'daysShownOnTimeline': { 'min': 1, 'max': 1000 },
+                'daysShownOnTimeline': { 'min': 1, 'max': 1000 }
             }
         };
 
