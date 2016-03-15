@@ -261,7 +261,7 @@
 
         } );
 
-        // point plot is always added regardless of chart type
+        // scatter plot is always added regardless of chart type
         // because Pointer interactions are attached to it
         scatterPlot.addClass( 'point-plot' );
         plots.push( scatterPlot );
