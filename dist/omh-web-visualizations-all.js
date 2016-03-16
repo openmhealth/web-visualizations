@@ -736,8 +736,15 @@
 }( this, function ( root, parentName ) {
 
     var parent = root.hasOwnProperty( parentName ) ? root[ parentName ] : {};
+
     var ChartStyles;
 
+    /**
+     * Constructs a new ChartStyles object
+     * @param configuration
+     * @constructor
+     * @global
+     */
     ChartStyles = function ( configuration ) {
 
         var plotStyles = [];
@@ -783,14 +790,16 @@
             }
         };
 
+
         /**
          * A list of useful filters to help with conditional styling
-         * @type {{measure: filters.'measure', above: filters.'above', aboveThresholdMax: filters.'aboveThresholdMax', below: filters.'below', belowThresholdMin: filters.'belowThresholdMin', dailyBeforeHour: filters.'dailyBeforeHour'}}
+         * @type {{}}
          */
         this.filters = filters;
 
         /**
          * Get a fresh copy of default styles for the plot
+         * @memberof ChartStyles.prototype
          * @param plot
          * @returns {*}
          */
@@ -1022,8 +1031,8 @@
 
         /**
          * Get the name of the style that a datum is rendered with, based on its filters
-         * @param d
-         * @param plot
+         * @param d - the datum
+         * @param plot - the plot with the styles used for rendering
          * @returns {*}
          */
         this.resolveStyleNameForDatumInPlot = function ( d, plot ) {
@@ -1041,8 +1050,8 @@
 
         /**
          * Associate the styles with the data points that match their filters using the plot's Plottable.js accessors
-         * @param styles
-         * @param plot
+         * @param styles - the styles to associate to the plot
+         * @param plot - the plot
          */
         this.assignAttributesToPlot = function ( styles, plot ) {
 
@@ -1107,12 +1116,21 @@
 
     };
 
-    ChartStyles.formatters = {};
+    /**
+     * An array of formatters used to format data before it is displayed
+     * @memberof ChartStyles
+     * @type {{}}
+     */
+    var formatters;
+
+    ChartStyles.formatters = formatters;
+
     /**
      * Returns the formatted data point value for use in a tooltip.
      * Note: this function must be bound to a ChartConfiguration object to properly handle the number of decimal places
      * @param d
      * @returns {*}
+     * @memberof ChartStyles.formatters
      */
     ChartStyles.formatters.defaultTooltip = function ( d ) {
         var content;
@@ -1133,6 +1151,432 @@
     return parent;
 
 } ) );
+
+
+( function ( root, factory ) {
+
+    var parentName = 'OMHWebVisualizations';
+    root[ parentName ] = factory( root, parentName );
+
+}( this, function ( root, parentName ) {
+
+        var parent = root.hasOwnProperty( parentName ) ? root[ parentName ] : {};
+        var DataParser;
+
+        /**
+         * Creates an object that parses omh data into a format usable Plottable.js
+         * @param {{}} data - The data to parse now
+         * @param {{}} measures - Strings representing the measures to extract from the data
+         * @param {OMHWebVisualizations.ChartConfiguration} configuration - a configuration object containing options for parsing data
+         * @constructor
+         * @global
+         */
+        DataParser = function ( data, measures, configuration ) {
+
+            var measureData = null;
+            var keyPathArrays = {};
+
+            //days, weeks, months, and years could all be different durations depending on
+            //the timeframe, because of month duration differences, daylight savings, leapyear, etc
+            //so only use constants for the rest of the time units
+            var durations = {
+                "ps": 0.000000001,
+                "ns": 0.000001,
+                "us": 0.001,
+                "ms": 1,
+                "sec": 1000,
+                "min": 60 * 1000,
+                "h": 60 * 60 * 1000,
+                "d": 'd',
+                "wk": 'w',
+                "Mo": 'M',
+                "yr": 'y'
+            };
+
+            /*
+             *
+             * Initialization
+             *
+             * */
+
+            var initialize = function () {
+
+                //deep copy data passed in so that it is not altered when we add group names
+                var dataCopy = JSON.parse( JSON.stringify( data ) );
+
+                measureData = this.parseOmhData( dataCopy, measures, moment );
+
+                if ( Object.keys( measureData ).length === 0 ) {
+                    console.log( "Warning: no data of the specified type could be found." );
+                    return false;
+                }
+
+            };
+
+            /*
+             *
+             * Member functions
+             *
+             * */
+
+            /**
+             * Get the value found at a key path
+             * @param {object} obj - the object to search for the key path
+             * @param {string} keyPath - the path where the desired value should be found
+             * @returns {*}
+             */
+            this.resolveKeyPath = function ( obj, keyPath ) {
+                if ( obj === undefined ) {
+                    return obj;
+                }
+                var r;
+                if ( typeof keyPath === 'string' ) {
+                    if ( !keyPathArrays[ keyPath ] ) {
+                        keyPathArrays[ keyPath ] = keyPath.split( '.' );
+                    }
+                    r = keyPathArrays[ keyPath ].slice();
+                } else {
+                    r = keyPath;
+                }
+                try {
+                    if ( keyPath && r.length > 0 ) {
+                        return this.resolveKeyPath( obj[ r.shift() ], r );
+                    }
+                } catch ( e ) {
+                    console.info( 'Exception while resolving keypath', e );
+                }
+                return obj;
+            };
+
+            /**
+             * Get the display date for a datum that has specified an interval rather than a point in time
+             * @param {object} omhDatum - the omh formatted datum
+             * @param {object} dateProvider - an object that provides dates. Moment.js is used by default.
+             * @param {number} quantizationLevel - constant defined statically to represent the quantization level, e.g. OMHWebVisualizations.DataParser.QUANTIZE_DAY
+             * @returns {Date}
+             */
+            this.getIntervalDisplayDate = function ( omhDatum, dateProvider, quantizationLevel ) {
+
+                var interval = omhDatum.body[ 'effective_time_frame' ][ 'time_interval' ];
+                var startTime = interval[ 'start_date_time' ] ? ( new Date( interval[ 'start_date_time' ] ) ).getTime() : null;
+                var endTime = interval[ 'end_date_time' ] ? ( new Date( interval[ 'end_date_time' ] ) ).getTime() : null;
+                var startTimeObject = interval[ 'start_date_time' ] ? ( dateProvider( interval[ 'start_date_time' ] ) ) : null;
+                var endTimeObject = interval[ 'end_date_time' ] ? ( dateProvider( interval[ 'end_date_time' ] ) ) : null;
+
+                //figure out the duration in milliseconds of the timeframe
+                //the timeframe could be a start and end, or it could be just one and a duration
+                var duration = interval[ 'duration' ] ? interval[ 'duration' ][ 'value' ] : null;
+                //if there is a duration, use it to determine the missing start or end time
+                if ( duration ) {
+                    var unit = interval[ 'duration' ][ 'unit' ];
+                    var durationMs;
+                    var durationUnitLength = durations[ unit ];
+                    if ( typeof durationUnitLength !== 'string' ) {
+                        durationMs = duration * durationUnitLength;
+                        if ( !startTime ) {
+                            startTime = endTime - durationMs;
+                        }
+                        if ( !endTime ) {
+                            endTime = startTime + durationMs;
+                        }
+                    } else {
+                        if ( !startTime ) {
+                            startTime = endTimeObject.subtract( duration, durations[ unit ] ).valueOf();
+                        }
+                        if ( !endTime ) {
+                            endTime = startTimeObject.add( duration, durations[ unit ] ).valueOf();
+                        }
+                    }
+                }
+
+                return new Date( startTime );
+
+            };
+
+            /**
+             * Quantize a date to a quantization level
+             * @param {Date} date - the date to quantize
+             * @param {number} quantizationLevel - constant defined statically to represent the quantization level, e.g. OMHWebVisualizations.DataParser.QUANTIZE
+             * @returns {Date} - the quantized date
+             */
+            this.quantizeDate = function ( date, quantizationLevel ) {
+
+                //quantize the points
+                var month = quantizationLevel <= OMHWebVisualizations.DataParser.QUANTIZE_MONTH ? date.getMonth() : 6;
+                var day = quantizationLevel <= OMHWebVisualizations.DataParser.QUANTIZE_DAY ? date.getDate() : quantizationLevel === OMHWebVisualizations.DataParser.QUANTIZE_MONTH ? 15 : 1;
+                var hour = quantizationLevel <= OMHWebVisualizations.DataParser.QUANTIZE_HOUR ? date.getHours() : quantizationLevel === OMHWebVisualizations.DataParser.QUANTIZE_DAY ? 12 : 0;
+                var minute = quantizationLevel <= OMHWebVisualizations.DataParser.QUANTIZE_MINUTE ? date.getMinutes() : quantizationLevel === OMHWebVisualizations.DataParser.QUANTIZE_HOUR ? 30 : 0;
+                var second = quantizationLevel <= OMHWebVisualizations.DataParser.QUANTIZE_SECOND ? date.getSeconds() : quantizationLevel === OMHWebVisualizations.DataParser.QUANTIZE_MINUTE ? 30 : 0;
+                var millisecond = quantizationLevel <= OMHWebVisualizations.DataParser.QUANTIZE_MILLISECOND ? date.getMilliseconds() : quantizationLevel === OMHWebVisualizations.DataParser.QUANTIZE_SECOND ? 500 : 0;
+
+                return new Date( date.getFullYear(), month, day, hour, minute, second, millisecond );
+
+            };
+
+
+            /**
+             * Parse out the data into an array that can be used by Plottable.js
+             * @param omhData - the data to parse, formatted according to Open mHealth schemas
+             * @param measuresToParse - the measures to pull out of the data
+             * @param dateProvider - an object that provides dates. Moment.js is used by default.
+             * @returns {array} - an array of data ready for use in a Plottable.js plot
+             */
+            this.parseOmhData = function ( omhData, measuresToParse, dateProvider ) {
+
+                var _self = this;
+
+                var parsedData = {};
+                var quantizationLevels = {};
+                var keyPaths = {};
+
+                //if there is no data, return an empty object
+                if ( !( omhData ) || omhData.length === 0 ) {
+                    return parsedData;
+                }
+
+                measuresToParse.forEach( function ( measure, i ) {
+                    quantizationLevels[ measure ] = configuration.getMeasureSettings( measure ).timeQuantizationLevel;
+                    keyPaths[ measure ] = configuration.getMeasureSettings( measure ).valueKeyPath;
+                } );
+
+                omhData.forEach( function ( omhDatum ) {
+
+                    //if there is more than one measure type in a body, set up refs
+                    //so that the interface can treat the data points as a group
+
+                    //generate a group name for each data point that encodes
+                    //which measures are in its group. because the concatenation
+                    //order is defined by the measure list string, even if the
+                    //measures in data bodies are unordered, the same name
+                    //will be produced
+
+                    omhDatum.groupName = "";
+
+                    measuresToParse.forEach( function ( measure, i ) {
+
+                        var yValue = _self.resolveKeyPath( omhDatum, keyPaths[ measure ] );
+
+                        if ( yValue !== undefined && typeof yValue !== 'object' ) {
+
+                            omhDatum.groupName += '_' + measure;
+
+                            if ( !parsedData.hasOwnProperty( measure ) ) {
+                                parsedData[ measure ] = [];
+                            }
+
+                            //prepare the time (x value) at which the point will be plotted
+                            var date;
+                            if ( omhDatum.body[ 'effective_time_frame' ][ 'date_time' ] ) {
+                                date = _self.quantizeDate( new Date( omhDatum.body[ 'effective_time_frame' ][ 'date_time' ] ), quantizationLevels[ measure ] );
+                            }
+
+                            if ( omhDatum.body[ 'effective_time_frame' ][ 'time_interval' ] ) {
+                                date = _self.quantizeDate( _self.getIntervalDisplayDate( omhDatum, dateProvider ), quantizationLevels[ measure ] );
+                            }
+
+                            //create the datum that plottable will use
+                            parsedData[ measure ].push( {
+                                'y': yValue,
+                                'x': date,
+                                'provider': omhDatum.header.acquisition_provenance.source_name,
+                                'omhDatum': omhDatum,
+                                'primary': i === 0, // the tooltip is associated with the first measure in the group
+                                'measure': measure
+                            } );
+
+                        }
+
+
+                    } );
+
+                } );
+
+                //quantized data should be consolidated
+                measuresToParse.forEach( function ( measure, i ) {
+                    if ( quantizationLevels[ measure ] !== OMHWebVisualizations.DataParser.QUANTIZE_NONE ) {
+                        _self.consolidateData( measure, parsedData );
+                    }
+                } );
+
+                return parsedData;
+
+            };
+
+
+            /**
+             * Consolidate Plottable.js data points at the same time coordinates
+             * @param {string} measure - the measure will be used to look up the consolidation settings in the ChartConfiguration
+             * @param {Array} data - the Plottable.js data the should be consolidated
+             */
+            this.consolidateData = function ( measure, data ) {
+                var consolidator = configuration.getMeasureSettings( measure ).quantizedDataConsolidationFunction;
+                consolidator( data[ measure ] );
+            };
+
+            /**
+             * Get the data for the measure
+             * @param {string} measure - return any data found for the measure
+             * @returns {Array}
+             */
+            this.getMeasureData = function ( measure ) {
+                return measureData[ measure ];
+            };
+
+            /**
+             * Get all data found, organized by measure
+             * @returns {Array}
+             */
+            this.getAllMeasureData = function () {
+                return measureData;
+            };
+
+            /**
+             * See if there is data for the measure
+             * @param measure
+             * @returns {boolean}
+             */
+            this.hasMeasureData = function ( measure ) {
+                return measureData.hasOwnProperty( measure );
+            };
+
+
+            /*
+             *
+             * Initialize the object
+             *
+             * */
+            return initialize.call( this );
+
+        };
+
+
+        // Add constants for quantization
+        DataParser.QUANTIZE_YEAR = 6;
+        DataParser.QUANTIZE_MONTH = 5;
+        DataParser.QUANTIZE_DAY = 4;
+        DataParser.QUANTIZE_HOUR = 3;
+        DataParser.QUANTIZE_MINUTE = 2;
+        DataParser.QUANTIZE_SECOND = 1;
+        DataParser.QUANTIZE_MILLISECOND = 0;
+        DataParser.QUANTIZE_NONE = -1;
+
+        /**
+         * DataParser.consolidators
+         * A static collection of methods for consolidating data points
+         * That sit at the same point in time after quantization
+         * @type {{}}
+         */
+        DataParser.consolidators = {};
+
+        /***
+         * DataParser.consolidators.summation
+         * Consolidate by summation
+         * Provenance data for the first point (chronologically) will be preserved
+         * @param data
+         */
+        DataParser.consolidators.summation = function ( data ) {
+            data.sort( function ( a, b ) {
+                return a.x.getTime() - b.x.getTime();
+            } );
+            for ( var i = 0; i < data.length; i++ ) {
+                while ( i + 1 < data.length && ( data[ i + 1 ].x.getTime() === data[ i ].x.getTime() ) ) {
+                    data[ i ].y += data[ i + 1 ].y;
+                    if ( !data[ i ].consolidatedData ) {
+                        data[ i ].consolidatedData = [ data[ i ].omhDatum ];
+                    }
+                    data[ i ].consolidatedData.push( data[ i + 1 ].omhDatum );
+                    data[ i ].consolidationType = 'summation';
+                    data.splice( i + 1, 1 );
+                }
+            }
+        };
+
+
+        /***
+         * DataParser.consolidators.average
+         * Consolidate by averaging
+         * Provenance data for the first point( chronologically ) will be preserved
+         * @param data
+         */
+        DataParser.consolidators.average = function ( data ) {
+            parent.DataParser.consolidators.summation( data );
+            for ( var i = 0; i < data.length; i++ ) {
+                var count = data[ i ].consolidatedData ? data[ i ].consolidatedData.length : 0;
+                if ( count > 0 ) {
+                    data[ i ].y /= count;
+                    data[ i ].consolidationType = 'average';
+                }
+            }
+        };
+
+        parent.DataParser = DataParser;
+
+        return parent;
+
+    }
+) );
+( function ( root, factory ) {
+
+    var parentName = 'OMHWebVisualizations';
+    root[ parentName ] = factory( root, parentName );
+
+}( this, function ( root, parentName ) {
+
+    var parent = root.hasOwnProperty( parentName ) ? root[ parentName ] : {};
+    var Utils;
+
+    /**
+     * No need to construct utils, because it is static. Placeholder for future use.
+     * @constructor
+     */
+    Utils = function () {
+    };
+
+    /**
+     * Merges the properties of two objects.
+     * @param obj1 - The base object
+     * @param obj2 - The object with priority in the case of shared properties
+     * @returns {{}}
+     */
+    Utils.mergeObjects = function ( obj1, obj2 ) {
+
+        var merged = {};
+
+        function set_attr( attr ) {
+            if ( merged[ attr ] === undefined ) {
+                var val1 = obj1[ attr ];
+                var val2 = obj2[ attr ];
+                // If both are objects, merge them. If not, or if the second value is an array, do not merge them
+                if ( typeof(val1) === typeof(val2) && typeof(val1) === "object" && !( val2 instanceof Array ) ) {
+                    merged[ attr ] = parent.Utils.mergeObjects( val1 || {}, val2 || {} );
+                }
+                else {
+                    merged[ attr ] = val1;
+                    if ( obj2.hasOwnProperty( attr ) ) {
+                        merged[ attr ] = val2;
+                    }
+                }
+            }
+        }
+
+        for ( var attrname in obj1 ) {
+            set_attr( attrname );
+        }
+
+        for ( attrname in obj2 ) {
+            set_attr( attrname );
+        }
+
+        return merged;
+
+    };
+
+    parent.Utils = Utils;
+
+    return parent;
+
+} ) );
+
 
 
 /*
@@ -1635,432 +2079,4 @@
 
 } ) )
 ;
-
-
-/**
- * @namespace DataParser
- */
-( function ( root, factory ) {
-
-    var parentName = 'OMHWebVisualizations';
-    root[ parentName ] = factory( root, parentName );
-
-}( this, function ( root, parentName ) {
-
-        var parent = root.hasOwnProperty( parentName ) ? root[ parentName ] : {};
-        var DataParser;
-
-        /**
-         * Creates an object that parses omh data into a format usable Plottable.js
-         * @param {{}} data - The data to parse now
-         * @param {{}} measures - Strings representing the measures to extract from the data
-         * @param {OMHWebVisualizations.ChartConfiguration} configuration - a configuration object containing options for parsing data
-         * @constrtor
-         */
-        DataParser = function ( data, measures, configuration ) {
-
-            var measureData = null;
-            var keyPathArrays = {};
-
-            //days, weeks, months, and years could all be different durations depending on
-            //the timeframe, because of month duration differences, daylight savings, leapyear, etc
-            //so only use constants for the rest of the time units
-            var durations = {
-                "ps": 0.000000001,
-                "ns": 0.000001,
-                "us": 0.001,
-                "ms": 1,
-                "sec": 1000,
-                "min": 60 * 1000,
-                "h": 60 * 60 * 1000,
-                "d": 'd',
-                "wk": 'w',
-                "Mo": 'M',
-                "yr": 'y'
-            };
-
-            /*
-             *
-             * Initialization
-             *
-             * */
-
-            var initialize = function () {
-
-                //deep copy data passed in so that it is not altered when we add group names
-                var dataCopy = JSON.parse( JSON.stringify( data ) );
-
-                measureData = this.parseOmhData( dataCopy, measures, moment );
-
-                if ( Object.keys( measureData ).length === 0 ) {
-                    console.log( "Warning: no data of the specified type could be found." );
-                    return false;
-                }
-
-            };
-
-            /*
-             *
-             * Member functions
-             *
-             * */
-
-            /**
-             * Get the value found at a key path
-             * @param {object} obj - the object to search for the key path
-             * @param {string} keyPath - the path where the desired value should be found
-             * @returns {*}
-             */
-            this.resolveKeyPath = function ( obj, keyPath ) {
-                if ( obj === undefined ) {
-                    return obj;
-                }
-                var r;
-                if ( typeof keyPath === 'string' ) {
-                    if ( !keyPathArrays[ keyPath ] ) {
-                        keyPathArrays[ keyPath ] = keyPath.split( '.' );
-                    }
-                    r = keyPathArrays[ keyPath ].slice();
-                } else {
-                    r = keyPath;
-                }
-                try {
-                    if ( keyPath && r.length > 0 ) {
-                        return this.resolveKeyPath( obj[ r.shift() ], r );
-                    }
-                } catch ( e ) {
-                    console.info( 'Exception while resolving keypath', e );
-                }
-                return obj;
-            };
-
-            /**
-             * Get the display date for a datum that has specified an interval rather than a point in time
-             * @param {object} omhDatum - the omh formatted datum
-             * @param {object} dateProvider - an object that provides dates. Moment.js is used by default.
-             * @param {number} quantizationLevel - constant defined statically to represent the quantization level, e.g. OMHWebVisualizations.DataParser.QUANTIZE_DAY
-             * @returns {Date}
-             */
-            this.getIntervalDisplayDate = function ( omhDatum, dateProvider, quantizationLevel ) {
-
-                var interval = omhDatum.body[ 'effective_time_frame' ][ 'time_interval' ];
-                var startTime = interval[ 'start_date_time' ] ? ( new Date( interval[ 'start_date_time' ] ) ).getTime() : null;
-                var endTime = interval[ 'end_date_time' ] ? ( new Date( interval[ 'end_date_time' ] ) ).getTime() : null;
-                var startTimeObject = interval[ 'start_date_time' ] ? ( dateProvider( interval[ 'start_date_time' ] ) ) : null;
-                var endTimeObject = interval[ 'end_date_time' ] ? ( dateProvider( interval[ 'end_date_time' ] ) ) : null;
-
-                //figure out the duration in milliseconds of the timeframe
-                //the timeframe could be a start and end, or it could be just one and a duration
-                var duration = interval[ 'duration' ] ? interval[ 'duration' ][ 'value' ] : null;
-                //if there is a duration, use it to determine the missing start or end time
-                if ( duration ) {
-                    var unit = interval[ 'duration' ][ 'unit' ];
-                    var durationMs;
-                    var durationUnitLength = durations[ unit ];
-                    if ( typeof durationUnitLength !== 'string' ) {
-                        durationMs = duration * durationUnitLength;
-                        if ( !startTime ) {
-                            startTime = endTime - durationMs;
-                        }
-                        if ( !endTime ) {
-                            endTime = startTime + durationMs;
-                        }
-                    } else {
-                        if ( !startTime ) {
-                            startTime = endTimeObject.subtract( duration, durations[ unit ] ).valueOf();
-                        }
-                        if ( !endTime ) {
-                            endTime = startTimeObject.add( duration, durations[ unit ] ).valueOf();
-                        }
-                    }
-                }
-
-                return new Date( startTime );
-
-            };
-
-            /**
-             * Quantize a date to a quantization level
-             * @param {Date} date - the date to quantize
-             * @param {number} quantizationLevel - constant defined statically to represent the quantization level, e.g. OMHWebVisualizations.DataParser.QUANTIZE
-             * @returns {Date} - the quantized date
-             */
-            this.quantizeDate = function ( date, quantizationLevel ) {
-
-                //quantize the points
-                var month = quantizationLevel <= OMHWebVisualizations.DataParser.QUANTIZE_MONTH ? date.getMonth() : 6;
-                var day = quantizationLevel <= OMHWebVisualizations.DataParser.QUANTIZE_DAY ? date.getDate() : quantizationLevel === OMHWebVisualizations.DataParser.QUANTIZE_MONTH ? 15 : 1;
-                var hour = quantizationLevel <= OMHWebVisualizations.DataParser.QUANTIZE_HOUR ? date.getHours() : quantizationLevel === OMHWebVisualizations.DataParser.QUANTIZE_DAY ? 12 : 0;
-                var minute = quantizationLevel <= OMHWebVisualizations.DataParser.QUANTIZE_MINUTE ? date.getMinutes() : quantizationLevel === OMHWebVisualizations.DataParser.QUANTIZE_HOUR ? 30 : 0;
-                var second = quantizationLevel <= OMHWebVisualizations.DataParser.QUANTIZE_SECOND ? date.getSeconds() : quantizationLevel === OMHWebVisualizations.DataParser.QUANTIZE_MINUTE ? 30 : 0;
-                var millisecond = quantizationLevel <= OMHWebVisualizations.DataParser.QUANTIZE_MILLISECOND ? date.getMilliseconds() : quantizationLevel === OMHWebVisualizations.DataParser.QUANTIZE_SECOND ? 500 : 0;
-
-                return new Date( date.getFullYear(), month, day, hour, minute, second, millisecond );
-
-            };
-
-
-            /**
-             * Parse out the data into an array that can be used by Plottable.js
-             * @param omhData - the data to parse, formatted according to Open mHealth schemas
-             * @param measuresToParse - the measures to pull out of the data
-             * @param dateProvider - an object that provides dates. Moment.js is used by default.
-             * @returns {array} - an array of data ready for use in a Plottable.js plot
-             */
-            this.parseOmhData = function ( omhData, measuresToParse, dateProvider ) {
-
-                var _self = this;
-
-                var parsedData = {};
-                var quantizationLevels = {};
-                var keyPaths = {};
-
-                //if there is no data, return an empty object
-                if ( !( omhData ) || omhData.length === 0 ) {
-                    return parsedData;
-                }
-
-                measuresToParse.forEach( function ( measure, i ) {
-                    quantizationLevels[ measure ] = configuration.getMeasureSettings( measure ).timeQuantizationLevel;
-                    keyPaths[ measure ] = configuration.getMeasureSettings( measure ).valueKeyPath;
-                } );
-
-                omhData.forEach( function ( omhDatum ) {
-
-                    //if there is more than one measure type in a body, set up refs
-                    //so that the interface can treat the data points as a group
-
-                    //generate a group name for each data point that encodes
-                    //which measures are in its group. because the concatenation
-                    //order is defined by the measure list string, even if the
-                    //measures in data bodies are unordered, the same name
-                    //will be produced
-
-                    omhDatum.groupName = "";
-
-                    measuresToParse.forEach( function ( measure, i ) {
-
-                        var yValue = _self.resolveKeyPath( omhDatum, keyPaths[ measure ] );
-
-                        if ( yValue !== undefined && typeof yValue !== 'object' ) {
-
-                            omhDatum.groupName += '_' + measure;
-
-                            if ( !parsedData.hasOwnProperty( measure ) ) {
-                                parsedData[ measure ] = [];
-                            }
-
-                            //prepare the time (x value) at which the point will be plotted
-                            var date;
-                            if ( omhDatum.body[ 'effective_time_frame' ][ 'date_time' ] ) {
-                                date = _self.quantizeDate( new Date( omhDatum.body[ 'effective_time_frame' ][ 'date_time' ] ), quantizationLevels[ measure ] );
-                            }
-
-                            if ( omhDatum.body[ 'effective_time_frame' ][ 'time_interval' ] ) {
-                                date = _self.quantizeDate( _self.getIntervalDisplayDate( omhDatum, dateProvider ), quantizationLevels[ measure ] );
-                            }
-
-                            //create the datum that plottable will use
-                            parsedData[ measure ].push( {
-                                'y': yValue,
-                                'x': date,
-                                'provider': omhDatum.header.acquisition_provenance.source_name,
-                                'omhDatum': omhDatum,
-                                'primary': i === 0, // the tooltip is associated with the first measure in the group
-                                'measure': measure
-                            } );
-
-                        }
-
-
-                    } );
-
-                } );
-
-                //quantized data should be consolidated
-                measuresToParse.forEach( function ( measure, i ) {
-                    if ( quantizationLevels[ measure ] !== OMHWebVisualizations.DataParser.QUANTIZE_NONE ) {
-                        _self.consolidateData( measure, parsedData );
-                    }
-                } );
-
-                return parsedData;
-
-            };
-
-
-            /**
-             * Consolidate Plottable.js data points at the same time coordinates
-             * @param {string} measure - the measure will be used to look up the consolidation settings in the ChartConfiguration
-             * @param {Array} data - the Plottable.js data the should be consolidated
-             */
-            this.consolidateData = function ( measure, data ) {
-                var consolidator = configuration.getMeasureSettings( measure ).quantizedDataConsolidationFunction;
-                consolidator( data[ measure ] );
-            };
-
-            /**
-             * Get the data for the measure
-             * @param {string} measure - return any data found for the measure
-             * @returns {Array}
-             */
-            this.getMeasureData = function ( measure ) {
-                return measureData[ measure ];
-            };
-
-            /**
-             * Get all data found, organized by measure
-             * @returns {Array}
-             */
-            this.getAllMeasureData = function () {
-                return measureData;
-            };
-
-            /**
-             * See if there is data for the measure
-             * @param measure
-             * @returns {boolean}
-             */
-            this.hasMeasureData = function ( measure ) {
-                return measureData.hasOwnProperty( measure );
-            };
-
-
-            /*
-             *
-             * Initialize the object
-             *
-             * */
-            return initialize.call( this );
-
-        };
-
-
-        // Add constants for quantization
-        DataParser.QUANTIZE_YEAR = 6;
-        DataParser.QUANTIZE_MONTH = 5;
-        DataParser.QUANTIZE_DAY = 4;
-        DataParser.QUANTIZE_HOUR = 3;
-        DataParser.QUANTIZE_MINUTE = 2;
-        DataParser.QUANTIZE_SECOND = 1;
-        DataParser.QUANTIZE_MILLISECOND = 0;
-        DataParser.QUANTIZE_NONE = -1;
-
-        /**
-         * DataParser.consolidators
-         * A static collection of methods for consolidating data points
-         * That sit at the same point in time after quantization
-         * @type {{}}
-         */
-        DataParser.consolidators = {};
-
-        /***
-         * DataParser.consolidators.summation
-         * Consolidate by summation
-         * Provenance data for the first point (chronologically) will be preserved
-         * @param data
-         */
-        DataParser.consolidators.summation = function ( data ) {
-            data.sort( function ( a, b ) {
-                return a.x.getTime() - b.x.getTime();
-            } );
-            for ( var i = 0; i < data.length; i++ ) {
-                while ( i + 1 < data.length && ( data[ i + 1 ].x.getTime() === data[ i ].x.getTime() ) ) {
-                    data[ i ].y += data[ i + 1 ].y;
-                    if ( !data[ i ].consolidatedData ) {
-                        data[ i ].consolidatedData = [ data[ i ].omhDatum ];
-                    }
-                    data[ i ].consolidatedData.push( data[ i + 1 ].omhDatum );
-                    data[ i ].consolidationType = 'summation';
-                    data.splice( i + 1, 1 );
-                }
-            }
-        };
-
-
-        /***
-         * DataParser.consolidators.average
-         * Consolidate by averaging
-         * Provenance data for the first point( chronologically ) will be preserved
-         * @param data
-         */
-        DataParser.consolidators.average = function ( data ) {
-            parent.DataParser.consolidators.summation( data );
-            for ( var i = 0; i < data.length; i++ ) {
-                var count = data[ i ].consolidatedData ? data[ i ].consolidatedData.length : 0;
-                if ( count > 0 ) {
-                    data[ i ].y /= count;
-                    data[ i ].consolidationType = 'average';
-                }
-            }
-        };
-
-        parent.DataParser = DataParser;
-
-        return parent;
-
-    }
-) );
-( function ( root, factory ) {
-
-    var parentName = 'OMHWebVisualizations';
-    root[ parentName ] = factory( root, parentName );
-
-}( this, function ( root, parentName ) {
-
-    var parent = root.hasOwnProperty( parentName ) ? root[ parentName ] : {};
-    var Utils;
-
-    /**
-     * No need to construct utils, because it is static. Placeholder for future use.
-     * @constructor
-     */
-    Utils = function () {
-    };
-
-    /**
-     * Merges the properties of two objects.
-     * @param obj1 - The base object
-     * @param obj2 - The object with priority in the case of shared properties
-     * @returns {{}}
-     */
-    Utils.mergeObjects = function ( obj1, obj2 ) {
-
-        var merged = {};
-
-        function set_attr( attr ) {
-            if ( merged[ attr ] === undefined ) {
-                var val1 = obj1[ attr ];
-                var val2 = obj2[ attr ];
-                // If both are objects, merge them. If not, or if the second value is an array, do not merge them
-                if ( typeof(val1) === typeof(val2) && typeof(val1) === "object" && !( val2 instanceof Array ) ) {
-                    merged[ attr ] = parent.Utils.mergeObjects( val1 || {}, val2 || {} );
-                }
-                else {
-                    merged[ attr ] = val1;
-                    if ( obj2.hasOwnProperty( attr ) ) {
-                        merged[ attr ] = val2;
-                    }
-                }
-            }
-        }
-
-        for ( var attrname in obj1 ) {
-            set_attr( attrname );
-        }
-
-        for ( attrname in obj2 ) {
-            set_attr( attrname );
-        }
-
-        return merged;
-
-    };
-
-    parent.Utils = Utils;
-
-    return parent;
-
-} ) );
-
 

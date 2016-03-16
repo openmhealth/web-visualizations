@@ -6,8 +6,15 @@
 }( this, function ( root, parentName ) {
 
     var parent = root.hasOwnProperty( parentName ) ? root[ parentName ] : {};
+
     var ChartStyles;
 
+    /**
+     * Constructs a new ChartStyles object
+     * @param configuration
+     * @constructor
+     * @global
+     */
     ChartStyles = function ( configuration ) {
 
         var plotStyles = [];
@@ -53,14 +60,16 @@
             }
         };
 
+
         /**
          * A list of useful filters to help with conditional styling
-         * @type {{measure: filters.'measure', above: filters.'above', aboveThresholdMax: filters.'aboveThresholdMax', below: filters.'below', belowThresholdMin: filters.'belowThresholdMin', dailyBeforeHour: filters.'dailyBeforeHour'}}
+         * @type {{}}
          */
         this.filters = filters;
 
         /**
          * Get a fresh copy of default styles for the plot
+         * @memberof ChartStyles.prototype
          * @param plot
          * @returns {*}
          */
@@ -292,8 +301,8 @@
 
         /**
          * Get the name of the style that a datum is rendered with, based on its filters
-         * @param d
-         * @param plot
+         * @param d - the datum
+         * @param plot - the plot with the styles used for rendering
          * @returns {*}
          */
         this.resolveStyleNameForDatumInPlot = function ( d, plot ) {
@@ -311,8 +320,8 @@
 
         /**
          * Associate the styles with the data points that match their filters using the plot's Plottable.js accessors
-         * @param styles
-         * @param plot
+         * @param styles - the styles to associate to the plot
+         * @param plot - the plot
          */
         this.assignAttributesToPlot = function ( styles, plot ) {
 
@@ -377,12 +386,21 @@
 
     };
 
-    ChartStyles.formatters = {};
+    /**
+     * An array of formatters used to format data before it is displayed
+     * @memberof ChartStyles
+     * @type {{}}
+     */
+    var formatters;
+
+    ChartStyles.formatters = formatters;
+
     /**
      * Returns the formatted data point value for use in a tooltip.
      * Note: this function must be bound to a ChartConfiguration object to properly handle the number of decimal places
      * @param d
      * @returns {*}
+     * @memberof ChartStyles.formatters
      */
     ChartStyles.formatters.defaultTooltip = function ( d ) {
         var content;

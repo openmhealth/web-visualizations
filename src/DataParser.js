@@ -1,6 +1,3 @@
-/**
- * @namespace DataParser
- */
 ( function ( root, factory ) {
 
     var parentName = 'OMHWebVisualizations';
@@ -16,7 +13,8 @@
          * @param {{}} data - The data to parse now
          * @param {{}} measures - Strings representing the measures to extract from the data
          * @param {OMHWebVisualizations.ChartConfiguration} configuration - a configuration object containing options for parsing data
-         * @constrtor
+         * @constructor
+         * @global
          */
         DataParser = function ( data, measures, configuration ) {
 

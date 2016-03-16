@@ -76,7 +76,18 @@ gulp.task( 'generate-concatenated-script', function () {
 gulp.task( 'generate-component-scripts', function () {
     return gulp.src( 'src/*.js' )
         .pipe( jshint( '.jshintrc' ) )
-        .pipe( jsdoc() )
+        .pipe( jsdoc( '', {
+                path            : "ink-docstrap",
+                systemName      : "Open mHealth Web Visualizations",
+                footer          : "",
+                copyright       : "Apache-2.0",
+                navType         : "vertical",
+                theme           : "cosmo",
+                linenums        : true,
+                collapseSymbols : false,
+                inverseNav      : false
+            }
+        ) )
         .pipe( jshint.reporter( 'default' ) )
         .pipe( rename( { prefix: 'omh-web-visualizations-' } ) )
         .pipe( gulp.dest( 'dist/components' ) )

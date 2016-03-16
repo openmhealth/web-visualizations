@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
 	<meta charset="utf-8">
-	<title>Open mHealth Web Visualizations Class: DataParser</title>
+	<title>Open mHealth Web Visualizations Class: ChartStyles</title>
 
 	<!--[if lt IE 9]>
 	<script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
@@ -28,11 +28,11 @@
 					<ul class="dropdown-menu ">
 						
 						<li>
-							<a href="ChartStyles.html">ChartStyles</a>
+							<a href="DataParser.html">DataParser</a>
 						</li>
 						
 						<li>
-							<a href="DataParser.html">DataParser</a>
+							<a href="OMHWebVisualizations.ChartStyles.html">OMHWebVisualizations.ChartStyles</a>
 						</li>
 						
 
@@ -52,12 +52,12 @@
 					
 
 
-	<h1 class="page-title">Class: DataParser</h1>
+	<h1 class="page-title">Class: ChartStyles</h1>
 <section>
 
 <header>
     <h2>
-    DataParser
+    ChartStyles
     </h2>
     
 </header>
@@ -69,7 +69,7 @@
     
         
 <dt>
-    <h4 class="name" id="DataParser"><span class="type-signature"></span>new DataParser<span class="signature">(data, measures, configuration)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="ChartStyles"><span class="type-signature"></span>new ChartStyles<span class="signature">(configuration)</span><span class="type-signature"></span></h4>
     
     
 </dt>
@@ -77,7 +77,7 @@
     
     
     <div class="description">
-        Creates an object that parses omh data into a format usable Plottable.js
+        Constructs a new ChartStyles object
     </div>
     
 
@@ -107,52 +107,6 @@
 	</thead>
 
 	<tbody>
-	
-
-        <tr>
-            
-                <td class="name"><code>data</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Object</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">The data to parse now</td>
-        </tr>
-
-	
-
-        <tr>
-            
-                <td class="name"><code>measures</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Object</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">Strings representing the measures to extract from the data</td>
-        </tr>
-
 	
 
         <tr>
@@ -162,18 +116,13 @@
 
             <td class="type">
             
-                
-<span class="param-type">OMHWebVisualizations.ChartConfiguration</span>
-
-
-            
             </td>
 
             
 
             
 
-            <td class="description last">a configuration object containing options for parsing data</td>
+            <td class="description last"></td>
         </tr>
 
 	
@@ -240,6 +189,71 @@
 
     
 
+    
+        <h3 class="subsection-title">Members</h3>
+
+        <dl>
+            
+<dt class="name" id="filters">
+    <h4><span class="type-signature"></span>filters<span class="type-signature"> :Object</span></h4>
+
+    
+</dt>
+<dd>
+    
+    <div class="description">
+        A list of useful filters to help with conditional styling
+    </div>
+    
+
+    
+        <h5>Type:</h5>
+        <ul>
+            <li>
+                
+<span class="param-type">Object</span>
+
+
+            </li>
+        </ul>
+    
+
+    
+<dl class="details">
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+
+	
+
+	
+
+	
+</dl>
+
+
+    
+</dd>
+
+        </dl>
     
 
     
@@ -248,7 +262,7 @@
         <dl>
             
 <dt>
-    <h4 class="name" id="consolidateData"><span class="type-signature"></span>consolidateData<span class="signature">(measure, data)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="addToSelection"><span class="type-signature"></span>addToSelection<span class="signature">(selection)</span><span class="type-signature"></span></h4>
     
     
 </dt>
@@ -256,7 +270,8 @@
     
     
     <div class="description">
-        Consolidate Plottable.js data points at the same time coordinates
+        Add styling information to the D3 selection passed in
+This includes that gradient used behind the unit label in the y axis
     </div>
     
 
@@ -290,15 +305,10 @@
 
         <tr>
             
-                <td class="name"><code>measure</code></td>
+                <td class="name"><code>selection</code></td>
             
 
             <td class="type">
-            
-                
-<span class="param-type">string</span>
-
-
             
             </td>
 
@@ -306,30 +316,7 @@
 
             
 
-            <td class="description last">the measure will be used to look up the consolidation settings in the ChartConfiguration</td>
-        </tr>
-
-	
-
-        <tr>
-            
-                <td class="name"><code>data</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Array</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">the Plottable.js data the should be consolidated</td>
+            <td class="description last"></td>
         </tr>
 
 	
@@ -386,7 +373,7 @@
         
             
 <dt>
-    <h4 class="name" id="getAllMeasureData"><span class="type-signature"></span>getAllMeasureData<span class="signature">()</span><span class="type-signature"> &rarr; {Array}</span></h4>
+    <h4 class="name" id="applyFilters"><span class="type-signature"></span>applyFilters<span class="signature">(filters, d)</span><span class="type-signature"> &rarr; {boolean}</span></h4>
     
     
 </dt>
@@ -394,92 +381,7 @@
     
     
     <div class="description">
-        Get all data found, organized by measure
-    </div>
-    
-
-    
-    
-    
-    
-    
-    
-    
-<dl class="details">
-	
-
-	
-
-	
-
-	
-
-	
-
-	
-
-	
-
-	
-
-	
-
-
-
-	
-
-	
-
-	
-
-	
-</dl>
-
-    
-    
-
-    
-
-    
-    
-    
-    
-    
-    <h5>Returns:</h5>
-    
-            
-
-
-<dl>
-	<dt>
-		Type
-	</dt>
-	<dd>
-		
-<span class="param-type">Array</span>
-
-
-	</dd>
-</dl>
-
-
-        
-    
-    
-</dd>
-
-        
-            
-<dt>
-    <h4 class="name" id="getIntervalDisplayDate"><span class="type-signature"></span>getIntervalDisplayDate<span class="signature">(omhDatum, dateProvider, quantizationLevel)</span><span class="type-signature"> &rarr; {Date}</span></h4>
-    
-    
-</dt>
-<dd>
-    
-    
-    <div class="description">
-        Get the display date for a datum that has specified an interval rather than a point in time
+        Check if the point meets the conditions of all filters in the array
     </div>
     
 
@@ -513,15 +415,10 @@
 
         <tr>
             
-                <td class="name"><code>omhDatum</code></td>
+                <td class="name"><code>filters</code></td>
             
 
             <td class="type">
-            
-                
-<span class="param-type">object</span>
-
-
             
             </td>
 
@@ -529,305 +426,14 @@
 
             
 
-            <td class="description last">the omh formatted datum</td>
+            <td class="description last"></td>
         </tr>
 
 	
 
         <tr>
             
-                <td class="name"><code>dateProvider</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">object</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">an object that provides dates. Moment.js is used by default.</td>
-        </tr>
-
-	
-
-        <tr>
-            
-                <td class="name"><code>quantizationLevel</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">constant defined statically to represent the quantization level, e.g. OMHWebVisualizations.DataParser.QUANTIZE_DAY</td>
-        </tr>
-
-	
-	</tbody>
-</table>
-
-    
-    
-    
-<dl class="details">
-	
-
-	
-
-	
-
-	
-
-	
-
-	
-
-	
-
-	
-
-	
-
-
-
-	
-
-	
-
-	
-
-	
-</dl>
-
-    
-    
-
-    
-
-    
-    
-    
-    
-    
-    <h5>Returns:</h5>
-    
-            
-
-
-<dl>
-	<dt>
-		Type
-	</dt>
-	<dd>
-		
-<span class="param-type">Date</span>
-
-
-	</dd>
-</dl>
-
-
-        
-    
-    
-</dd>
-
-        
-            
-<dt>
-    <h4 class="name" id="getMeasureData"><span class="type-signature"></span>getMeasureData<span class="signature">(measure)</span><span class="type-signature"> &rarr; {Array}</span></h4>
-    
-    
-</dt>
-<dd>
-    
-    
-    <div class="description">
-        Get the data for the measure
-    </div>
-    
-
-    
-    
-    
-    
-    
-        <h5>Parameters:</h5>
-        
-
-<table class="params table table-striped">
-    <thead>
-	<tr>
-		
-		<th>Name</th>
-		
-
-		<th>Type</th>
-
-		
-
-		
-
-		<th class="last">Description</th>
-	</tr>
-	</thead>
-
-	<tbody>
-	
-
-        <tr>
-            
-                <td class="name"><code>measure</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">string</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">return any data found for the measure</td>
-        </tr>
-
-	
-	</tbody>
-</table>
-
-    
-    
-    
-<dl class="details">
-	
-
-	
-
-	
-
-	
-
-	
-
-	
-
-	
-
-	
-
-	
-
-
-
-	
-
-	
-
-	
-
-	
-</dl>
-
-    
-    
-
-    
-
-    
-    
-    
-    
-    
-    <h5>Returns:</h5>
-    
-            
-
-
-<dl>
-	<dt>
-		Type
-	</dt>
-	<dd>
-		
-<span class="param-type">Array</span>
-
-
-	</dd>
-</dl>
-
-
-        
-    
-    
-</dd>
-
-        
-            
-<dt>
-    <h4 class="name" id="hasMeasureData"><span class="type-signature"></span>hasMeasureData<span class="signature">(measure)</span><span class="type-signature"> &rarr; {boolean}</span></h4>
-    
-    
-</dt>
-<dd>
-    
-    
-    <div class="description">
-        See if there is data for the measure
-    </div>
-    
-
-    
-    
-    
-    
-    
-        <h5>Parameters:</h5>
-        
-
-<table class="params table table-striped">
-    <thead>
-	<tr>
-		
-		<th>Name</th>
-		
-
-		<th>Type</th>
-
-		
-
-		
-
-		<th class="last">Description</th>
-	</tr>
-	</thead>
-
-	<tbody>
-	
-
-        <tr>
-            
-                <td class="name"><code>measure</code></td>
+                <td class="name"><code>d</code></td>
             
 
             <td class="type">
@@ -914,7 +520,7 @@
         
             
 <dt>
-    <h4 class="name" id="parseOmhData"><span class="type-signature"></span>parseOmhData<span class="signature">(omhData, measuresToParse, dateProvider)</span><span class="type-signature"> &rarr; {array}</span></h4>
+    <h4 class="name" id="assignAttributesToPlot"><span class="type-signature"></span>assignAttributesToPlot<span class="signature">(styles, plot)</span><span class="type-signature"></span></h4>
     
     
 </dt>
@@ -922,7 +528,7 @@
     
     
     <div class="description">
-        Parse out the data into an array that can be used by Plottable.js
+        Associate the styles with the data points that match their filters using the plot's Plottable.js accessors
     </div>
     
 
@@ -956,7 +562,7 @@
 
         <tr>
             
-                <td class="name"><code>omhData</code></td>
+                <td class="name"><code>styles</code></td>
             
 
             <td class="type">
@@ -967,14 +573,14 @@
 
             
 
-            <td class="description last">the data to parse, formatted according to Open mHealth schemas</td>
+            <td class="description last">the styles to associate to the plot</td>
         </tr>
 
 	
 
         <tr>
             
-                <td class="name"><code>measuresToParse</code></td>
+                <td class="name"><code>plot</code></td>
             
 
             <td class="type">
@@ -985,14 +591,125 @@
 
             
 
-            <td class="description last">the measures to pull out of the data</td>
+            <td class="description last">the plot</td>
+        </tr>
+
+	
+	</tbody>
+</table>
+
+    
+    
+    
+<dl class="details">
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+
+	
+
+	
+
+	
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="getAttributeValueAccessor"><span class="type-signature"></span>getAttributeValueAccessor<span class="signature">(attributeStyles, defaultAccessor)</span><span class="type-signature"> &rarr; {function}</span></h4>
+    
+    
+</dt>
+<dd>
+    
+    
+    <div class="description">
+        Returns an attribute accessor function based on the attribute styles passed in.
+If none of the filters in the styles match, the default accessor is used.
+    </div>
+    
+
+    
+    
+    
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params table table-striped">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+
+		<th>Type</th>
+
+		
+
+		
+
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+
+	<tbody>
+	
+
+        <tr>
+            
+                <td class="name"><code>attributeStyles</code></td>
+            
+
+            <td class="type">
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
         </tr>
 
 	
 
         <tr>
             
-                <td class="name"><code>dateProvider</code></td>
+                <td class="name"><code>defaultAccessor</code></td>
             
 
             <td class="type">
@@ -1003,7 +720,7 @@
 
             
 
-            <td class="description last">an object that provides dates. Moment.js is used by default.</td>
+            <td class="description last"></td>
         </tr>
 
 	
@@ -1056,10 +773,6 @@
     <h5>Returns:</h5>
     
             
-<div class="param-desc">
-    - an array of data ready for use in a Plottable.js plot
-</div>
-
 
 
 <dl>
@@ -1068,7 +781,7 @@
 	</dt>
 	<dd>
 		
-<span class="param-type">array</span>
+<span class="param-type">function</span>
 
 
 	</dd>
@@ -1083,7 +796,7 @@
         
             
 <dt>
-    <h4 class="name" id="quantizeDate"><span class="type-signature"></span>quantizeDate<span class="signature">(date, quantizationLevel)</span><span class="type-signature"> &rarr; {Date}</span></h4>
+    <h4 class="name" id="getFilteredProperty"><span class="type-signature"></span>getFilteredProperty<span class="signature">(d, propertyName, propertiesWithFilters)</span><span class="type-signature"> &rarr; {*}</span></h4>
     
     
 </dt>
@@ -1091,7 +804,8 @@
     
     
     <div class="description">
-        Quantize a date to a quantization level
+        Get the value of the property by checking the point against the filters
+Returns null if there is no match.
     </div>
     
 
@@ -1125,15 +839,10 @@
 
         <tr>
             
-                <td class="name"><code>date</code></td>
+                <td class="name"><code>d</code></td>
             
 
             <td class="type">
-            
-                
-<span class="param-type">Date</span>
-
-
             
             </td>
 
@@ -1141,22 +850,17 @@
 
             
 
-            <td class="description last">the date to quantize</td>
+            <td class="description last"></td>
         </tr>
 
 	
 
         <tr>
             
-                <td class="name"><code>quantizationLevel</code></td>
+                <td class="name"><code>propertyName</code></td>
             
 
             <td class="type">
-            
-                
-<span class="param-type">number</span>
-
-
             
             </td>
 
@@ -1164,160 +868,17 @@
 
             
 
-            <td class="description last">constant defined statically to represent the quantization level, e.g. OMHWebVisualizations.DataParser.QUANTIZE</td>
-        </tr>
-
-	
-	</tbody>
-</table>
-
-    
-    
-    
-<dl class="details">
-	
-
-	
-
-	
-
-	
-
-	
-
-	
-
-	
-
-	
-
-	
-
-
-
-	
-
-	
-
-	
-
-	
-</dl>
-
-    
-    
-
-    
-
-    
-    
-    
-    
-    
-    <h5>Returns:</h5>
-    
-            
-<div class="param-desc">
-    - the quantized date
-</div>
-
-
-
-<dl>
-	<dt>
-		Type
-	</dt>
-	<dd>
-		
-<span class="param-type">Date</span>
-
-
-	</dd>
-</dl>
-
-
-        
-    
-    
-</dd>
-
-        
-            
-<dt>
-    <h4 class="name" id="resolveKeyPath"><span class="type-signature"></span>resolveKeyPath<span class="signature">(obj, keyPath)</span><span class="type-signature"> &rarr; {*}</span></h4>
-    
-    
-</dt>
-<dd>
-    
-    
-    <div class="description">
-        Get the value found at a key path
-    </div>
-    
-
-    
-    
-    
-    
-    
-        <h5>Parameters:</h5>
-        
-
-<table class="params table table-striped">
-    <thead>
-	<tr>
-		
-		<th>Name</th>
-		
-
-		<th>Type</th>
-
-		
-
-		
-
-		<th class="last">Description</th>
-	</tr>
-	</thead>
-
-	<tbody>
-	
-
-        <tr>
-            
-                <td class="name"><code>obj</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">object</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">the object to search for the key path</td>
+            <td class="description last"></td>
         </tr>
 
 	
 
         <tr>
             
-                <td class="name"><code>keyPath</code></td>
+                <td class="name"><code>propertiesWithFilters</code></td>
             
 
             <td class="type">
-            
-                
-<span class="param-type">string</span>
-
-
             
             </td>
 
@@ -1325,7 +886,7 @@
 
             
 
-            <td class="description last">the path where the desired value should be found</td>
+            <td class="description last"></td>
         </tr>
 
 	
@@ -1398,6 +959,687 @@
     
 </dd>
 
+        
+            
+<dt>
+    <h4 class="name" id="getStylesForPlot"><span class="type-signature"></span>getStylesForPlot<span class="signature">(plot)</span><span class="type-signature"> &rarr; {*}</span></h4>
+    
+    
+</dt>
+<dd>
+    
+    
+    <div class="description">
+        Returns the styles that have been set for the particular plot instance passed in
+If the returned styles are edited, they must be passed to setStylesForPlot() to affect the chart
+    </div>
+    
+
+    
+    
+    
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params table table-striped">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+
+		<th>Type</th>
+
+		
+
+		
+
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+
+	<tbody>
+	
+
+        <tr>
+            
+                <td class="name"><code>plot</code></td>
+            
+
+            <td class="type">
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+	
+	</tbody>
+</table>
+
+    
+    
+    
+<dl class="details">
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+
+	
+
+	
+
+	
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    <h5>Returns:</h5>
+    
+            
+
+
+<dl>
+	<dt>
+		Type
+	</dt>
+	<dd>
+		
+<span class="param-type">*</span>
+
+
+	</dd>
+</dl>
+
+
+        
+    
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="getStylesKeyedByAttributeName"><span class="type-signature"></span>getStylesKeyedByAttributeName<span class="signature">(styles)</span><span class="type-signature"> &rarr; {Object}</span></h4>
+    
+    
+</dt>
+<dd>
+    
+    
+    <div class="description">
+        Re-index the style info by the attribute to assess attribute priority more easily
+    </div>
+    
+
+    
+    
+    
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params table table-striped">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+
+		<th>Type</th>
+
+		
+
+		
+
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+
+	<tbody>
+	
+
+        <tr>
+            
+                <td class="name"><code>styles</code></td>
+            
+
+            <td class="type">
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+	
+	</tbody>
+</table>
+
+    
+    
+    
+<dl class="details">
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+
+	
+
+	
+
+	
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    <h5>Returns:</h5>
+    
+            
+
+
+<dl>
+	<dt>
+		Type
+	</dt>
+	<dd>
+		
+<span class="param-type">Object</span>
+
+
+	</dd>
+</dl>
+
+
+        
+    
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="resolveAttributeValue"><span class="type-signature"></span>resolveAttributeValue<span class="signature">(attributeStyles, d)</span><span class="type-signature"> &rarr; {*}</span></h4>
+    
+    
+</dt>
+<dd>
+    
+    
+    <div class="description">
+        Resolves the attribute based on filters
+    </div>
+    
+
+    
+    
+    
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params table table-striped">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+
+		<th>Type</th>
+
+		
+
+		
+
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+
+	<tbody>
+	
+
+        <tr>
+            
+                <td class="name"><code>attributeStyles</code></td>
+            
+
+            <td class="type">
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+	
+
+        <tr>
+            
+                <td class="name"><code>d</code></td>
+            
+
+            <td class="type">
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+	
+	</tbody>
+</table>
+
+    
+    
+    
+<dl class="details">
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+
+	
+
+	
+
+	
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    <h5>Returns:</h5>
+    
+            
+
+
+<dl>
+	<dt>
+		Type
+	</dt>
+	<dd>
+		
+<span class="param-type">*</span>
+
+
+	</dd>
+</dl>
+
+
+        
+    
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="resolveStyleNameForDatumInPlot"><span class="type-signature"></span>resolveStyleNameForDatumInPlot<span class="signature">(d, plot)</span><span class="type-signature"> &rarr; {*}</span></h4>
+    
+    
+</dt>
+<dd>
+    
+    
+    <div class="description">
+        Get the name of the style that a datum is rendered with, based on its filters
+    </div>
+    
+
+    
+    
+    
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params table table-striped">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+
+		<th>Type</th>
+
+		
+
+		
+
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+
+	<tbody>
+	
+
+        <tr>
+            
+                <td class="name"><code>d</code></td>
+            
+
+            <td class="type">
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">the datum</td>
+        </tr>
+
+	
+
+        <tr>
+            
+                <td class="name"><code>plot</code></td>
+            
+
+            <td class="type">
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">the plot with the styles used for rendering</td>
+        </tr>
+
+	
+	</tbody>
+</table>
+
+    
+    
+    
+<dl class="details">
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+
+	
+
+	
+
+	
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    <h5>Returns:</h5>
+    
+            
+
+
+<dl>
+	<dt>
+		Type
+	</dt>
+	<dd>
+		
+<span class="param-type">*</span>
+
+
+	</dd>
+</dl>
+
+
+        
+    
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="setStylesForPlot"><span class="type-signature"></span>setStylesForPlot<span class="signature">(styles, plot)</span><span class="type-signature"></span></h4>
+    
+    
+</dt>
+<dd>
+    
+    
+    <div class="description">
+        Set the styles that should be used for the plot instance
+    </div>
+    
+
+    
+    
+    
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params table table-striped">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+
+		<th>Type</th>
+
+		
+
+		
+
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+
+	<tbody>
+	
+
+        <tr>
+            
+                <td class="name"><code>styles</code></td>
+            
+
+            <td class="type">
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+	
+
+        <tr>
+            
+                <td class="name"><code>plot</code></td>
+            
+
+            <td class="type">
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+	
+	</tbody>
+</table>
+
+    
+    
+    
+<dl class="details">
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+
+	
+
+	
+
+	
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+    
+</dd>
+
         </dl>
     
 
@@ -1424,7 +1666,7 @@
 					
 		<span class="jsdoc-message">
 		Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha5</a>
-		on 2016-03-16T14:14:28-07:00 using the <a
+		on 2016-03-16T14:12:24-07:00 using the <a
 			href="https://github.com/terryweiss/docstrap">DocStrap template</a>.
 		</span>
 				</footer>
