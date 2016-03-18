@@ -63,15 +63,16 @@
 
         /**
          * A list of useful filters to help with conditional styling
+         * These are not static because they depend on the settings in the configuration
          * @type {{}}
          */
         this.filters = filters;
 
         /**
          * Get a fresh copy of default styles for the plot
-         * @memberof ChartStyles.prototype
-         * @param plot
-         * @returns {*}
+         * This cannot be static because it depends on the configuration
+         * @param {Plottable.Plots.XYPlot} plot
+         * @returns {{}}
          */
         this.getDefaultStylesForPlot = function ( plot ) {
 
@@ -153,8 +154,8 @@
 
         /**
          * Check if the point meets the conditions of all filters in the array
-         * @param filters
-         * @param d
+         * @param {Array} filters
+         * @param {{}} d
          * @returns {boolean}
          */
         this.applyFilters = function ( filters, d ) {
@@ -172,9 +173,9 @@
         /**
          * Returns an attribute accessor function based on the attribute styles passed in.
          * If none of the filters in the styles match, the default accessor is used.
-         * @param attributeStyles
-         * @param defaultAccessor
-         * @returns {function(this:parent.ChartStyles)}
+         * @param {Array} attributeStyles
+         * @param {function(d:Object)} defaultAccessor
+         * @returns {function(this:ChartStyles)}
          */
         this.getAttributeValueAccessor = function ( attributeStyles, defaultAccessor ) {
 
@@ -192,7 +193,7 @@
 
         /**
          * Re-index the style info by the attribute to assess attribute priority more easily
-         * @param styles
+         * @param {Array} styles
          * @returns {{}}
          */
         this.getStylesKeyedByAttributeName = function ( styles ) {
@@ -227,9 +228,9 @@
         /**
          * Get the value of the property by checking the point against the filters
          * Returns null if there is no match.
-         * @param d
-         * @param propertyName
-         * @param propertiesWithFilters
+         * @param {{}} d
+         * @param {String} propertyName
+         * @param {Array} propertiesWithFilters
          * @returns {*}
          */
         this.getFilteredProperty = function ( d, propertyName, propertiesWithFilters ) {
@@ -256,8 +257,8 @@
 
         /**
          * Resolves the attribute based on filters
-         * @param attributeStyles
-         * @param d
+         * @param {Array} attributeStyles
+         * @param {{}} d
          * @returns {*}
          */
         this.resolveAttributeValue = function ( attributeStyles, d ) {
@@ -269,8 +270,8 @@
         /**
          * Returns the styles that have been set for the particular plot instance passed in
          * If the returned styles are edited, they must be passed to setStylesForPlot() to affect the chart
-         * @param plot
-         * @returns {*}
+         * @param {Plottable.Plots.XYPlot} plot
+         * @returns {{}}
          */
         this.getStylesForPlot = function ( plot ) {
             for ( var i in plotStyles ) {
@@ -282,8 +283,8 @@
 
         /**
          * Set the styles that should be used for the plot instance
-         * @param styles
-         * @param plot
+         * @param {Array} styles
+         * @param {Plottable.Plots.XYPlot} plot
          */
         this.setStylesForPlot = function ( styles, plot ) {
 
@@ -320,8 +321,8 @@
 
         /**
          * Associate the styles with the data points that match their filters using the plot's Plottable.js accessors
-         * @param styles - the styles to associate to the plot
-         * @param plot - the plot
+         * @param {Array} styles - the styles to associate to the plot
+         * @param {Plottable.Plots.XYPlot} plot - the plot
          */
         this.assignAttributesToPlot = function ( styles, plot ) {
 
@@ -345,7 +346,7 @@
         /**
          * Add styling information to the D3 selection passed in
          * This includes that gradient used behind the unit label in the y axis
-         * @param selection
+         * @param {d3.Selection} selection
          */
         this.addToSelection = function ( selection ) {
 
@@ -387,18 +388,18 @@
     };
 
     /**
-     * An array of formatters used to format data before it is displayed
+     * A collection of formatters used to format data before it is displayed
      * @memberof ChartStyles
      * @type {{}}
      */
-    var formatters;
+    var formatters = {};
 
     ChartStyles.formatters = formatters;
 
     /**
      * Returns the formatted data point value for use in a tooltip.
      * Note: this function must be bound to a ChartConfiguration object to properly handle the number of decimal places
-     * @param d
+     * @param {{}} d
      * @returns {*}
      * @memberof ChartStyles.formatters
      */

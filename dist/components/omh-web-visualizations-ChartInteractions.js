@@ -7,7 +7,19 @@
 
         var parent = root.hasOwnProperty( parentName ) ? root[ parentName ] : {};
 
-        parent.ChartInteractions = function ( element, configuration, parser, styles ) {
+        var ChartInteractions;
+
+        /**
+         * Construct a ChartInteractions object
+         * @param {{}} element - the DOM element containing the svg that the chart is rendered to
+         * @param {String} primaryMeasure - the measure that will serve as the basis for any adaptive aspects of the interface
+         * @param {ChartConfiguration} configuration - the ChartConfiguration that configures the chart that these interactions will be connected to
+         * @param {DataParser} parser - the parser that parsed the data in the chart
+         * @param {ChartStyles} styles - the ChartStyles that style this chart
+         * @constructor
+         * @global
+         */
+        ChartInteractions = function ( element, primaryMeasure, configuration, parser, styles ) {
 
             var MS_PER_DAY = 86400000;
 
@@ -141,27 +153,23 @@
 
             var attachPanZoomInteractionToComponents = function ( components ) {
 
-                if ( settings.panZoom.enabled ) {
+                //set up pan/zoom
+                panZoomInteraction = new Plottable.Interactions.PanZoom();
+                panZoomInteractionXAxis = new Plottable.Interactions.PanZoom();
 
-                    //set up pan/zoom
-                    panZoomInteraction = new Plottable.Interactions.PanZoom();
-                    panZoomInteractionXAxis = new Plottable.Interactions.PanZoom();
+                panZoomInteraction.addXScale( components.xScale );
+                panZoomInteraction.attachTo( components.plotGroup );
+                panZoomInteractionXAxis.addXScale( components.xScale );
+                panZoomInteractionXAxis.attachTo( components.xAxis );
 
-                    panZoomInteraction.addXScale( components.xScale );
-                    panZoomInteraction.attachTo( components.plotGroup );
-                    panZoomInteractionXAxis.addXScale( components.xScale );
-                    panZoomInteractionXAxis.attachTo( components.xAxis );
+                if ( minZoomDays ) {
+                    panZoomInteraction.minDomainExtent( components.xScale, minZoomDays * MS_PER_DAY );
+                    panZoomInteractionXAxis.minDomainExtent( components.xScale, minZoomDays * MS_PER_DAY );
+                }
 
-                    if ( minZoomDays ) {
-                        panZoomInteraction.minDomainExtent( components.xScale, minZoomDays * MS_PER_DAY );
-                        panZoomInteractionXAxis.minDomainExtent( components.xScale, minZoomDays * MS_PER_DAY );
-                    }
-
-                    if ( maxZoomDays ) {
-                        panZoomInteraction.maxDomainExtent( components.xScale, maxZoomDays * MS_PER_DAY );
-                        panZoomInteractionXAxis.maxDomainExtent( components.xScale, maxZoomDays * MS_PER_DAY );
-                    }
-
+                if ( maxZoomDays ) {
+                    panZoomInteraction.maxDomainExtent( components.xScale, maxZoomDays * MS_PER_DAY );
+                    panZoomInteractionXAxis.maxDomainExtent( components.xScale, maxZoomDays * MS_PER_DAY );
                 }
 
             };
@@ -235,7 +243,7 @@
 
                 //limit the width of the timespan
                 //eg so that bars do not have times under them etc
-                var limits = configuration.getPrimaryMeasureSettings().chart.daysShownOnTimeline;
+                var limits = configuration.getMeasureSettings( primaryMeasure ).chart.daysShownOnTimeline;
                 minZoomDays = limits ? limits.min : false;
                 maxZoomDays = limits ? limits.max : false;
 
@@ -460,56 +468,83 @@
             };
 
             /**
-             *
-             * Public member functions
-             *
-             * */
-
+             * Returns the object that handles tooltips shown on hover
+             * @returns {{}}
+             */
             this.getTooltip = function () {
                 return tooltip;
             };
+
+            /**
+             * Returns the d3 selection that represents the toolbar in the DOM
+             * @returns {{}}
+             */
             this.getToolbar = function () {
                 return toolbar;
             };
+
+            /**
+             * Returns the Plottable.js pan/zoom object that is attached to the plot
+             * @returns {{}}
+             */
             this.getPanZoomInteraction = function () {
                 return panZoomInteraction;
             };
+
+            /**
+             * Returns the Plottable.js pan/zoom object that is attached to the x axis
+             * @returns {{}}
+             */
             this.getpanZoomInteractionXAxis = function () {
                 return panZoomInteractionXAxis;
             };
 
+            /**
+             * Adds the interactions handled by this ChartInteractions object to the components passed in
+             * @param components
+             */
             this.addToComponents = function ( components ) {
 
                 // add tooltips to the first scatter plot found
-                for ( var i in components.plots ) {
-                    var plot = components.plots[ i ];
-                    if ( plot instanceof Plottable.Plots.Scatter && plot.datasets() && plot.datasets().length > 0 ) {
-                        attachTooltipsToPlot( plot );
-                        break;
+                if ( settings.tooltips.enabled ) {
+                    for ( var i in components.plots ) {
+                        var plot = components.plots[ i ];
+                        if ( plot instanceof Plottable.Plots.Scatter && plot.datasets() && plot.datasets().length > 0 ) {
+                            attachTooltipsToPlot( plot );
+                            break;
+                        }
                     }
                 }
 
-                // add pan/zoom interactions
-                attachPanZoomInteractionToComponents( components );
 
                 //do not let user scale graph too far, and start chart in range
                 if ( maxZoomDays ) {
                     limitScaleExtents( components.xScale );
                 }
 
-                // add pan/zoom hint label to the plots
-                if ( settings.enabled && settings.showHint ) {
-                    components.plots.push( panZoomHint );
+                if ( settings.panZoom.enabled ) {
+
+                    // add pan/zoom interactions
+                    attachPanZoomInteractionToComponents( components );
+
+                    if ( settings.panZoom.showHint ) {
+                        // add pan/zoom hint label to the plots
+                        components.plots.push( panZoomHint );
+                    }
+
+                    dragInteraction.attachTo( components.table );
+
                 }
-
-                dragInteraction.attachTo( components.table );
-
 
                 table = components.table;// reference kept so interaction can be destroyed later
                 xScale = components.xScale; // reference kept so zoom toolbar can modify timeline
 
             };
 
+            /**
+             * Adds the interactions handled by this ChartInteractions object to the d3 selection passed in
+             * @param d3Selection
+             */
             this.addToSelection = function ( d3Selection ) {
 
                 // save the selection so that it can be used when finding bounds
@@ -527,6 +562,10 @@
 
             };
 
+            /**
+             * Adds tooltips to the d3 svg entities passed in
+             * @param entities
+             */
             this.addTooltipsToEntities = function ( entities ) {
 
                 //collect the points on the chart that will have tooltips
@@ -556,6 +595,9 @@
 
             };
 
+            /**
+             * Destroys the resources that support the interactions handled by this ChartInteractions object
+             */
             this.destroy = function () {
 
                 pointer && pointer.offPointerMove( pointerMove );
@@ -568,18 +610,18 @@
 
             };
 
-            /**
+            /***
              *
-             * Initialize the object
+             * Initialize the ChartInteractions object
              *
              * */
-
             initialize.call( this );
 
         };
 
+        parent.ChartInteractions = ChartInteractions;
+
         return parent;
 
     }
-) )
-;
+) );

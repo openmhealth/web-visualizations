@@ -7,7 +7,19 @@
 
         var parent = root.hasOwnProperty( parentName ) ? root[ parentName ] : {};
 
-        parent.ChartInteractions = function ( element, primaryMeasure, configuration, parser, styles ) {
+        var ChartInteractions;
+
+        /**
+         * Construct a ChartInteractions object
+         * @param {{}} element - the DOM element containing the svg that the chart is rendered to
+         * @param {String} primaryMeasure - the measure that will serve as the basis for any adaptive aspects of the interface
+         * @param {ChartConfiguration} configuration - the ChartConfiguration that configures the chart that these interactions will be connected to
+         * @param {DataParser} parser - the parser that parsed the data in the chart
+         * @param {ChartStyles} styles - the ChartStyles that style this chart
+         * @constructor
+         * @global
+         */
+        ChartInteractions = function ( element, primaryMeasure, configuration, parser, styles ) {
 
             var MS_PER_DAY = 86400000;
 
@@ -456,24 +468,41 @@
             };
 
             /**
-             *
-             * Public member functions
-             *
-             * */
-
+             * Returns the object that handles tooltips shown on hover
+             * @returns {{}}
+             */
             this.getTooltip = function () {
                 return tooltip;
             };
+
+            /**
+             * Returns the d3 selection that represents the toolbar in the DOM
+             * @returns {{}}
+             */
             this.getToolbar = function () {
                 return toolbar;
             };
+
+            /**
+             * Returns the Plottable.js pan/zoom object that is attached to the plot
+             * @returns {{}}
+             */
             this.getPanZoomInteraction = function () {
                 return panZoomInteraction;
             };
+
+            /**
+             * Returns the Plottable.js pan/zoom object that is attached to the x axis
+             * @returns {{}}
+             */
             this.getpanZoomInteractionXAxis = function () {
                 return panZoomInteractionXAxis;
             };
 
+            /**
+             * Adds the interactions handled by this ChartInteractions object to the components passed in
+             * @param components
+             */
             this.addToComponents = function ( components ) {
 
                 // add tooltips to the first scatter plot found
@@ -512,6 +541,10 @@
 
             };
 
+            /**
+             * Adds the interactions handled by this ChartInteractions object to the d3 selection passed in
+             * @param d3Selection
+             */
             this.addToSelection = function ( d3Selection ) {
 
                 // save the selection so that it can be used when finding bounds
@@ -529,6 +562,10 @@
 
             };
 
+            /**
+             * Adds tooltips to the d3 svg entities passed in
+             * @param entities
+             */
             this.addTooltipsToEntities = function ( entities ) {
 
                 //collect the points on the chart that will have tooltips
@@ -558,6 +595,9 @@
 
             };
 
+            /**
+             * Destroys the resources that support the interactions handled by this ChartInteractions object
+             */
             this.destroy = function () {
 
                 pointer && pointer.offPointerMove( pointerMove );
@@ -570,18 +610,18 @@
 
             };
 
-            /**
+            /***
              *
-             * Initialize the object
+             * Initialize the ChartInteractions object
              *
              * */
-
             initialize.call( this );
 
         };
 
+        parent.ChartInteractions = ChartInteractions;
+
         return parent;
 
     }
-) )
-;
+) );

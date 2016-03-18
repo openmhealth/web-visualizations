@@ -7,23 +7,18 @@
 
     var parent = root.hasOwnProperty( parentName ) ? root[ parentName ] : {};
 
-    parent.ChartConfiguration = function ( measures, settings ) {
+    var ChartConfiguration;
+
+    /**
+     * Constructs a new ChartConfiguration object
+     * @param settings
+     * @constructor
+     * @global
+     */
+    ChartConfiguration = function ( settings ) {
 
         var mergedSettings;
         var measureNames;
-
-        var defaultTooltipContentFormatter = function ( d ) {
-            var content;
-            if ( d.omhDatum.groupName === '_systolic_blood_pressure_diastolic_blood_pressure' ) {
-                var systolic = d.omhDatum.body.systolic_blood_pressure.value.toFixed( 0 );
-                var diastolic = d.omhDatum.body.diastolic_blood_pressure.value.toFixed( 0 );
-                content = systolic + '/' + diastolic;
-            } else {
-                var decimalPlaces = typeof( settings.decimalPlaces ) !== 'undefined' ? settings.decimalPlaces : 1;
-                content = d.y.toFixed( decimalPlaces );
-            }
-            return content;
-        };
 
         var defaultSettings = {
             'userInterface': {
@@ -36,8 +31,8 @@
                     'enabled': true,
                     'timeFormat': 'M/D/YY, h:mma',
                     'decimalPlaces': 0,
-                    'contentFormatter': defaultTooltipContentFormatter,
-                    'grouped': true,
+                    'contentFormatter': parent.ChartStyles.formatters.defaultTooltip.bind( this ),
+                    'grouped': true
                 },
                 'panZoom': {
                     'enabled': true,
@@ -57,12 +52,12 @@
                     'valueKeyPath': 'body.body_weight.value',
                     'range': { 'min': 0, 'max': 100 },
                     'units': 'kg',
-                    'thresholds': { 'max': 57 },
+                    'thresholds': { 'max': 57 }
                 },
                 'heart_rate': {
                     'valueKeyPath': 'body.heart_rate.value',
                     'range': { 'min': 30, 'max': 150 },
-                    'units': 'bpm',
+                    'units': 'bpm'
                 },
                 'step_count': {
                     'valueKeyPath': 'body.step_count',
@@ -73,9 +68,8 @@
                     'quantizedDataConsolidationFunction': parent.DataParser.consolidators.summation,
                     'chart': {
                         'type': 'clustered_bar',
-                        'barColor': '#eeeeee',
-                        'daysShownOnTimeline': { 'min': 7, 'max': 90 },
-                    },
+                        'daysShownOnTimeline': { 'min': 7, 'max': 90 }
+                    }
                 },
                 'minutes_moderate_activity': {
                     'valueKeyPath': 'body.minutes_moderate_activity.value',
@@ -86,20 +80,20 @@
                     'quantizedDataConsolidationFunction': parent.DataParser.consolidators.summation,
                     'chart': {
                         'type': 'clustered_bar',
-                        'daysShownOnTimeline': { 'min': 7, 'max': 90 },
-                    },
+                        'daysShownOnTimeline': { 'min': 7, 'max': 90 }
+                    }
                 },
                 'systolic_blood_pressure': {
                     'valueKeyPath': 'body.systolic_blood_pressure.value',
                     'range': { 'min': 30, 'max': 200 },
                     'units': 'mmHg',
-                    'thresholds': { 'max': 120 },
+                    'thresholds': { 'max': 120 }
                 },
                 'diastolic_blood_pressure': {
                     'valueKeyPath': 'body.diastolic_blood_pressure.value',
                     'range': { 'min': 30, 'max': 200 },
                     'units': 'mmHg',
-                    'thresholds': { 'max': 80 },
+                    'thresholds': { 'max': 80 }
                 }
             }
         };
@@ -112,27 +106,14 @@
             'quantizedDataConsolidationFunction': parent.DataParser.consolidators.average,
             'chart': {
                 'type': 'line',
-                'pointSize': 9,
-                'lineColor': '#dedede',
-                'pointFillColor': '#4a90e2',
-                'pointStrokeColor': '#0066d6',
-                'aboveThresholdPointFillColor': '#e8ac4e',
-                'aboveThresholdPointStrokeColor': '#745628',
-                'barColor': '#4a90e2',
-                'daysShownOnTimeline': { 'min': 1, 'max': 1000 },
-            },
+                'daysShownOnTimeline': { 'min': 1, 'max': 1000 }
+            }
         };
-
-        /**
-         *
-         * Initialization
-         *
-         * */
 
         var initialize = function () {
 
             mergedSettings = parent.Utils.mergeObjects( defaultSettings, settings );
-            measureNames = d3.keys( mergedSettings.measures );
+            measureNames = Object.keys( mergedSettings.measures );
 
             measureNames.forEach( function ( measure ) {
                 mergedSettings.measures[ measure ] = parent.Utils.mergeObjects( genericMeasureDefaults, mergedSettings.measures[ measure ] );
@@ -140,19 +121,24 @@
 
         };
 
+        /**
+         * Get the settings for the measure passed in
+         * @param {String} measure
+         * @returns {{}}
+         */
         this.getMeasureSettings = function ( measure ) {
             return mergedSettings.measures[ measure ];
         };
 
-        this.getPrimaryMeasureSettings = function () {
-            return mergedSettings.measures[ measures[ 0 ] ];
-        };
-
+        /**
+         * Get the interface settings
+         * @returns {defaultSettings.userInterface|{toolbar, timespanButtons, zoomButtons, navigation, thresholds, tooltips, panZoom, axes}|options.userInterface|{axes, thresholds, tooltips}|i.userInterface|n.userInterface|*}
+         */
         this.getInterfaceSettings = function () {
             return mergedSettings.userInterface;
         };
 
-        /**
+        /***
          *
          * Initialize the object
          *
@@ -161,6 +147,8 @@
         initialize.call( this );
 
     };
+
+    parent.ChartConfiguration = ChartConfiguration;
 
     return parent;
 

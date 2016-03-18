@@ -7,19 +7,24 @@
 
     var parent = root.hasOwnProperty( parentName ) ? root[ parentName ] : {};
 
+    var Utils;
+
     /**
      * No need to construct utils, because it is static. Placeholder for future use.
      * @constructor
+     * @global
      */
-    parent.Utils = function () {};
+    Utils = function () {
+    };
 
     /**
      * Merges the properties of two objects.
      * @param obj1 - The base object
      * @param obj2 - The object with priority in the case of shared properties
      * @returns {{}}
+     * @memberof Utils
      */
-    parent.Utils.mergeObjects = function ( obj1, obj2 ) {
+    Utils.mergeObjects = function ( obj1, obj2 ) {
 
         var merged = {};
 
@@ -52,6 +57,11 @@
 
     };
 
+    parent.Utils = Utils;
+
     return parent;
 
 } ) );
+
+
+

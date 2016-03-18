@@ -33,7 +33,7 @@ var gulp = require( 'gulp' ),
     notify = require( 'gulp-notify' ),
     cache = require( 'gulp-cache' ),
     connect = require( 'gulp-connect' ),
-    jsdoc = require( 'gulp-jsdoc' ),
+    jsdoc = require( 'gulp-jsdoc3' ),
 // livereload = require('gulp-livereload'),
     del = require( 'del' );
 
@@ -76,16 +76,31 @@ gulp.task( 'generate-concatenated-script', function () {
 gulp.task( 'generate-component-scripts', function () {
     return gulp.src( 'src/*.js' )
         .pipe( jshint( '.jshintrc' ) )
-        .pipe( jsdoc( '', {
-                path            : "ink-docstrap",
-                systemName      : "Open mHealth Web Visualizations",
-                footer          : "",
-                copyright       : "Apache-2.0",
-                navType         : "vertical",
-                theme           : "cosmo",
-                linenums        : true,
-                collapseSymbols : false,
-                inverseNav      : false
+        .pipe( jsdoc( {
+                "tags": {
+                    "allowUnknownTags": true
+                },
+                "source": {
+                    "excludePattern": "(^|\\/|\\\\)_"
+                },
+                "opts": {
+                    "destination": "./docs/jsdoc"
+                },
+                "plugins": [
+                    "plugins/markdown"
+                ],
+                "templates": {
+                    "cleverLinks": false,
+                    "monospaceLinks": false,
+                    "default": {
+                        "outputSourceFiles": true
+                    },
+                    "path": "ink-docstrap",
+                    "theme": "lumen",
+                    "navType": "vertical",
+                    "linenums": true,
+                    "dateFormat": "MMMM Do YYYY, h:mm:ss a"
+                }
             }
         ) )
         .pipe( jshint.reporter( 'default' ) )

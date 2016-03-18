@@ -6,15 +6,17 @@
 }( this, function ( root, parentName ) {
 
         var parent = root.hasOwnProperty( parentName ) ? root[ parentName ] : {};
+        var DataParser;
 
         /**
          * Creates an object that parses omh data into a format usable Plottable.js
-         * @param {array} data - The data to parse
-         * @param {array} measures - Strings representing the measures to extract from the data
+         * @param {{}} data - The data to parse now
+         * @param {{}} measures - Strings representing the measures to extract from the data
          * @param {OMHWebVisualizations.ChartConfiguration} configuration - a configuration object containing options for parsing data
          * @constructor
+         * @global
          */
-        parent.DataParser = function ( data, measures, configuration ) {
+        DataParser = function ( data, measures, configuration ) {
 
             var measureData = null;
             var keyPathArrays = {};
@@ -292,26 +294,32 @@
 
         };
 
-        // Add constants for quantization
-        parent.DataParser.QUANTIZE_YEAR = 6;
-        parent.DataParser.QUANTIZE_MONTH = 5;
-        parent.DataParser.QUANTIZE_DAY = 4;
-        parent.DataParser.QUANTIZE_HOUR = 3;
-        parent.DataParser.QUANTIZE_MINUTE = 2;
-        parent.DataParser.QUANTIZE_SECOND = 1;
-        parent.DataParser.QUANTIZE_MILLISECOND = 0;
-        parent.DataParser.QUANTIZE_NONE = -1;
 
-        // static collection of methods for consolidating data points
-        // that sit at the same point in time after quantization
-        parent.DataParser.consolidators = {};
+        // Add constants for quantization
+        DataParser.QUANTIZE_YEAR = 6;
+        DataParser.QUANTIZE_MONTH = 5;
+        DataParser.QUANTIZE_DAY = 4;
+        DataParser.QUANTIZE_HOUR = 3;
+        DataParser.QUANTIZE_MINUTE = 2;
+        DataParser.QUANTIZE_SECOND = 1;
+        DataParser.QUANTIZE_MILLISECOND = 0;
+        DataParser.QUANTIZE_NONE = -1;
 
         /**
+         * DataParser.consolidators
+         * A static collection of methods for consolidating data points
+         * That sit at the same point in time after quantization
+         * @type {{}}
+         */
+        DataParser.consolidators = {};
+
+        /***
+         * DataParser.consolidators.summation
          * Consolidate by summation
          * Provenance data for the first point (chronologically) will be preserved
          * @param data
          */
-        parent.DataParser.consolidators.summation = function ( data ) {
+        DataParser.consolidators.summation = function ( data ) {
             data.sort( function ( a, b ) {
                 return a.x.getTime() - b.x.getTime();
             } );
@@ -328,12 +336,14 @@
             }
         };
 
-        /**
+
+        /***
+         * DataParser.consolidators.average
          * Consolidate by averaging
-         * Provenance data for the first point (chronologically) will be preserved
+         * Provenance data for the first point( chronologically ) will be preserved
          * @param data
          */
-        parent.DataParser.consolidators.average = function ( data ) {
+        DataParser.consolidators.average = function ( data ) {
             parent.DataParser.consolidators.summation( data );
             for ( var i = 0; i < data.length; i++ ) {
                 var count = data[ i ].consolidatedData ? data[ i ].consolidatedData.length : 0;
@@ -343,6 +353,8 @@
                 }
             }
         };
+
+        parent.DataParser = DataParser;
 
         return parent;
 

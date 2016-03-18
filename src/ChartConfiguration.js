@@ -7,7 +7,15 @@
 
     var parent = root.hasOwnProperty( parentName ) ? root[ parentName ] : {};
 
-    parent.ChartConfiguration = function ( settings ) {
+    var ChartConfiguration;
+
+    /**
+     * Constructs a new ChartConfiguration object
+     * @param settings
+     * @constructor
+     * @global
+     */
+    ChartConfiguration = function ( settings ) {
 
         var mergedSettings;
         var measureNames;
@@ -102,11 +110,6 @@
             }
         };
 
-        /**
-         *
-         * Initialization
-         *
-         * */
         var initialize = function () {
 
             mergedSettings = parent.Utils.mergeObjects( defaultSettings, settings );
@@ -118,15 +121,24 @@
 
         };
 
+        /**
+         * Get the settings for the measure passed in
+         * @param {String} measure
+         * @returns {{}}
+         */
         this.getMeasureSettings = function ( measure ) {
             return mergedSettings.measures[ measure ];
         };
 
+        /**
+         * Get the interface settings
+         * @returns {defaultSettings.userInterface|{toolbar, timespanButtons, zoomButtons, navigation, thresholds, tooltips, panZoom, axes}|options.userInterface|{axes, thresholds, tooltips}|i.userInterface|n.userInterface|*}
+         */
         this.getInterfaceSettings = function () {
             return mergedSettings.userInterface;
         };
 
-        /**
+        /***
          *
          * Initialize the object
          *
@@ -135,6 +147,8 @@
         initialize.call( this );
 
     };
+
+    parent.ChartConfiguration = ChartConfiguration;
 
     return parent;
 

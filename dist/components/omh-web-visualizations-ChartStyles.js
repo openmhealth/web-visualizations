@@ -7,7 +7,15 @@
 
     var parent = root.hasOwnProperty( parentName ) ? root[ parentName ] : {};
 
-    parent.ChartStyles = function ( configuration ) {
+    var ChartStyles;
+
+    /**
+     * Constructs a new ChartStyles object
+     * @param configuration
+     * @constructor
+     * @global
+     */
+    ChartStyles = function ( configuration ) {
 
         var plotStyles = [];
 
@@ -52,10 +60,20 @@
             }
         };
 
-        //expose filters as a public member
+
+        /**
+         * A list of useful filters to help with conditional styling
+         * These are not static because they depend on the settings in the configuration
+         * @type {{}}
+         */
         this.filters = filters;
 
-        //allow access to default styles
+        /**
+         * Get a fresh copy of default styles for the plot
+         * This cannot be static because it depends on the configuration
+         * @param {Plottable.Plots.XYPlot} plot
+         * @returns {{}}
+         */
         this.getDefaultStylesForPlot = function ( plot ) {
 
             // define these defaults every time this function is called,
@@ -80,7 +98,7 @@
                         'filters': [ filters.aboveThresholdMax() ],
                         'attributes': {
                             'fill': '#e8ac4e',
-                            'stroke': '#745628',
+                            'stroke': '#745628'
                         }
                     },
                     {
@@ -88,7 +106,7 @@
                         'filters': [ filters.belowThresholdMin() ],
                         'attributes': {
                             'fill': '#e8ac4e',
-                            'stroke': '#745628',
+                            'stroke': '#745628'
                         }
                     }
                 ],
@@ -107,19 +125,20 @@
                     {
                         'name': 'default',
                         'attributes': {
-                            'fill': '#4a90e2',
+                            'fill': '#4a90e2'
                         }
                     },
                     {
                         'name': 'secondary',
-                        'filters': [ function ( d ) {
-                            return !d.primary;
-                        } ],
+                        'filters': [
+                            function ( d ) {
+                                return !d.primary;
+                            }
+                        ],
                         'attributes': {
-                            'fill': '#eeeeee',
+                            'fill': '#eeeeee'
                         }
                     }
-
                 ]
 
             };
@@ -133,7 +152,12 @@
             return defaultStyleForPlot;
         };
 
-        //check if the point meets the conditions of all filters in the array
+        /**
+         * Check if the point meets the conditions of all filters in the array
+         * @param {Array} filters
+         * @param {{}} d
+         * @returns {boolean}
+         */
         this.applyFilters = function ( filters, d ) {
 
             for ( j = 0; j < filters.length; j++ ) {
@@ -146,7 +170,13 @@
 
         };
 
-        //returns an attribute accessor function based on the attribute styles passed in
+        /**
+         * Returns an attribute accessor function based on the attribute styles passed in.
+         * If none of the filters in the styles match, the default accessor is used.
+         * @param {Array} attributeStyles
+         * @param {function(d:Object)} defaultAccessor
+         * @returns {function(this:ChartStyles)}
+         */
         this.getAttributeValueAccessor = function ( attributeStyles, defaultAccessor ) {
 
             return function ( d ) {
@@ -161,7 +191,11 @@
 
         };
 
-        //re-index the style info by the attribute so we can assess priority more easily
+        /**
+         * Re-index the style info by the attribute to assess attribute priority more easily
+         * @param {Array} styles
+         * @returns {{}}
+         */
         this.getStylesKeyedByAttributeName = function ( styles ) {
 
             var keyedByAttributeName = {};
@@ -175,7 +209,12 @@
                     if ( !keyedByAttributeName[ attributeName ] ) {
                         keyedByAttributeName[ attributeName ] = [];
                     }
-                    var filtersAndValue = { 'filters': style.filters, 'value': style.attributes[ attributeName ] };
+                    var filtersAndValue = {};
+                    filtersAndValue.value = style.attributes[ attributeName ];
+                    if ( style.filters ) {
+                        filtersAndValue.filters = style.filters;
+                    }
+
                     keyedByAttributeName[ attributeName ].push( filtersAndValue );
 
                 } );
@@ -186,6 +225,14 @@
 
         };
 
+        /**
+         * Get the value of the property by checking the point against the filters
+         * Returns null if there is no match.
+         * @param {{}} d
+         * @param {String} propertyName
+         * @param {Array} propertiesWithFilters
+         * @returns {*}
+         */
         this.getFilteredProperty = function ( d, propertyName, propertiesWithFilters ) {
 
             // iterate in reverse order so the last styles added are the first returned
@@ -208,14 +255,24 @@
 
         };
 
-        // resolves the attribute based on filters
+        /**
+         * Resolves the attribute based on filters
+         * @param {Array} attributeStyles
+         * @param {{}} d
+         * @returns {*}
+         */
         this.resolveAttributeValue = function ( attributeStyles, d ) {
 
             return this.getFilteredProperty( d, 'value', attributeStyles );
 
         };
 
-        // allow access to styles
+        /**
+         * Returns the styles that have been set for the particular plot instance passed in
+         * If the returned styles are edited, they must be passed to setStylesForPlot() to affect the chart
+         * @param {Plottable.Plots.XYPlot} plot
+         * @returns {{}}
+         */
         this.getStylesForPlot = function ( plot ) {
             for ( var i in plotStyles ) {
                 if ( plotStyles[ i ].plot === plot ) {
@@ -224,7 +281,11 @@
             }
         };
 
-        // allow access to styles
+        /**
+         * Set the styles that should be used for the plot instance
+         * @param {Array} styles
+         * @param {Plottable.Plots.XYPlot} plot
+         */
         this.setStylesForPlot = function ( styles, plot ) {
 
             var currentPlotStyles = this.getStylesForPlot( plot );
@@ -239,7 +300,12 @@
 
         };
 
-        // get the name of the style that a datum is using, based on its filters
+        /**
+         * Get the name of the style that a datum is rendered with, based on its filters
+         * @param d - the datum
+         * @param plot - the plot with the styles used for rendering
+         * @returns {*}
+         */
         this.resolveStyleNameForDatumInPlot = function ( d, plot ) {
 
             var styles = this.getStylesForPlot( plot );
@@ -253,7 +319,11 @@
         };
 
 
-        // associate the styles with the points using the plottable accessors
+        /**
+         * Associate the styles with the data points that match their filters using the plot's Plottable.js accessors
+         * @param {Array} styles - the styles to associate to the plot
+         * @param {Plottable.Plots.XYPlot} plot - the plot
+         */
         this.assignAttributesToPlot = function ( styles, plot ) {
 
             var stylesKeyedByAttributeName = this.getStylesKeyedByAttributeName( styles );
@@ -273,6 +343,11 @@
 
         };
 
+        /**
+         * Add styling information to the D3 selection passed in
+         * This includes that gradient used behind the unit label in the y axis
+         * @param {d3.Selection} selection
+         */
         this.addToSelection = function ( selection ) {
 
             // add the gradient that is used in y axis label
@@ -312,6 +387,39 @@
 
     };
 
+    /**
+     * A collection of formatters used to format data before it is displayed
+     * @memberof ChartStyles
+     * @type {{}}
+     */
+    var formatters = {};
+
+    ChartStyles.formatters = formatters;
+
+    /**
+     * Returns the formatted data point value for use in a tooltip.
+     * Note: this function must be bound to a ChartConfiguration object to properly handle the number of decimal places
+     * @param {{}} d
+     * @returns {*}
+     * @memberof ChartStyles.formatters
+     */
+    ChartStyles.formatters.defaultTooltip = function ( d ) {
+        var content;
+        if ( d.omhDatum.groupName === '_systolic_blood_pressure_diastolic_blood_pressure' ) {
+            var systolic = d.omhDatum.body.systolic_blood_pressure.value.toFixed( 0 );
+            var diastolic = d.omhDatum.body.diastolic_blood_pressure.value.toFixed( 0 );
+            content = systolic + '/' + diastolic;
+        } else {
+            var settings = this.getInterfaceSettings().tooltips;
+            var decimalPlaces = typeof( settings.decimalPlaces ) !== 'undefined' ? settings.decimalPlaces : 1;
+            content = d.y.toFixed( decimalPlaces );
+        }
+        return content;
+    };
+
+    parent.ChartStyles = ChartStyles;
+
     return parent;
 
 } ) );
+
