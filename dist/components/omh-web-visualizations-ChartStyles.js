@@ -303,8 +303,8 @@
 
         /**
          * Get the name of the style that a datum is rendered with, based on its filters
-         * @param d - the datum
-         * @param plot - the plot with the styles used for rendering
+         * @param d - The datum
+         * @param plot - The plot with the styles used for rendering
          * @returns {*}
          */
         this.resolveStyleNameForDatumInPlot = function ( d, plot ) {
@@ -322,8 +322,8 @@
 
         /**
          * Associate the styles with the data points that match their filters using the plot's Plottable.js accessors
-         * @param {Array} styles - the styles to associate to the plot
-         * @param {Plottable.Plots.XYPlot} plot - the plot
+         * @param {Array} styles - The styles to associate to the plot
+         * @param {Plottable.Plots.XYPlot} plot - The plot
          */
         this.assignAttributesToPlot = function ( styles, plot ) {
 
@@ -347,7 +347,7 @@
         /**
          * Add styling information to the D3 selection passed in
          * This includes that gradient used behind the unit label in the y axis
-         * @param {d3.Selection} selection - the d3 selection that the styles should be added to.
+         * @param {d3.Selection} selection - The d3 selection that the styles should be added to.
          */
         this.addToSelection = function ( selection ) {
 

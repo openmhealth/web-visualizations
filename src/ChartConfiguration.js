@@ -11,7 +11,7 @@
 
     /**
      * Constructs a new ChartConfiguration object
-     * @param {{}} settings - an object containing properties that configure the chart
+     * @param {{}} settings - An object containing properties that configure the chart
      * @constructor
      * @global
      */
@@ -123,7 +123,7 @@
 
         /**
          * Get the settings for the measure passed in
-         * @param {String} measure - a measure name, such as 'systolic_blood_pressure'
+         * @param {String} measure - A measure name, such as 'systolic_blood_pressure'
          * @returns {{}}
          */
         this.getMeasureSettings = function ( measure ) {

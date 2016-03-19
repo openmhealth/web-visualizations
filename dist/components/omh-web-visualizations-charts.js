@@ -27,10 +27,10 @@
 
         /**
          *  Construct a new Chart object
-         *  @param {{}} data - the Open mHealth formatted data to build a chart for
-         *  @param {{}} element - the DOM element that contains an SVG for the chart
-         *  @param {String} measureList - the comma-delimited list of measures to search for in the data
-         *  @param {{}} options - the options used to configure the function and appearance of the chart
+         *  @param {{}} data - The Open mHealth formatted data to build a chart for
+         *  @param {{}} element - The DOM element that contains an SVG for the chart
+         *  @param {String} measureList - The comma-delimited list of measures to search for in the data
+         *  @param {{}} options - The options used to configure the function and appearance of the chart
          *  @global
          *  @constructor
          */
@@ -408,7 +408,7 @@
 
             /**
              * Get the plots that are shown in this chart as Plottable.js components
-             * @param plotClass - optional parameter gets only plots of the type eg Plottable.Plots.Scatter
+             * @param {Plottable.Plots.XYPlot} plotClass - Optional parameter gets only plots of the type, eg Plottable.Plots.Scatter
              * @returns {Array}
              */
             this.getPlots = function ( plotClass ) {
@@ -423,7 +423,7 @@
 
             /**
              * Add a gridline to the chart at the value
-             * @param {number} value - the location on the y axis of the gridline
+             * @param {number} value - The location on the y axis of the gridline
              */
             this.addGridline = function ( value ) {
                 gridlineValues.push( value );
