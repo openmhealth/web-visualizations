@@ -31,7 +31,7 @@ If you'd like to experiment with the library using a demonstration page,
 1. Make your changes
 1. To publish your changes to the `dist` directory, run [gulp](http://gulpjs.com/)
     * `gulp`
-1. Open [charts.html](http://htmlpreview.github.io/?https://github.com/openmhealth/web-visualizations/blob/develop/examples/charts.html) in the `example` directory to see the result
+1. Open `charts.html` in the `example` directory to see the result
 1. To let gulp watch for changes in the background and update `dist` as needed
     * `gulp watch`
 
