@@ -58,7 +58,7 @@
   font-weight: normal;
 }
 .plottable .axis-label .background-container .background-fill {
-  fill: url(#y-axis-gradient);
+  fill: url(#y-axis-label-gradient);
   -webkit-transform: translateX(1px);
       -ms-transform: translateX(1px);
           transform: translateX(1px);

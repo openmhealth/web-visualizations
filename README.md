@@ -1,3 +1,4 @@
+
 # Open mHealth Web Visualizations
 
 This library renders visualizations of Open mHealth structured data in a web browser. 
@@ -12,7 +13,7 @@ The charting functions of the library are built on top of [Plottable.js](http://
 
 You can learn more about the [design principles behind these visualisations](http://www.openmhealth.org/documentation/#/visualize-data/visualization-library) on our website, and learn about [how design became implementation](http://www.openmhealth.org/see-it-believe-it-the-web-visualization-library/) on our blog.
 
-###Installation
+### Installation
 If you'd like to use the charts in your own project, simply pull the library into your project as a [Bower](http://bower.io/) dependency using
 
 * `bower install omh-web-visualizations`
@@ -30,11 +31,11 @@ If you'd like to experiment with the library using a demonstration page,
 1. Make your changes
 1. To publish your changes to the `dist` directory, run [gulp](http://gulpjs.com/)
     * `gulp`
-1. Open `charts.html` in the `example` directory to see the result
+1. Open [charts.html](http://htmlpreview.github.io/?https://github.com/openmhealth/web-visualizations/blob/develop/examples/charts.html) in the `example` directory to see the result
 1. To let gulp watch for changes in the background and update `dist` as needed
     * `gulp watch`
 
-###Building a chart
+### Building a chart
 
 You can create a chart by calling:
 
@@ -55,7 +56,7 @@ The easiest way to create data points to pass to the `data` parameter is to use 
 
 A chart is considered *initialized* if the constructor `OMHWebVisualizations.Chart(...);` completes. If, for example, no measures specified in the `measureList` argument can be found in the `data` argument, the constructor will not complete, and the chart will not be initialized. Initialization state is tracked by the `Chart.initialized` property, which can be used as a condition for rendering a chart or requesting its components after construction.
 
-###Configuring a chart
+### Configuring a chart
 
 The `options` parameter of the `OMHWebVisualization.Chart(...)` function is divided into two sections. A `userInterface` section controls the UI of the chart as a whole. The `measures` section contains settings that customize charts for specific measures. 
 
@@ -244,7 +245,6 @@ var options = {
     }
 };
 ```
-#### Quantization Example
 
 Here is a chart of some *unquantized* data:
 ![Unquantized Data](http://www.openmhealth.org/media/viz_example_unquantized_data.png "Unquantized Data")
@@ -273,7 +273,7 @@ On a chart of type `line`, a labeled horizontal rule is drawn all the way across
 
 By default, a point is colored differently if it exceeds a `max` threshold or falls below a `min` threshold. This is achieved by the settings returned by ChartStyles.getDefaultStylesForPlot(). By default, this is set to the light orange color in the previous example.
 
-### Extending the default thresholds with ChartStyles
+#### Extending default thresholds with ChartStyles
 
 To add more thresholds and change the colors of the points they affect, you can call `chart.addGridline()` and customize the chart's `ChartStyles` object before rendering the chart.
 Below are some examples of what can be done. See `examples/charts.html` for code samples.
@@ -284,7 +284,7 @@ Change the color of points above the threshold:
 Add a range in the chart that is colored differently:
 ![Above Threshold Color with Colored Range](http://www.openmhealth.org/media/viz_example_threshold_color_band.png "Above Threshold Color with Colored Range")
 
-###Tooltips
+### Tooltips
 
 Tooltips can be enabled, disabled, and configured using the `userInterface.tooltips` property of the `options` object passed into the constructor ([see 'Configuring a Chart'](#configuring_a_chart)). The properties of `userInterface.tooltips` are explained in the following table:
 
@@ -352,7 +352,7 @@ And here is the CSS used to style tooltip
 See `examples/charts.html` for js and css code samples.
 
 
-###Rendering a chart
+### Rendering a chart
 
 Once a chart has been constructed, it must be rendered to an `<svg>` element. Render the chart by calling:
 
@@ -360,7 +360,7 @@ Once a chart has been constructed, it must be rendered to an `<svg>` element. Re
 chart.renderTo( svgElement );
 ```
 
-###Further customizations
+### Further customizations
 
 After a chart has been constructed, but *before it is rendered*, you may choose to get the Plottable components and make further modifications that are not afforded by the constructor's `options` parameter. Get the Plottable components, modify them, and render the chart as follows:
 
@@ -382,7 +382,7 @@ if (chart.initialized) {
 
 To see an example of component modification, check out the `examples/charts.html` file in this repository.
 
-###Destroying a chart
+### Destroying a chart
 
 In order to free up resources or re-use an element for a new chart, the chart and all of its interactive features can be destroyed with:
 
@@ -390,7 +390,7 @@ In order to free up resources or re-use an element for a new chart, the chart an
 chart.destroy();
 ```
 
-###Contributing
+### Contributing
 
 To contribute to this repository
 

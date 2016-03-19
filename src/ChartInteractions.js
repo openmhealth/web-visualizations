@@ -468,7 +468,7 @@
             };
 
             /**
-             * Returns the object that handles tooltips shown on hover
+             * Get the object that handles tooltips shown on hover
              * @returns {{}}
              */
             this.getTooltip = function () {
@@ -476,7 +476,7 @@
             };
 
             /**
-             * Returns the d3 selection that represents the toolbar in the DOM
+             * Get the d3 selection that represents the toolbar in the DOM
              * @returns {{}}
              */
             this.getToolbar = function () {
@@ -484,7 +484,7 @@
             };
 
             /**
-             * Returns the Plottable.js pan/zoom object that is attached to the plot
+             * Get the Plottable.js pan/zoom object that is attached to the plot
              * @returns {{}}
              */
             this.getPanZoomInteraction = function () {
@@ -492,7 +492,7 @@
             };
 
             /**
-             * Returns the Plottable.js pan/zoom object that is attached to the x axis
+             * Get the Plottable.js pan/zoom object that is attached to the x axis
              * @returns {{}}
              */
             this.getpanZoomInteractionXAxis = function () {
@@ -501,7 +501,8 @@
 
             /**
              * Adds the interactions handled by this ChartInteractions object to the components passed in
-             * @param components
+             * @param {{}} components - The components to add the interactions to. This should include properties for plots, xScale, and table
+             *
              */
             this.addToComponents = function ( components ) {
 
@@ -543,7 +544,7 @@
 
             /**
              * Adds the interactions handled by this ChartInteractions object to the d3 selection passed in
-             * @param d3Selection
+             * @param {{}} d3Selection - the d3 selection that will receive the interactions
              */
             this.addToSelection = function ( d3Selection ) {
 
@@ -564,7 +565,7 @@
 
             /**
              * Adds tooltips to the d3 svg entities passed in
-             * @param entities
+             * @param {Array} entities - an array of d3 entities from the rendered plot
              */
             this.addTooltipsToEntities = function ( entities ) {
 
@@ -610,11 +611,7 @@
 
             };
 
-            /***
-             *
-             * Initialize the ChartInteractions object
-             *
-             * */
+            // Initialize the ChartInteractions object
             initialize.call( this );
 
         };

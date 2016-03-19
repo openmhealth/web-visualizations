@@ -130,13 +130,19 @@
 
             <td class="type">
             
+                
+<span class="param-type"><a href="ChartConfiguration.html">ChartConfiguration</a></span>
+
+
+
+            
             </td>
 
             
 
             
 
-            <td class="description last"></td>
+            <td class="description last"><p>The ChartConfiguration object that is being used to configure the Chart</p></td>
         </tr>
 
     
@@ -430,7 +436,7 @@ This includes that gradient used behind the unit label in the y axis</p>
 
             
 
-            <td class="description last"></td>
+            <td class="description last"><p>the d3 selection that the styles should be added to.</p></td>
         </tr>
 
     
@@ -506,7 +512,7 @@ This includes that gradient used behind the unit label in the y axis</p>
 
     
     <div class="description">
-        <p>Check if the point meets the conditions of all filters in the array</p>
+        <p>Check if the datum meets the conditions of all filters in the array</p>
     </div>
     
 
@@ -558,7 +564,7 @@ This includes that gradient used behind the unit label in the y axis</p>
 
             
 
-            <td class="description last"></td>
+            <td class="description last"><p>The array of filters to check against.</p></td>
         </tr>
 
     
@@ -582,7 +588,7 @@ This includes that gradient used behind the unit label in the y axis</p>
 
             
 
-            <td class="description last"></td>
+            <td class="description last"><p>The datum to check against the filters</p></td>
         </tr>
 
     
@@ -645,6 +651,12 @@ This includes that gradient used behind the unit label in the y axis</p>
     <h5>Returns:</h5>
     
             
+<div class="param-desc">
+    <ul>
+<li>Returns true only if the datum matches all filters in the array</li>
+</ul>
+</div>
+
 
 
 <dl>
@@ -883,7 +895,7 @@ If none of the filters in the styles match, the default accessor is used.</p>
 
             
 
-            <td class="description last"></td>
+            <td class="description last"><p>An array of styles with filters to check data against</p></td>
         </tr>
 
     
@@ -907,7 +919,7 @@ If none of the filters in the styles match, the default accessor is used.</p>
 
             
 
-            <td class="description last"></td>
+            <td class="description last"><p>The Accessor to use if a datum is not matched by the filters on which the styles are conditioned</p></td>
         </tr>
 
     
@@ -970,6 +982,12 @@ If none of the filters in the styles match, the default accessor is used.</p>
     <h5>Returns:</h5>
     
             
+<div class="param-desc">
+    <ul>
+<li>The function that will be used to access an attribute value contained in the styles parameter</li>
+</ul>
+</div>
+
 
 
 <dl>
@@ -1004,7 +1022,8 @@ If none of the filters in the styles match, the default accessor is used.</p>
     
     <div class="description">
         <p>Get a fresh copy of default styles for the plot
-This cannot be static because it depends on the configuration</p>
+This cannot be static because it depends on the configuration.
+Styles will be returned if the plot is of type Plottable.Plots.Scatter, Plottable.Plots.Line, or Plottable.Plots.ClusteredBar</p>
     </div>
     
 
@@ -1056,7 +1075,7 @@ This cannot be static because it depends on the configuration</p>
 
             
 
-            <td class="description last"></td>
+            <td class="description last"><p>The plot that the styles will be used for. Different styles are returned depending on the type of the plot.</p></td>
         </tr>
 
     
@@ -1205,7 +1224,7 @@ Returns null if there is no match.</p>
 
             
 
-            <td class="description last"></td>
+            <td class="description last"><p>The datum to check against the filters</p></td>
         </tr>
 
     
@@ -1229,7 +1248,7 @@ Returns null if there is no match.</p>
 
             
 
-            <td class="description last"></td>
+            <td class="description last"><p>The name of the property to look for</p></td>
         </tr>
 
     
@@ -1253,7 +1272,7 @@ Returns null if there is no match.</p>
 
             
 
-            <td class="description last"></td>
+            <td class="description last"><p>An array of objects, each containing a 'filters' key and a key with the name specified by the propertyName parameter</p></td>
         </tr>
 
     
@@ -1316,6 +1335,12 @@ Returns null if there is no match.</p>
     <h5>Returns:</h5>
     
             
+<div class="param-desc">
+    <ul>
+<li>The value found at the propertyName if the datum matches the filters associated with that property name, or null</li>
+</ul>
+</div>
+
 
 
 <dl>
@@ -1402,7 +1427,7 @@ If the returned styles are edited, they must be passed to setStylesForPlot() to 
 
             
 
-            <td class="description last"></td>
+            <td class="description last"><p>Get the styles associated with this plot instance</p></td>
         </tr>
 
     
@@ -1465,6 +1490,12 @@ If the returned styles are edited, they must be passed to setStylesForPlot() to 
     <h5>Returns:</h5>
     
             
+<div class="param-desc">
+    <ul>
+<li>The styles for the plot specified in the plot parameter</li>
+</ul>
+</div>
+
 
 
 <dl>
@@ -1550,7 +1581,7 @@ If the returned styles are edited, they must be passed to setStylesForPlot() to 
 
             
 
-            <td class="description last"></td>
+            <td class="description last"><p>The styles to re-organize</p></td>
         </tr>
 
     
@@ -1613,6 +1644,12 @@ If the returned styles are edited, they must be passed to setStylesForPlot() to 
     <h5>Returns:</h5>
     
             
+<div class="param-desc">
+    <ul>
+<li>The styles re-organized as an object with keys for each attribute represented in the styles parameter</li>
+</ul>
+</div>
+
 
 
 <dl>
@@ -1698,7 +1735,7 @@ If the returned styles are edited, they must be passed to setStylesForPlot() to 
 
             
 
-            <td class="description last"></td>
+            <td class="description last"><p>An array of style information. Each entry looks something like { filters:[], value:{any} }</p></td>
         </tr>
 
     
@@ -1722,7 +1759,7 @@ If the returned styles are edited, they must be passed to setStylesForPlot() to 
 
             
 
-            <td class="description last"></td>
+            <td class="description last"><p>The datum to check against the filters associated with each value</p></td>
         </tr>
 
     
@@ -2030,7 +2067,7 @@ If the returned styles are edited, they must be passed to setStylesForPlot() to 
 
             
 
-            <td class="description last"></td>
+            <td class="description last"><p>The styles to use for the plot</p></td>
         </tr>
 
     
@@ -2054,7 +2091,7 @@ If the returned styles are edited, they must be passed to setStylesForPlot() to 
 
             
 
-            <td class="description last"></td>
+            <td class="description last"><p>The plot that should get the styles</p></td>
         </tr>
 
     
@@ -2166,7 +2203,7 @@ If the returned styles are edited, they must be passed to setStylesForPlot() to 
 <span class="jsdoc-message">
 	Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.0</a>
 	
-		on March 17th 2016, 6:17:05 pm
+		on March 19th 2016, 2:49:46 pm
 	
 	using the <a href="https://github.com/docstrap/docstrap">DocStrap template</a>.
 </span>

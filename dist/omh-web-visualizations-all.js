@@ -11,7 +11,7 @@
 
     /**
      * Constructs a new ChartConfiguration object
-     * @param settings
+     * @param {{}} settings - an object containing properties that configure the chart
      * @constructor
      * @global
      */
@@ -123,7 +123,7 @@
 
         /**
          * Get the settings for the measure passed in
-         * @param {String} measure
+         * @param {String} measure - a measure name, such as 'systolic_blood_pressure'
          * @returns {{}}
          */
         this.getMeasureSettings = function ( measure ) {
@@ -131,19 +131,14 @@
         };
 
         /**
-         * Get the interface settings
+         * Get the settings for the user interface
          * @returns {defaultSettings.userInterface|{toolbar, timespanButtons, zoomButtons, navigation, thresholds, tooltips, panZoom, axes}|options.userInterface|{axes, thresholds, tooltips}|i.userInterface|n.userInterface|*}
          */
         this.getInterfaceSettings = function () {
             return mergedSettings.userInterface;
         };
 
-        /***
-         *
-         * Initialize the object
-         *
-         * */
-
+        // Initialize the ChartConfiguration
         initialize.call( this );
 
     };
@@ -625,7 +620,7 @@
             };
 
             /**
-             * Returns the object that handles tooltips shown on hover
+             * Get the object that handles tooltips shown on hover
              * @returns {{}}
              */
             this.getTooltip = function () {
@@ -633,7 +628,7 @@
             };
 
             /**
-             * Returns the d3 selection that represents the toolbar in the DOM
+             * Get the d3 selection that represents the toolbar in the DOM
              * @returns {{}}
              */
             this.getToolbar = function () {
@@ -641,7 +636,7 @@
             };
 
             /**
-             * Returns the Plottable.js pan/zoom object that is attached to the plot
+             * Get the Plottable.js pan/zoom object that is attached to the plot
              * @returns {{}}
              */
             this.getPanZoomInteraction = function () {
@@ -649,7 +644,7 @@
             };
 
             /**
-             * Returns the Plottable.js pan/zoom object that is attached to the x axis
+             * Get the Plottable.js pan/zoom object that is attached to the x axis
              * @returns {{}}
              */
             this.getpanZoomInteractionXAxis = function () {
@@ -658,7 +653,8 @@
 
             /**
              * Adds the interactions handled by this ChartInteractions object to the components passed in
-             * @param components
+             * @param {{}} components - The components to add the interactions to. This should include properties for plots, xScale, and table
+             *
              */
             this.addToComponents = function ( components ) {
 
@@ -700,7 +696,7 @@
 
             /**
              * Adds the interactions handled by this ChartInteractions object to the d3 selection passed in
-             * @param d3Selection
+             * @param {{}} d3Selection - the d3 selection that will receive the interactions
              */
             this.addToSelection = function ( d3Selection ) {
 
@@ -721,7 +717,7 @@
 
             /**
              * Adds tooltips to the d3 svg entities passed in
-             * @param entities
+             * @param {Array} entities - an array of d3 entities from the rendered plot
              */
             this.addTooltipsToEntities = function ( entities ) {
 
@@ -767,11 +763,7 @@
 
             };
 
-            /***
-             *
-             * Initialize the ChartInteractions object
-             *
-             * */
+            // Initialize the ChartInteractions object
             initialize.call( this );
 
         };
@@ -795,7 +787,7 @@
 
     /**
      * Constructs a new ChartStyles object
-     * @param configuration
+     * @param {ChartConfiguration} configuration - The ChartConfiguration object that is being used to configure the Chart
      * @constructor
      * @global
      */
@@ -854,8 +846,9 @@
 
         /**
          * Get a fresh copy of default styles for the plot
-         * This cannot be static because it depends on the configuration
-         * @param {Plottable.Plots.XYPlot} plot
+         * This cannot be static because it depends on the configuration.
+         * Styles will be returned if the plot is of type Plottable.Plots.Scatter, Plottable.Plots.Line, or Plottable.Plots.ClusteredBar
+         * @param {Plottable.Plots.XYPlot} plot - The plot that the styles will be used for. Different styles are returned depending on the type of the plot.
          * @returns {{}}
          */
         this.getDefaultStylesForPlot = function ( plot ) {
@@ -937,10 +930,10 @@
         };
 
         /**
-         * Check if the point meets the conditions of all filters in the array
-         * @param {Array} filters
-         * @param {{}} d
-         * @returns {boolean}
+         * Check if the datum meets the conditions of all filters in the array
+         * @param {Array} filters - The array of filters to check against.
+         * @param {{}} d - The datum to check against the filters
+         * @returns {boolean} - Returns true only if the datum matches all filters in the array
          */
         this.applyFilters = function ( filters, d ) {
 
@@ -957,9 +950,9 @@
         /**
          * Returns an attribute accessor function based on the attribute styles passed in.
          * If none of the filters in the styles match, the default accessor is used.
-         * @param {Array} attributeStyles
-         * @param {function(d:Object)} defaultAccessor
-         * @returns {function(this:ChartStyles)}
+         * @param {Array} attributeStyles - An array of styles with filters to check data against
+         * @param {function(d:Object)} defaultAccessor - The Accessor to use if a datum is not matched by the filters on which the styles are conditioned
+         * @returns {function(d:Object)} - The function that will be used to access an attribute value contained in the styles parameter
          */
         this.getAttributeValueAccessor = function ( attributeStyles, defaultAccessor ) {
 
@@ -977,8 +970,8 @@
 
         /**
          * Re-index the style info by the attribute to assess attribute priority more easily
-         * @param {Array} styles
-         * @returns {{}}
+         * @param {Array} styles - The styles to re-organize
+         * @returns {{}} - The styles re-organized as an object with keys for each attribute represented in the styles parameter
          */
         this.getStylesKeyedByAttributeName = function ( styles ) {
 
@@ -1012,10 +1005,10 @@
         /**
          * Get the value of the property by checking the point against the filters
          * Returns null if there is no match.
-         * @param {{}} d
-         * @param {String} propertyName
-         * @param {Array} propertiesWithFilters
-         * @returns {*}
+         * @param {{}} d - The datum to check against the filters
+         * @param {String} propertyName - The name of the property to look for
+         * @param {Array} propertiesWithFilters - An array of objects, each containing a 'filters' key and a key with the name specified by the propertyName parameter
+         * @returns {*} - The value found at the propertyName if the datum matches the filters associated with that property name, or null
          */
         this.getFilteredProperty = function ( d, propertyName, propertiesWithFilters ) {
 
@@ -1041,8 +1034,8 @@
 
         /**
          * Resolves the attribute based on filters
-         * @param {Array} attributeStyles
-         * @param {{}} d
+         * @param {Array} attributeStyles - An array of style information. Each entry looks something like { filters:[], value:{any} }
+         * @param {{}} d - The datum to check against the filters associated with each value
          * @returns {*}
          */
         this.resolveAttributeValue = function ( attributeStyles, d ) {
@@ -1054,8 +1047,8 @@
         /**
          * Returns the styles that have been set for the particular plot instance passed in
          * If the returned styles are edited, they must be passed to setStylesForPlot() to affect the chart
-         * @param {Plottable.Plots.XYPlot} plot
-         * @returns {{}}
+         * @param {Plottable.Plots.XYPlot} plot - Get the styles associated with this plot instance
+         * @returns {{}} - The styles for the plot specified in the plot parameter
          */
         this.getStylesForPlot = function ( plot ) {
             for ( var i in plotStyles ) {
@@ -1067,8 +1060,8 @@
 
         /**
          * Set the styles that should be used for the plot instance
-         * @param {Array} styles
-         * @param {Plottable.Plots.XYPlot} plot
+         * @param {Array} styles - The styles to use for the plot
+         * @param {Plottable.Plots.XYPlot} plot - The plot that should get the styles
          */
         this.setStylesForPlot = function ( styles, plot ) {
 
@@ -1130,24 +1123,29 @@
         /**
          * Add styling information to the D3 selection passed in
          * This includes that gradient used behind the unit label in the y axis
-         * @param {d3.Selection} selection
+         * @param {d3.Selection} selection - the d3 selection that the styles should be added to.
          */
         this.addToSelection = function ( selection ) {
 
             // add the gradient that is used in y axis label
+
+            //check if the definition secion is already there
             var defs = selection.select( 'defs' )[ 0 ][ 0 ];
 
+            // if not, add one
             if ( !defs ) {
                 defs = selection.append( "defs" );
             } else {
                 defs = d3.select( defs );
             }
 
-            var gradient = defs.select( '#y-axis-gradient' )[ 0 ][ 0 ];
+            //check if there is already a gradient for the y axis label there
+            var gradient = defs.select( '#y-axis-label-gradient' )[ 0 ][ 0 ];
 
+            //if not, then add the gradient
             if ( !gradient ) {
                 gradient = defs.append( "linearGradient" )
-                    .attr( "id", "y-axis-gradient" )
+                    .attr( "id", "y-axis-label-gradient" )
                     .attr( "x1", "0%" )
                     .attr( "y1", "0%" )
                     .attr( "x2", "0%" )
@@ -1206,7 +1204,6 @@
     return parent;
 
 } ) );
-
 
 /***
  * Copyright 2015 Open mHealth
@@ -1378,7 +1375,6 @@
                 }
 
             }
-
 
             //iterate across the measures and add plots
             measures.forEach( function ( measure ) {
@@ -1553,7 +1549,7 @@
             } );
 
             /**
-             *  Save a ref to a destroy method
+             *  Destroy the resources used to render this chart
              */
             this.destroy = function () {
                 interactions.destroy();
@@ -1740,7 +1736,7 @@
          * Creates an object that parses omh data into a format usable Plottable.js
          * @param {{}} data - The data to parse now
          * @param {{}} measures - Strings representing the measures to extract from the data
-         * @param {OMHWebVisualizations.ChartConfiguration} configuration - a configuration object containing options for parsing data
+         * @param {OMHWebVisualizations.ChartConfiguration} configuration - A configuration object containing options for parsing data
          * @constructor
          * @global
          */
@@ -1766,12 +1762,6 @@
                 "yr": 'y'
             };
 
-            /*
-             *
-             * Initialization
-             *
-             * */
-
             var initialize = function () {
 
                 //deep copy data passed in so that it is not altered when we add group names
@@ -1786,16 +1776,11 @@
 
             };
 
-            /*
-             *
-             * Member functions
-             *
-             * */
 
             /**
              * Get the value found at a key path
-             * @param {object} obj - the object to search for the key path
-             * @param {string} keyPath - the path where the desired value should be found
+             * @param {object} obj - The object to search for the key path
+             * @param {string} keyPath - The path where the desired value should be found
              * @returns {*}
              */
             this.resolveKeyPath = function ( obj, keyPath ) {
@@ -1823,9 +1808,9 @@
 
             /**
              * Get the display date for a datum that has specified an interval rather than a point in time
-             * @param {object} omhDatum - the omh formatted datum
-             * @param {object} dateProvider - an object that provides dates. Moment.js is used by default.
-             * @param {number} quantizationLevel - constant defined statically to represent the quantization level, e.g. OMHWebVisualizations.DataParser.QUANTIZE_DAY
+             * @param {object} omhDatum - The omh formatted datum
+             * @param {object} dateProvider - An object that provides dates. Moment.js is used by default.
+             * @param {number} quantizationLevel - Constant defined statically to represent the quantization level, e.g. OMHWebVisualizations.DataParser.QUANTIZE_DAY
              * @returns {Date}
              */
             this.getIntervalDisplayDate = function ( omhDatum, dateProvider, quantizationLevel ) {
@@ -1868,9 +1853,9 @@
 
             /**
              * Quantize a date to a quantization level
-             * @param {Date} date - the date to quantize
-             * @param {number} quantizationLevel - constant defined statically to represent the quantization level, e.g. OMHWebVisualizations.DataParser.QUANTIZE
-             * @returns {Date} - the quantized date
+             * @param {Date} date - The date to quantize
+             * @param {number} QuantizationLevel - constant defined statically to represent the quantization level, e.g. OMHWebVisualizations.DataParser.QUANTIZE
+             * @returns {Date} - The quantized date
              */
             this.quantizeDate = function ( date, quantizationLevel ) {
 
@@ -1889,10 +1874,10 @@
 
             /**
              * Parse out the data into an array that can be used by Plottable.js
-             * @param omhData - the data to parse, formatted according to Open mHealth schemas
-             * @param measuresToParse - the measures to pull out of the data
-             * @param dateProvider - an object that provides dates. Moment.js is used by default.
-             * @returns {array} - an array of data ready for use in a Plottable.js plot
+             * @param omhData - The data to parse, formatted according to Open mHealth schemas
+             * @param measuresToParse - The measures to pull out of the data
+             * @param dateProvider - An object that provides dates. Moment.js is used by default.
+             * @returns {array} - An array of data ready for use in a Plottable.js plot
              */
             this.parseOmhData = function ( omhData, measuresToParse, dateProvider ) {
 
@@ -1978,8 +1963,8 @@
 
             /**
              * Consolidate Plottable.js data points at the same time coordinates
-             * @param {string} measure - the measure will be used to look up the consolidation settings in the ChartConfiguration
-             * @param {Array} data - the Plottable.js data the should be consolidated
+             * @param {string} measure - The measure will be used to look up the consolidation settings in the ChartConfiguration
+             * @param {Array} data - The Plottable.js data the should be consolidated
              */
             this.consolidateData = function ( measure, data ) {
                 var consolidator = configuration.getMeasureSettings( measure ).quantizedDataConsolidationFunction;
@@ -1988,7 +1973,7 @@
 
             /**
              * Get the data for the measure
-             * @param {string} measure - return any data found for the measure
+             * @param {string} measure
              * @returns {Array}
              */
             this.getMeasureData = function ( measure ) {
@@ -2012,25 +1997,57 @@
                 return measureData.hasOwnProperty( measure );
             };
 
-
-            /*
-             *
-             * Initialize the object
-             *
-             * */
             return initialize.call( this );
 
         };
 
-
-        // Add constants for quantization
+        /**
+         * Constant used for configuring quantization
+         * @memberof DataParser
+         * @type {number}
+         */
         DataParser.QUANTIZE_YEAR = 6;
+        /**
+         * Constant used for configuring quantization
+         * @memberof DataParser
+         * @type {number}
+         */
         DataParser.QUANTIZE_MONTH = 5;
+        /**
+         * Constant used for configuring quantization
+         * @memberof DataParser
+         * @type {number}
+         */
         DataParser.QUANTIZE_DAY = 4;
+        /**
+         * Constant used for configuring quantization
+         * @memberof DataParser
+         * @type {number}
+         */
         DataParser.QUANTIZE_HOUR = 3;
+        /**
+         * Constant used for configuring quantization
+         * @memberof DataParser
+         * @type {number}
+         */
         DataParser.QUANTIZE_MINUTE = 2;
+        /**
+         * Constant used for configuring quantization
+         * @memberof DataParser
+         * @type {number}
+         */
         DataParser.QUANTIZE_SECOND = 1;
+        /**
+         * Constant used for configuring quantization
+         * @memberof DataParser
+         * @type {number}
+         */
         DataParser.QUANTIZE_MILLISECOND = 0;
+        /**
+         * Constant used for configuring quantization
+         * @memberof DataParser
+         * @type {number}
+         */
         DataParser.QUANTIZE_NONE = -1;
 
         /**
@@ -2063,7 +2080,6 @@
                 }
             }
         };
-
 
         /***
          * DataParser.consolidators.average
@@ -2108,9 +2124,9 @@
     };
 
     /**
-     * Merges the properties of two objects.
-     * @param obj1 - The base object
-     * @param obj2 - The object with priority in the case of shared properties
+     * Deep, recursive merge of the properties of two objects.
+     * @param {{}} obj1 - The base object
+     * @param {{}} obj2 - The object with priority in the case of shared properties
      * @returns {{}}
      * @memberof Utils
      */

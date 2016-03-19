@@ -12,7 +12,7 @@
          * Creates an object that parses omh data into a format usable Plottable.js
          * @param {{}} data - The data to parse now
          * @param {{}} measures - Strings representing the measures to extract from the data
-         * @param {OMHWebVisualizations.ChartConfiguration} configuration - a configuration object containing options for parsing data
+         * @param {OMHWebVisualizations.ChartConfiguration} configuration - A configuration object containing options for parsing data
          * @constructor
          * @global
          */
@@ -38,12 +38,6 @@
                 "yr": 'y'
             };
 
-            /*
-             *
-             * Initialization
-             *
-             * */
-
             var initialize = function () {
 
                 //deep copy data passed in so that it is not altered when we add group names
@@ -58,16 +52,11 @@
 
             };
 
-            /*
-             *
-             * Member functions
-             *
-             * */
 
             /**
              * Get the value found at a key path
-             * @param {object} obj - the object to search for the key path
-             * @param {string} keyPath - the path where the desired value should be found
+             * @param {object} obj - The object to search for the key path
+             * @param {string} keyPath - The path where the desired value should be found
              * @returns {*}
              */
             this.resolveKeyPath = function ( obj, keyPath ) {
@@ -95,9 +84,9 @@
 
             /**
              * Get the display date for a datum that has specified an interval rather than a point in time
-             * @param {object} omhDatum - the omh formatted datum
-             * @param {object} dateProvider - an object that provides dates. Moment.js is used by default.
-             * @param {number} quantizationLevel - constant defined statically to represent the quantization level, e.g. OMHWebVisualizations.DataParser.QUANTIZE_DAY
+             * @param {object} omhDatum - The omh formatted datum
+             * @param {object} dateProvider - An object that provides dates. Moment.js is used by default.
+             * @param {number} quantizationLevel - Constant defined statically to represent the quantization level, e.g. OMHWebVisualizations.DataParser.QUANTIZE_DAY
              * @returns {Date}
              */
             this.getIntervalDisplayDate = function ( omhDatum, dateProvider, quantizationLevel ) {
@@ -140,9 +129,9 @@
 
             /**
              * Quantize a date to a quantization level
-             * @param {Date} date - the date to quantize
-             * @param {number} quantizationLevel - constant defined statically to represent the quantization level, e.g. OMHWebVisualizations.DataParser.QUANTIZE
-             * @returns {Date} - the quantized date
+             * @param {Date} date - The date to quantize
+             * @param {number} QuantizationLevel - constant defined statically to represent the quantization level, e.g. OMHWebVisualizations.DataParser.QUANTIZE
+             * @returns {Date} - The quantized date
              */
             this.quantizeDate = function ( date, quantizationLevel ) {
 
@@ -161,10 +150,10 @@
 
             /**
              * Parse out the data into an array that can be used by Plottable.js
-             * @param omhData - the data to parse, formatted according to Open mHealth schemas
-             * @param measuresToParse - the measures to pull out of the data
-             * @param dateProvider - an object that provides dates. Moment.js is used by default.
-             * @returns {array} - an array of data ready for use in a Plottable.js plot
+             * @param omhData - The data to parse, formatted according to Open mHealth schemas
+             * @param measuresToParse - The measures to pull out of the data
+             * @param dateProvider - An object that provides dates. Moment.js is used by default.
+             * @returns {array} - An array of data ready for use in a Plottable.js plot
              */
             this.parseOmhData = function ( omhData, measuresToParse, dateProvider ) {
 
@@ -250,8 +239,8 @@
 
             /**
              * Consolidate Plottable.js data points at the same time coordinates
-             * @param {string} measure - the measure will be used to look up the consolidation settings in the ChartConfiguration
-             * @param {Array} data - the Plottable.js data the should be consolidated
+             * @param {string} measure - The measure will be used to look up the consolidation settings in the ChartConfiguration
+             * @param {Array} data - The Plottable.js data the should be consolidated
              */
             this.consolidateData = function ( measure, data ) {
                 var consolidator = configuration.getMeasureSettings( measure ).quantizedDataConsolidationFunction;
@@ -260,7 +249,7 @@
 
             /**
              * Get the data for the measure
-             * @param {string} measure - return any data found for the measure
+             * @param {string} measure
              * @returns {Array}
              */
             this.getMeasureData = function ( measure ) {
@@ -284,25 +273,57 @@
                 return measureData.hasOwnProperty( measure );
             };
 
-
-            /*
-             *
-             * Initialize the object
-             *
-             * */
             return initialize.call( this );
 
         };
 
-
-        // Add constants for quantization
+        /**
+         * Constant used for configuring quantization
+         * @memberof DataParser
+         * @type {number}
+         */
         DataParser.QUANTIZE_YEAR = 6;
+        /**
+         * Constant used for configuring quantization
+         * @memberof DataParser
+         * @type {number}
+         */
         DataParser.QUANTIZE_MONTH = 5;
+        /**
+         * Constant used for configuring quantization
+         * @memberof DataParser
+         * @type {number}
+         */
         DataParser.QUANTIZE_DAY = 4;
+        /**
+         * Constant used for configuring quantization
+         * @memberof DataParser
+         * @type {number}
+         */
         DataParser.QUANTIZE_HOUR = 3;
+        /**
+         * Constant used for configuring quantization
+         * @memberof DataParser
+         * @type {number}
+         */
         DataParser.QUANTIZE_MINUTE = 2;
+        /**
+         * Constant used for configuring quantization
+         * @memberof DataParser
+         * @type {number}
+         */
         DataParser.QUANTIZE_SECOND = 1;
+        /**
+         * Constant used for configuring quantization
+         * @memberof DataParser
+         * @type {number}
+         */
         DataParser.QUANTIZE_MILLISECOND = 0;
+        /**
+         * Constant used for configuring quantization
+         * @memberof DataParser
+         * @type {number}
+         */
         DataParser.QUANTIZE_NONE = -1;
 
         /**
@@ -335,7 +356,6 @@
                 }
             }
         };
-
 
         /***
          * DataParser.consolidators.average

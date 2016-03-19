@@ -73,9 +73,9 @@ gulp.task( 'generate-concatenated-script', function () {
         .pipe( gulp.dest( 'dist' ) )
         .pipe( notify( { message: 'Scripts concat task complete' } ) );
 } );
-gulp.task( 'generate-component-scripts', function () {
-    return gulp.src( 'src/*.js' )
-        .pipe( jshint( '.jshintrc' ) )
+
+gulp.task( 'generate-documentation', function () {
+    return gulp.src( [ 'README.md', 'src/*.js' ], { read: false } )
         .pipe( jsdoc( {
                 "tags": {
                     "allowUnknownTags": true
@@ -102,7 +102,12 @@ gulp.task( 'generate-component-scripts', function () {
                     "dateFormat": "MMMM Do YYYY, h:mm:ss a"
                 }
             }
-        ) )
+        ) );
+} );
+
+gulp.task( 'generate-component-scripts', function () {
+    return gulp.src( 'src/*.js' )
+        .pipe( jshint( '.jshintrc' ) )
         .pipe( jshint.reporter( 'default' ) )
         .pipe( rename( { prefix: 'omh-web-visualizations-' } ) )
         .pipe( gulp.dest( 'dist/components' ) )
@@ -137,7 +142,7 @@ gulp.task( 'clean', function ( cb ) {
 
 // Default task
 gulp.task( 'default', [ 'clean' ], function () {
-    gulp.start( [ 'generate-component-styles', 'generate-concatenated-styles' ], [ 'generate-component-scripts', 'generate-concatenated-script' ] );
+    gulp.start( [ 'generate-component-styles', 'generate-concatenated-styles' ], [ 'generate-component-scripts', 'generate-concatenated-script', 'generate-documentation' ] );
 } );
 
 // Watch
@@ -147,7 +152,7 @@ gulp.task( 'watch', function () {
     gulp.watch( 'src/*.less', [ 'generate-component-styles', 'generate-concatenated-styles' ] );
 
     // Watch .js files
-    gulp.watch( [ 'src/*.js', 'test/*.js' ], [ 'test-scripts', 'generate-component-scripts', 'generate-concatenated-script' ] );
+    gulp.watch( [ 'src/*.js', 'test/*.js' ], [ 'test-scripts', 'generate-component-scripts', 'generate-concatenated-script', 'generate-documentation' ] );
 
     // Create LiveReload server
     // livereload.listen();

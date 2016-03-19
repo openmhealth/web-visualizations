@@ -18,9 +18,9 @@
     };
 
     /**
-     * Merges the properties of two objects.
-     * @param obj1 - The base object
-     * @param obj2 - The object with priority in the case of shared properties
+     * Deep, recursive merge of the properties of two objects.
+     * @param {{}} obj1 - The base object
+     * @param {{}} obj2 - The object with priority in the case of shared properties
      * @returns {{}}
      * @memberof Utils
      */

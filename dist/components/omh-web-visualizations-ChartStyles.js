@@ -11,7 +11,7 @@
 
     /**
      * Constructs a new ChartStyles object
-     * @param configuration
+     * @param {ChartConfiguration} configuration - The ChartConfiguration object that is being used to configure the Chart
      * @constructor
      * @global
      */
@@ -70,8 +70,9 @@
 
         /**
          * Get a fresh copy of default styles for the plot
-         * This cannot be static because it depends on the configuration
-         * @param {Plottable.Plots.XYPlot} plot
+         * This cannot be static because it depends on the configuration.
+         * Styles will be returned if the plot is of type Plottable.Plots.Scatter, Plottable.Plots.Line, or Plottable.Plots.ClusteredBar
+         * @param {Plottable.Plots.XYPlot} plot - The plot that the styles will be used for. Different styles are returned depending on the type of the plot.
          * @returns {{}}
          */
         this.getDefaultStylesForPlot = function ( plot ) {
@@ -153,10 +154,10 @@
         };
 
         /**
-         * Check if the point meets the conditions of all filters in the array
-         * @param {Array} filters
-         * @param {{}} d
-         * @returns {boolean}
+         * Check if the datum meets the conditions of all filters in the array
+         * @param {Array} filters - The array of filters to check against.
+         * @param {{}} d - The datum to check against the filters
+         * @returns {boolean} - Returns true only if the datum matches all filters in the array
          */
         this.applyFilters = function ( filters, d ) {
 
@@ -173,9 +174,9 @@
         /**
          * Returns an attribute accessor function based on the attribute styles passed in.
          * If none of the filters in the styles match, the default accessor is used.
-         * @param {Array} attributeStyles
-         * @param {function(d:Object)} defaultAccessor
-         * @returns {function(this:ChartStyles)}
+         * @param {Array} attributeStyles - An array of styles with filters to check data against
+         * @param {function(d:Object)} defaultAccessor - The Accessor to use if a datum is not matched by the filters on which the styles are conditioned
+         * @returns {function(d:Object)} - The function that will be used to access an attribute value contained in the styles parameter
          */
         this.getAttributeValueAccessor = function ( attributeStyles, defaultAccessor ) {
 
@@ -193,8 +194,8 @@
 
         /**
          * Re-index the style info by the attribute to assess attribute priority more easily
-         * @param {Array} styles
-         * @returns {{}}
+         * @param {Array} styles - The styles to re-organize
+         * @returns {{}} - The styles re-organized as an object with keys for each attribute represented in the styles parameter
          */
         this.getStylesKeyedByAttributeName = function ( styles ) {
 
@@ -228,10 +229,10 @@
         /**
          * Get the value of the property by checking the point against the filters
          * Returns null if there is no match.
-         * @param {{}} d
-         * @param {String} propertyName
-         * @param {Array} propertiesWithFilters
-         * @returns {*}
+         * @param {{}} d - The datum to check against the filters
+         * @param {String} propertyName - The name of the property to look for
+         * @param {Array} propertiesWithFilters - An array of objects, each containing a 'filters' key and a key with the name specified by the propertyName parameter
+         * @returns {*} - The value found at the propertyName if the datum matches the filters associated with that property name, or null
          */
         this.getFilteredProperty = function ( d, propertyName, propertiesWithFilters ) {
 
@@ -257,8 +258,8 @@
 
         /**
          * Resolves the attribute based on filters
-         * @param {Array} attributeStyles
-         * @param {{}} d
+         * @param {Array} attributeStyles - An array of style information. Each entry looks something like { filters:[], value:{any} }
+         * @param {{}} d - The datum to check against the filters associated with each value
          * @returns {*}
          */
         this.resolveAttributeValue = function ( attributeStyles, d ) {
@@ -270,8 +271,8 @@
         /**
          * Returns the styles that have been set for the particular plot instance passed in
          * If the returned styles are edited, they must be passed to setStylesForPlot() to affect the chart
-         * @param {Plottable.Plots.XYPlot} plot
-         * @returns {{}}
+         * @param {Plottable.Plots.XYPlot} plot - Get the styles associated with this plot instance
+         * @returns {{}} - The styles for the plot specified in the plot parameter
          */
         this.getStylesForPlot = function ( plot ) {
             for ( var i in plotStyles ) {
@@ -283,8 +284,8 @@
 
         /**
          * Set the styles that should be used for the plot instance
-         * @param {Array} styles
-         * @param {Plottable.Plots.XYPlot} plot
+         * @param {Array} styles - The styles to use for the plot
+         * @param {Plottable.Plots.XYPlot} plot - The plot that should get the styles
          */
         this.setStylesForPlot = function ( styles, plot ) {
 
@@ -346,24 +347,29 @@
         /**
          * Add styling information to the D3 selection passed in
          * This includes that gradient used behind the unit label in the y axis
-         * @param {d3.Selection} selection
+         * @param {d3.Selection} selection - the d3 selection that the styles should be added to.
          */
         this.addToSelection = function ( selection ) {
 
             // add the gradient that is used in y axis label
+
+            //check if the definition secion is already there
             var defs = selection.select( 'defs' )[ 0 ][ 0 ];
 
+            // if not, add one
             if ( !defs ) {
                 defs = selection.append( "defs" );
             } else {
                 defs = d3.select( defs );
             }
 
-            var gradient = defs.select( '#y-axis-gradient' )[ 0 ][ 0 ];
+            //check if there is already a gradient for the y axis label there
+            var gradient = defs.select( '#y-axis-label-gradient' )[ 0 ][ 0 ];
 
+            //if not, then add the gradient
             if ( !gradient ) {
                 gradient = defs.append( "linearGradient" )
-                    .attr( "id", "y-axis-gradient" )
+                    .attr( "id", "y-axis-label-gradient" )
                     .attr( "x1", "0%" )
                     .attr( "y1", "0%" )
                     .attr( "x2", "0%" )
@@ -422,4 +428,3 @@
     return parent;
 
 } ) );
-

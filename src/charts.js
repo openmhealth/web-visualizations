@@ -169,7 +169,6 @@
 
             }
 
-
             //iterate across the measures and add plots
             measures.forEach( function ( measure ) {
 
@@ -343,7 +342,7 @@
             } );
 
             /**
-             *  Save a ref to a destroy method
+             *  Destroy the resources used to render this chart
              */
             this.destroy = function () {
                 interactions.destroy();

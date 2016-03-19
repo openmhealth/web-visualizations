@@ -11,7 +11,7 @@
 
     /**
      * Constructs a new ChartConfiguration object
-     * @param settings
+     * @param {{}} settings - an object containing properties that configure the chart
      * @constructor
      * @global
      */
@@ -123,7 +123,7 @@
 
         /**
          * Get the settings for the measure passed in
-         * @param {String} measure
+         * @param {String} measure - a measure name, such as 'systolic_blood_pressure'
          * @returns {{}}
          */
         this.getMeasureSettings = function ( measure ) {
@@ -131,19 +131,14 @@
         };
 
         /**
-         * Get the interface settings
+         * Get the settings for the user interface
          * @returns {defaultSettings.userInterface|{toolbar, timespanButtons, zoomButtons, navigation, thresholds, tooltips, panZoom, axes}|options.userInterface|{axes, thresholds, tooltips}|i.userInterface|n.userInterface|*}
          */
         this.getInterfaceSettings = function () {
             return mergedSettings.userInterface;
         };
 
-        /***
-         *
-         * Initialize the object
-         *
-         * */
-
+        // Initialize the ChartConfiguration
         initialize.call( this );
 
     };

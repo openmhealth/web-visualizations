@@ -145,6 +145,7 @@
 <script src="../bower_components/plottable/plottable.js"></script>
 <script src="../bower_components/moment/moment.js"></script>
 <script src="../dist/omh-web-visualizations-all.js"></script>
+<script src="1yr.js"></script>
 
 <script>
 
@@ -155,8 +156,8 @@
     var chart = null;
 
     //data is reused if url is not changed
-    var currentData = null;
-    var currentUrl = '';
+    var currentData;
+    var currentUrl = '1yr.json';
 
     var loadingMessage = d3.select( '.loading-message' );
     var datapointDetails = d3.select( '.datapoint-details' );
