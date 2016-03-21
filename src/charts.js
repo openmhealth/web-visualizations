@@ -28,11 +28,12 @@
         /**
          *  Construct a new Chart object
          *  @param {{}} data - The Open mHealth formatted data to build a chart for
-         *  @param {{}} element - The DOM element that contains an SVG for the chart
+         *  @param {{}} element - The DOM element that contains an SVG element for the chart
          *  @param {String} measureList - The comma-delimited list of measures to search for in the data
-         *  @param {{}} options - The options used to configure the function and appearance of the chart
+         *  @param {{}} options - The optional settings used to configure the function and appearance of the chart
          *  @global
          *  @constructor
+         *  @classdesc This is the main class used to chart Open mHealth data. At construction time, data is parsed and Plottable.js components are used to build the chart. [Chart.renderTo]{@link Chart#renderTo} can then be called to render the chart in the browser.
          */
         Chart = function ( data, element, measureList, options ) {
 
@@ -476,8 +477,8 @@
             };
 
             /**
-             * Render the chart to the svg DOM element
-             * @param {Object} svgElement
+             * Render the chart to the SVG DOM element
+             * @param {Object} svgElement - The SVG DOM element that will contain the chart elements
              */
             this.renderTo = function ( svgElement ) {
 

@@ -11,9 +11,89 @@
 
     /**
      * Constructs a new ChartConfiguration object
+     * @classdesc This class generates and manages configuration state for a chart. The configuration is passed in a an object containing optional settings.
      * @param {{}} settings - An object containing properties that configure the chart
      * @constructor
      * @global
+     * @example
+     * // An example of the settings parameter
+     * {
+            'userInterface': {
+                'toolbar': { 'enabled': true },
+                'timespanButtons': { 'enabled': true },
+                'zoomButtons': { 'enabled': true },
+                'navigation': { 'enabled': true },
+                'thresholds': { 'show': true },
+                'tooltips': {
+                    'enabled': true,
+                    'timeFormat': 'M/D/YY, h:mma',
+                    'decimalPlaces': 0,
+                    'contentFormatter': ChartStyles.formatters.defaultTooltip.bind( this ),
+                    'grouped': true
+                },
+                'panZoom': {
+                    'enabled': true,
+                    'showHint': true
+                },
+                'axes': {
+                    'yAxis': {
+                        'visible': true
+                    },
+                    'xAxis': {
+                        'visible': true
+                    }
+                }
+            },
+            'measures': {
+                'body_weight': {
+                    'valueKeyPath': 'body.body_weight.value',
+                    'range': { 'min': 0, 'max': 100 },
+                    'units': 'kg',
+                    'thresholds': { 'max': 57 }
+                },
+                'heart_rate': {
+                    'valueKeyPath': 'body.heart_rate.value',
+                    'range': { 'min': 30, 'max': 150 },
+                    'units': 'bpm'
+                },
+                'step_count': {
+                    'valueKeyPath': 'body.step_count',
+                    'range': { 'min': 0, 'max': 1500 },
+                    'units': 'Steps',
+                    'seriesName': 'Steps',
+                    'timeQuantizationLevel': DataParser.QUANTIZE_DAY,
+                    'quantizedDataConsolidationFunction': DataParser.consolidators.summation,
+                    'chart': {
+                        'type': 'clustered_bar',
+                        'daysShownOnTimeline': { 'min': 7, 'max': 90 }
+                    }
+                },
+                'minutes_moderate_activity': {
+                    'valueKeyPath': 'body.minutes_moderate_activity.value',
+                    'range': { 'min': 0, 'max': 300 },
+                    'units': 'Minutes',
+                    'seriesName': 'Minutes of moderate activity',
+                    'timeQuantizationLevel': DataParser.QUANTIZE_DAY,
+                    'quantizedDataConsolidationFunction': DataParser.consolidators.summation,
+                    'chart': {
+                        'type': 'clustered_bar',
+                        'daysShownOnTimeline': { 'min': 7, 'max': 90 }
+                    }
+                },
+                'systolic_blood_pressure': {
+                    'valueKeyPath': 'body.systolic_blood_pressure.value',
+                    'range': { 'min': 30, 'max': 200 },
+                    'units': 'mmHg',
+                    'thresholds': { 'max': 120 }
+                },
+                'diastolic_blood_pressure': {
+                    'valueKeyPath': 'body.diastolic_blood_pressure.value',
+                    'range': { 'min': 30, 'max': 200 },
+                    'units': 'mmHg',
+                    'thresholds': { 'max': 80 }
+                }
+            }
+        }
      */
     ChartConfiguration = function ( settings ) {
 
@@ -170,6 +250,7 @@
          * @param {ChartStyles} styles - the ChartStyles that style this chart
          * @constructor
          * @global
+         * @classdesc This class allocates and maintains and destroys resources for user interactions on the chart.
          */
         ChartInteractions = function ( element, primaryMeasure, configuration, parser, styles ) {
 
@@ -787,6 +868,12 @@
 
     /**
      * Constructs a new ChartStyles object
+     * @classdesc This class generates and manages chart visual styles. Style information is specified as an array of objects, each with a 'name', array of 'filters' and list of 'attributes' (see [ChartStyles.setStylesForPlot]{@link ChartStyles#setStylesForPlot}).
+     *
+     * Filters are functions that take a datum as a parameter and return a boolean. ChartStyles has an array of useful filters, called 'filters', which can be used in a style object.
+     *
+     * Style information is mapped to a Plottable.Plots.XYPlot using the [ChartStyles.setStylesForPlot]{@link ChartStyles#setStylesForPlot} function [ChartStyles.setStylesForPlot]{@link ChartStyles#setStylesForPlot} and returned by [ChartStyles.getStylesForPlot]{@link ChartStyles#getStylesForPlot}
+     *
      * @param {ChartConfiguration} configuration - The ChartConfiguration object that is being used to configure the Chart
      * @constructor
      * @global
@@ -800,16 +887,36 @@
         };
 
         var filters = {
+            /**
+             * Get a filter that matches the measure
+             * @param {String} measure - The measure to match
+             * @returns {Function} - The filter function that can be added to a filter array in a style
+             * @alias filters.measure
+             * @memberof! ChartStyles#
+             */
             'measure': function ( measure ) {
                 return function ( d ) {
                     return d.measure === measure;
                 };
             },
+            /**
+             * Get a filter that matches points with y values above max
+             * @returns {Function} - The filter function that can be added to a filter array in a style
+             * @alias filters.above
+             * @memberof! ChartStyles#
+             * @param {Number} max - The value, above which the matched points' y values must fall
+             */
             'above': function ( max ) {
                 return function ( d ) {
                     return d.y > max;
                 };
             },
+            /**
+             * Get a filter that matches points with y values above the threshold for their measure, found in the configuration passed in during construction
+             * @returns {Function} - The filter function that can be added to a filter array in a style
+             * @alias filters.aboveThresholdMax
+             * @memberof! ChartStyles#
+             */
             'aboveThresholdMax': function () {
                 return function ( d ) {
                     var thresholds = getPointThresholds( d );
@@ -817,11 +924,24 @@
                     return max ? d.y > max : false;
                 };
             },
+            /**
+             * Get a filter that matches points with y values below min
+             * @returns {Function} - The filter function that can be added to a filter array in a style
+             * @alias filters.below
+             * @memberof! ChartStyles#
+             * @param {Number} min - The value, below which the matched points' y values must fall
+             */
             'below': function ( min ) {
                 return function ( d ) {
                     return d.y < min;
                 };
             },
+            /**
+             * Get a filter that matches points with y values below the threshold for their measure, found in the configuration passed in during construction
+             * @returns {Function} - The filter function that can be added to a filter array in a style
+             * @alias filters.belowThresholdMin
+             * @memberof! ChartStyles#
+             */
             'belowThresholdMin': function () {
                 return function ( d ) {
                     var thresholds = getPointThresholds( d );
@@ -829,6 +949,13 @@
                     return min ? d.y < min : false;
                 };
             },
+            /**
+             * Get a filter that matches the points with an x value that falls prior to the given hour of each day
+             * @returns {Function} - The filter function that can be added to a filter array in a style
+             * @alias filters.dailyBeforeHour
+             * @memberof! ChartStyles#
+             * @param {Number} hour - The hour, below which the matched points' x.getHours() must fall
+             */
             'dailyBeforeHour': function ( hour ) {
                 return function ( d ) {
                     return d.x.getHours() < hour;
@@ -1062,6 +1189,26 @@
          * Set the styles that should be used for the plot instance
          * @param {Array} styles - The styles to use for the plot
          * @param {Plottable.Plots.XYPlot} plot - The plot that should get the styles
+         * @example
+         * // an array of style information that can be passed in as the style parameter
+         * [
+         *  {
+         *      name: 'red-area',
+         *      filters: [ chartStyles.filters.above(120) ],
+         *      attributes: {
+         *          fill: 'red',
+         *          stroke: 'red'
+         *      }
+         *  },
+         * {
+         *      name: 'orange-area',
+         *      filters: [ chartStyles.filters.above(100), chartStyles.filters.below(120) ],
+         *      attributes: {
+         *          fill: 'orange',
+         *          stroke: 'orange'
+         *      }
+         *  }
+         *  ]
          */
         this.setStylesForPlot = function ( styles, plot ) {
 
@@ -1235,11 +1382,12 @@
         /**
          *  Construct a new Chart object
          *  @param {{}} data - The Open mHealth formatted data to build a chart for
-         *  @param {{}} element - The DOM element that contains an SVG for the chart
+         *  @param {{}} element - The DOM element that contains an SVG element for the chart
          *  @param {String} measureList - The comma-delimited list of measures to search for in the data
-         *  @param {{}} options - The options used to configure the function and appearance of the chart
+         *  @param {{}} options - The optional settings used to configure the function and appearance of the chart
          *  @global
          *  @constructor
+         *  @classdesc This is the main class used to chart Open mHealth data. At construction time, data is parsed and Plottable.js components are used to build the chart. [Chart.renderTo]{@link Chart#renderTo} can then be called to render the chart in the browser.
          */
         Chart = function ( data, element, measureList, options ) {
 
@@ -1683,8 +1831,8 @@
             };
 
             /**
-             * Render the chart to the svg DOM element
-             * @param {Object} svgElement
+             * Render the chart to the SVG DOM element
+             * @param {Object} svgElement - The SVG DOM element that will contain the chart elements
              */
             this.renderTo = function ( svgElement ) {
 
@@ -1736,9 +1884,20 @@
          * Creates an object that parses omh data into a format usable Plottable.js
          * @param {{}} data - The data to parse now
          * @param {{}} measures - Strings representing the measures to extract from the data
-         * @param {OMHWebVisualizations.ChartConfiguration} configuration - A configuration object containing options for parsing data
+         * @param {ChartConfiguration} configuration - A configuration object containing options for parsing data
          * @constructor
          * @global
+         * @classdesc This class parses Open mHealth data into a format that is usable by d3 and Plottable.js.
+         *
+         * When possible, data is structured to make interactions and rendering easier.
+         *
+         * The following [ChartConfiguration]{@link ChartConfiguration} settings for each measure are used to parse the data:
+         *
+         * valueKeyPath - a dot-delimited string that indicates where in a data point the y value of a point can be found
+         *
+         * timeQuantizationLevel - the granularity of time quantization desired for the data (e.g. [DataParser.QUANTIZE_DAY]{@link DataParser.QUANTIZE_DAY} )
+         *
+         * quantizedDataConsolidationFunction - how to consolidate data points that are quantized to the same moment in time (e.g. [DataParser.consolidators.average]{@link DataParser.consolidators.average} )
          */
         DataParser = function ( data, measures, configuration ) {
 
@@ -2058,11 +2217,13 @@
          */
         DataParser.consolidators = {};
 
-        /***
-         * DataParser.consolidators.summation
-         * Consolidate by summation
-         * Provenance data for the first point (chronologically) will be preserved
-         * @param data
+        /**
+         * Consolidate points with the same time value by summing them.
+         *
+         * Provenance data for the first point (chronologically) will be preserved. For a given moment in time shared by more than one point, all but one point at that time are removed from the data array, and references to consolidated points are stored in the remaining point as 'consolidatedData' field.
+         * @param {Array} data - The data to consolidate
+         * @alias consolidators.summation
+         * @memberof! DataParser
          */
         DataParser.consolidators.summation = function ( data ) {
             data.sort( function ( a, b ) {
@@ -2081,11 +2242,13 @@
             }
         };
 
-        /***
-         * DataParser.consolidators.average
-         * Consolidate by averaging
-         * Provenance data for the first point( chronologically ) will be preserved
-         * @param data
+        /**
+         * Consolidate points with the same time value by averaging them.
+         *
+         * Provenance data for the first point( chronologically ) will be preserved. For a given moment in time shared by more than one point, all but one point at that time are removed from the data array, and references to consolidated points are stored in the remaining point as 'consolidatedData' field.
+         * @param {Array} data - The data to consolidate
+         * @alias consolidators.average
+         * @memberof! DataParser
          */
         DataParser.consolidators.average = function ( data ) {
             parent.DataParser.consolidators.summation( data );
@@ -2119,6 +2282,8 @@
      * No need to construct utils, because it is static. Placeholder for future use.
      * @constructor
      * @global
+     * @classdesc
+     * This glass is a home for very general static functions that support the library
      */
     Utils = function () {
     };

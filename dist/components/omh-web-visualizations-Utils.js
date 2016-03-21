@@ -13,6 +13,8 @@
      * No need to construct utils, because it is static. Placeholder for future use.
      * @constructor
      * @global
+     * @classdesc
+     * This glass is a home for very general static functions that support the library
      */
     Utils = function () {
     };

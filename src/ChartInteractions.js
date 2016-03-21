@@ -18,6 +18,7 @@
          * @param {ChartStyles} styles - the ChartStyles that style this chart
          * @constructor
          * @global
+         * @classdesc This class allocates and maintains and destroys resources for user interactions on the chart.
          */
         ChartInteractions = function ( element, primaryMeasure, configuration, parser, styles ) {
 

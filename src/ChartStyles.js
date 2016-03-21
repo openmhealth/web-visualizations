@@ -11,6 +11,12 @@
 
     /**
      * Constructs a new ChartStyles object
+     * @classdesc This class generates and manages chart visual styles. Style information is specified as an array of objects, each with a 'name', array of 'filters' and list of 'attributes' (see [ChartStyles.setStylesForPlot]{@link ChartStyles#setStylesForPlot}).
+     *
+     * Filters are functions that take a datum as a parameter and return a boolean. ChartStyles has an array of useful filters, called 'filters', which can be used in a style object.
+     *
+     * Style information is mapped to a Plottable.Plots.XYPlot using the [ChartStyles.setStylesForPlot]{@link ChartStyles#setStylesForPlot} function [ChartStyles.setStylesForPlot]{@link ChartStyles#setStylesForPlot} and returned by [ChartStyles.getStylesForPlot]{@link ChartStyles#getStylesForPlot}
+     *
      * @param {ChartConfiguration} configuration - The ChartConfiguration object that is being used to configure the Chart
      * @constructor
      * @global
@@ -24,16 +30,36 @@
         };
 
         var filters = {
+            /**
+             * Get a filter that matches the measure
+             * @param {String} measure - The measure to match
+             * @returns {Function} - The filter function that can be added to a filter array in a style
+             * @alias filters.measure
+             * @memberof! ChartStyles#
+             */
             'measure': function ( measure ) {
                 return function ( d ) {
                     return d.measure === measure;
                 };
             },
+            /**
+             * Get a filter that matches points with y values above max
+             * @returns {Function} - The filter function that can be added to a filter array in a style
+             * @alias filters.above
+             * @memberof! ChartStyles#
+             * @param {Number} max - The value, above which the matched points' y values must fall
+             */
             'above': function ( max ) {
                 return function ( d ) {
                     return d.y > max;
                 };
             },
+            /**
+             * Get a filter that matches points with y values above the threshold for their measure, found in the configuration passed in during construction
+             * @returns {Function} - The filter function that can be added to a filter array in a style
+             * @alias filters.aboveThresholdMax
+             * @memberof! ChartStyles#
+             */
             'aboveThresholdMax': function () {
                 return function ( d ) {
                     var thresholds = getPointThresholds( d );
@@ -41,11 +67,24 @@
                     return max ? d.y > max : false;
                 };
             },
+            /**
+             * Get a filter that matches points with y values below min
+             * @returns {Function} - The filter function that can be added to a filter array in a style
+             * @alias filters.below
+             * @memberof! ChartStyles#
+             * @param {Number} min - The value, below which the matched points' y values must fall
+             */
             'below': function ( min ) {
                 return function ( d ) {
                     return d.y < min;
                 };
             },
+            /**
+             * Get a filter that matches points with y values below the threshold for their measure, found in the configuration passed in during construction
+             * @returns {Function} - The filter function that can be added to a filter array in a style
+             * @alias filters.belowThresholdMin
+             * @memberof! ChartStyles#
+             */
             'belowThresholdMin': function () {
                 return function ( d ) {
                     var thresholds = getPointThresholds( d );
@@ -53,6 +92,13 @@
                     return min ? d.y < min : false;
                 };
             },
+            /**
+             * Get a filter that matches the points with an x value that falls prior to the given hour of each day
+             * @returns {Function} - The filter function that can be added to a filter array in a style
+             * @alias filters.dailyBeforeHour
+             * @memberof! ChartStyles#
+             * @param {Number} hour - The hour, below which the matched points' x.getHours() must fall
+             */
             'dailyBeforeHour': function ( hour ) {
                 return function ( d ) {
                     return d.x.getHours() < hour;
@@ -286,6 +332,26 @@
          * Set the styles that should be used for the plot instance
          * @param {Array} styles - The styles to use for the plot
          * @param {Plottable.Plots.XYPlot} plot - The plot that should get the styles
+         * @example
+         * // an array of style information that can be passed in as the style parameter
+         * [
+         *  {
+         *      name: 'red-area',
+         *      filters: [ chartStyles.filters.above(120) ],
+         *      attributes: {
+         *          fill: 'red',
+         *          stroke: 'red'
+         *      }
+         *  },
+         * {
+         *      name: 'orange-area',
+         *      filters: [ chartStyles.filters.above(100), chartStyles.filters.below(120) ],
+         *      attributes: {
+         *          fill: 'orange',
+         *          stroke: 'orange'
+         *      }
+         *  }
+         *  ]
          */
         this.setStylesForPlot = function ( styles, plot ) {
 

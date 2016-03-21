@@ -12,9 +12,20 @@
          * Creates an object that parses omh data into a format usable Plottable.js
          * @param {{}} data - The data to parse now
          * @param {{}} measures - Strings representing the measures to extract from the data
-         * @param {OMHWebVisualizations.ChartConfiguration} configuration - A configuration object containing options for parsing data
+         * @param {ChartConfiguration} configuration - A configuration object containing options for parsing data
          * @constructor
          * @global
+         * @classdesc This class parses Open mHealth data into a format that is usable by d3 and Plottable.js.
+         *
+         * When possible, data is structured to make interactions and rendering easier.
+         *
+         * The following [ChartConfiguration]{@link ChartConfiguration} settings for each measure are used to parse the data:
+         *
+         * valueKeyPath - a dot-delimited string that indicates where in a data point the y value of a point can be found
+         *
+         * timeQuantizationLevel - the granularity of time quantization desired for the data (e.g. [DataParser.QUANTIZE_DAY]{@link DataParser.QUANTIZE_DAY} )
+         *
+         * quantizedDataConsolidationFunction - how to consolidate data points that are quantized to the same moment in time (e.g. [DataParser.consolidators.average]{@link DataParser.consolidators.average} )
          */
         DataParser = function ( data, measures, configuration ) {
 
@@ -334,11 +345,13 @@
          */
         DataParser.consolidators = {};
 
-        /***
-         * DataParser.consolidators.summation
-         * Consolidate by summation
-         * Provenance data for the first point (chronologically) will be preserved
-         * @param data
+        /**
+         * Consolidate points with the same time value by summing them.
+         *
+         * Provenance data for the first point (chronologically) will be preserved. For a given moment in time shared by more than one point, all but one point at that time are removed from the data array, and references to consolidated points are stored in the remaining point as 'consolidatedData' field.
+         * @param {Array} data - The data to consolidate
+         * @alias consolidators.summation
+         * @memberof! DataParser
          */
         DataParser.consolidators.summation = function ( data ) {
             data.sort( function ( a, b ) {
@@ -357,11 +370,13 @@
             }
         };
 
-        /***
-         * DataParser.consolidators.average
-         * Consolidate by averaging
-         * Provenance data for the first point( chronologically ) will be preserved
-         * @param data
+        /**
+         * Consolidate points with the same time value by averaging them.
+         *
+         * Provenance data for the first point( chronologically ) will be preserved. For a given moment in time shared by more than one point, all but one point at that time are removed from the data array, and references to consolidated points are stored in the remaining point as 'consolidatedData' field.
+         * @param {Array} data - The data to consolidate
+         * @alias consolidators.average
+         * @memberof! DataParser
          */
         DataParser.consolidators.average = function ( data ) {
             parent.DataParser.consolidators.summation( data );
