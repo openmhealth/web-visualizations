@@ -192,7 +192,30 @@
                 'seriesName': 'Distance',
                 'chart': {
                     'type': 'clustered_bar',
-                    'daysShownOnTimeline': { 'min': 90, 'max': 365 }
+                    'daysShownOnTimeline': { 'min': 90, 'max': 365 },
+                    'styles': [
+                        {
+                            'name': 'default',
+                            'plotType': 'ClusteredBar',
+                            'attributes': { 'fill': '#e8ac4e' },
+                            'filters': [ function ( d ) {
+                                return d.x.getMonth() == 5;
+                            } ]
+                        }
+                    ]
+                }
+            },
+            'heart_rate': {
+                'chart': {
+                    'styles': [
+                        {
+                            'name': 'blue-lines',
+                            'plotType': 'Line',
+                            'attributes': {
+                                'stroke': '#4a90e2'
+                            }
+                        }
+                    ]
                 }
             },
             'body_weight': {
@@ -338,33 +361,6 @@
         if ( chart.getMeasures().indexOf( 'systolic_blood_pressure' ) > -1 ) {
             addDangerZone();
         }
-        if ( chart.getMeasures().indexOf( 'heart_rate' ) > -1 ) {
-            addBlueLines();
-        }
-
-    };
-
-    var addBlueLines = function () {
-
-        // get the existing styles from the chart so we can alter them
-        var chartStyles = chart.getStyles();
-        var linePlot = chart.getPlots( Plottable.Plots.Line )[ 0 ];
-
-        // initialize new styles with the existing ones
-        var plotStylesWithBlueLines = chartStyles.getStylesForPlot( linePlot );
-
-        // add blue line style
-        plotStylesWithBlueLines.push(
-                {
-                    'name': 'blue-lines',
-                    'attributes': {
-                        'stroke': '#4a90e2'
-                    }
-                }
-        );
-
-        // replace styles for the plot with extended blue-line styles
-        chartStyles.setStylesForPlot( plotStylesWithBlueLines, linePlot );
 
     };
 

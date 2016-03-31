@@ -201,6 +201,10 @@
 
         };
 
+        this.getConfiguredMeasureNames = function(){
+            return Object.keys( mergedSettings.measures );
+        };
+
         /**
          * Get the settings for the measure passed in
          * @param {String} measure - A measure name, such as 'systolic_blood_pressure'

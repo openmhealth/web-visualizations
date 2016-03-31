@@ -162,8 +162,10 @@ If you look carefully at the default settings object, you'll also notice that so
 }
 ```
 
-To override these defaults, edit the default styles, and specify the interface settings in the `options` object passed to `OMHWebVisualization.Chart(...)`.
-If you would like to graph `heart_rate` data with a blue line and no tooltips, for example, you'd use the following settings object to turn off tooltips:
+Additionally, default styles are provided for rendering each measure's plot.
+
+To override the defaults, specify the new interface settings and styles in the `options` object passed to `OMHWebVisualization.Chart(...)`.
+For example, if you would like to graph `heart_rate` data with a blue line and no tooltips, you'd use the following `options` object:
 
 ```javascript
 {
@@ -172,36 +174,22 @@ If you would like to graph `heart_rate` data with a blue line and no tooltips, f
       'enabled': false,
      }
   },
+  'measures': {
+      'heart_rate': {
+          'chart': {
+              'styles': [
+                  {
+                      'name': 'blue-lines',
+                      'plotType': 'Line',
+                      'attributes': {
+                          'stroke': '#4a90e2'
+                      }
+                  }
+              ]
+          }
+      }
+  }
 }
-```
-
-And the following code would change the line color:
-```javascript
-
-// ...initialize the chart here...
-
-// get the existing styles from the chart so we can alter them
-var chartStyles = chart.getStyles();
-var linePlot = chart.getPlots( Plottable.Plots.Line )[ 0 ];
-
-// initialize new styles with the existing ones
-var plotStylesWithBlueLines = chartStyles.getStylesForPlot( linePlot );
-
-// add blue line style
-plotStylesWithBlueLines.push(
-        {
-            'name': 'blue-lines',
-            'attributes': {
-                'stroke': '#4a90e2'
-            }
-        }
-);
-
-// replace styles for the plot with extended blue-line styles
-chartStyles.setStylesForPlot( plotStylesWithBlueLines, linePlot );
-
-// ...render the chart here...
-
 ```
 This will produce a chart that looks something like the following screenshot:
 

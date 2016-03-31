@@ -93,7 +93,7 @@
                     return d.y;
                 }, yScale );
 
-            styles.setStylesForPlot( styles.getDefaultStylesForPlot( scatterPlot ), scatterPlot );
+            styles.setStylesForPlot( styles.getConfiguredDefaultStylesForPlot( scatterPlot ), scatterPlot );
 
             //prepare for clustered bars
             var clusteredBarPlots = [];
@@ -217,7 +217,7 @@
                             return d.y;
                         }, barYScale );
 
-                    styles.setStylesForPlot( styles.getDefaultStylesForPlot( clusteredBarPlot ), clusteredBarPlot );
+                    styles.setStylesForPlot( styles.getConfiguredDefaultStylesForPlot( clusteredBarPlot ), clusteredBarPlot );
 
                     clusteredBarPlots.push( clusteredBarPlot );
 
@@ -256,7 +256,7 @@
                             return d.y;
                         }, yScale );
 
-                    styles.setStylesForPlot( styles.getDefaultStylesForPlot( linePlot ), linePlot );
+                    styles.setStylesForPlot( styles.getConfiguredDefaultStylesForPlot( linePlot ), linePlot );
 
                     //add data
                     linePlot.addDataset( dataset );

@@ -1,3 +1,521 @@
+/***
+ * Copyright 2015 Open mHealth
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+( function ( root, factory ) {
+
+    var parentName = 'OMHWebVisualizations';
+    root[ parentName ] = factory( root, parentName );
+
+}( this, function ( root, parentName ) {
+
+        var parent = root.hasOwnProperty( parentName ) ? root[ parentName ] : {};
+
+        var Chart;
+
+        /**
+         *  Construct a new Chart object
+         *  @param {{}} data - The Open mHealth formatted data to build a chart for
+         *  @param {{}} element - The DOM element that contains an SVG element for the chart
+         *  @param {String} measureList - The comma-delimited list of measures to search for in the data
+         *  @param {{}} options - The optional settings used to configure the function and appearance of the chart
+         *  @global
+         *  @constructor
+         *  @classdesc This is the main class used to chart Open mHealth data. At construction time, data is parsed and Plottable.js components are used to build the chart. [Chart.renderTo]{@link Chart#renderTo} can then be called to render the chart in the browser.
+         */
+        Chart = function ( data, element, measureList, options ) {
+
+            var selection;
+            var measures = measureList.split( /\s*,\s*/ );
+            var table = null;
+            var configuration = new OMHWebVisualizations.ChartConfiguration( options );
+            var parser = new OMHWebVisualizations.DataParser( data, measures, configuration );
+            var styles = new OMHWebVisualizations.ChartStyles( configuration );
+            var interactions = new OMHWebVisualizations.ChartInteractions( element, measures[ 0 ], configuration, parser, styles );
+            this.initialized = false;
+
+            // if the element passed in is a jQuery element, then get the dom element
+            if ( typeof jQuery === 'function' && element instanceof jQuery ) {
+                element = element[ 0 ];
+            }
+            //check if the element passed in is a d3 selection
+            if ( !element.node ) {
+                element = d3.select( element );
+            }
+            if ( !options ) {
+                options = {};
+            }
+
+            element.classed( 'omh-chart-container', true );
+
+            // set up axes
+            var xScale = new Plottable.Scales.Time();
+            var yScale = new Plottable.Scales.Linear();
+            var yScaleCallback = null;
+            var domain = configuration.getMeasureSettings( measures[ 0 ] ).range;
+            if ( domain ) {
+                yScale.domainMin( domain.min ).domainMax( domain.max );
+            }
+
+            var xAxis = new Plottable.Axes.Time( xScale, 'bottom' )
+                .margin( 15 )
+                .addClass( 'x-axis' );
+
+            var yAxis = new Plottable.Axes.Numeric( yScale, 'left' );
+
+            var yLabel = new Plottable.Components.AxisLabel( configuration.getMeasureSettings( measures[ 0 ] ).units, '0' )
+                .padding( 5 )
+                .xAlignment( 'right' )
+                .yAlignment( 'top' );
+
+
+            //create a plot with hover states for each data set
+            var plots = [];
+
+            //set up points
+            var scatterPlot = new Plottable.Plots.Scatter()
+                .x( function ( d ) {
+                    return d.x;
+                }, xScale )
+                .y( function ( d ) {
+                    return d.y;
+                }, yScale );
+
+            styles.setStylesForPlot( styles.getConfiguredDefaultStylesForPlot( scatterPlot ), scatterPlot );
+
+            //prepare for clustered bars
+            var clusteredBarPlots = [];
+            var clusteredBarPlotCount = 0;
+            var secondaryYAxes = [];
+            d3.entries( parser.getAllMeasureData() ).forEach( function ( entry ) {
+                var measure = entry.key;
+                if ( configuration.getMeasureSettings( measure ).chart.type === 'clustered_bar' ) {
+                    clusteredBarPlotCount++;
+                }
+            } );
+
+
+            // If there are thresholds for any of the measures, add them as gridlines
+            var gridlineValues = [];
+            var gridlines;
+            var gridlineYAxis;
+
+            var addGridlineValues = function ( thresholds ) {
+
+                if ( thresholds.max ) {
+                    gridlineValues.push( thresholds.max );
+                }
+                if ( thresholds.min ) {
+                    gridlineValues.push( thresholds.min );
+                }
+
+            };
+
+            if ( configuration.getInterfaceSettings().thresholds.show !== false ) {
+
+                measures.forEach( function ( measure ) {
+
+                    var thresholds = configuration.getMeasureSettings( measure ).thresholds;
+
+                    if ( thresholds ) {
+                        addGridlineValues( thresholds );
+                    }
+
+                } );
+
+                if ( gridlineValues.length > 0 ) {
+
+                    gridlineValues.sort( function ( a, b ) {
+                        return a - b;
+                    } );
+
+                    var gridlineYScale = new Plottable.Scales.Linear();
+                    gridlineYScale.domain( yScale.domain() );
+                    gridlineYScale.range( yScale.range() );
+                    yScaleCallback = function ( updatedScale ) {
+                        gridlineYScale.domain( updatedScale.domain() );
+                        gridlineYScale.range( updatedScale.range() );
+                    };
+                    yScale.onUpdate( yScaleCallback );
+                    var yScaleTickGenerator = function ( scale ) {
+                        var ticks = gridlineValues;
+                        return ticks;
+                    };
+                    gridlineYScale.tickGenerator( yScaleTickGenerator );
+
+                    gridlineYAxis = new Plottable.Axes.Numeric( gridlineYScale, "right" )
+                        .tickLabelPosition( "top" )
+                        .tickLabelPadding( 1 )
+                        .showEndTickLabels( true )
+                        .addClass( 'gridlines-axis' );
+
+                    gridlines = new Plottable.Components.Gridlines( null, gridlineYScale );
+
+                    plots.push( gridlines );
+                    plots.push( gridlineYAxis );
+
+                }
+
+            }
+
+            //iterate across the measures and add plots
+            measures.forEach( function ( measure ) {
+
+                if ( !parser.hasMeasureData( measure ) ) {
+                    return;
+                }
+
+                var data = parser.getMeasureData( measure );
+
+                var dataset = new Plottable.Dataset( data );
+                var measureSettings = configuration.getMeasureSettings( measure );
+
+                dataset.measure = measure;
+
+                if ( measureSettings.chart.type === 'clustered_bar' ) {
+
+                    //because datasets cannot have different scales in the clustered bars
+                    //multiple plots are added, each with all but one dataset zeroed out,
+                    //and each with a different scale and its own y axis
+
+                    var barYScale = yScale;
+                    if ( clusteredBarPlots.length > 0 ) {
+                        var domain = measureSettings.range;
+                        var units = measureSettings.units;
+                        barYScale = new Plottable.Scales.Linear()
+                            .domainMin( domain.min ).domainMax( domain.max );
+                        var barYAxis = new Plottable.Axes.Numeric( barYScale, 'right' );
+                        var barYLabel = new Plottable.Components.AxisLabel( units, '0' )
+                            .padding( 5 )
+                            .xAlignment( 'left' )
+                            .yAlignment( 'top' );
+                        secondaryYAxes.push( {
+                            'measure': measure,
+                            'axis': barYAxis,
+                            'label': barYLabel,
+                            'scale': barYScale
+                        } );
+                    }
+
+                    var clusteredBarPlot = new Plottable.Plots.ClusteredBar()
+                        .x( function ( d ) {
+                            return d.x;
+                        }, xScale )
+                        .y( function ( d ) {
+                            return d.y;
+                        }, barYScale );
+
+                    styles.setStylesForPlot( styles.getConfiguredDefaultStylesForPlot( clusteredBarPlot ), clusteredBarPlot );
+
+                    clusteredBarPlots.push( clusteredBarPlot );
+
+                    for ( var i = 0; i < clusteredBarPlotCount; i++ ) {
+
+                        //add blank data for all but one of the datasets
+                        if ( i === clusteredBarPlots.length - 1 ) {
+                            clusteredBarPlot.addDataset( dataset );
+                        } else {
+                            clusteredBarPlot.addDataset( new Plottable.Dataset( [] ) );
+                        }
+
+                    }
+
+                    //prevent time axis from showing detail past the day level
+                    var axisConfigs = xAxis.axisConfigurations();
+                    var filteredAxisConfigs = [];
+                    axisConfigs.forEach( function ( config ) {
+                        if ( config[ 0 ].interval === 'day' || config[ 0 ].interval === 'month' || config[ 0 ].interval === 'year' ) {
+                            filteredAxisConfigs.push( config );
+                        }
+                    } );
+                    xAxis.axisConfigurations( filteredAxisConfigs );
+
+                    clusteredBarPlot.addClass( 'clustered-bar-plot-' + measure );
+                    plots.push( clusteredBarPlot );
+
+                } else {
+
+                    //set up lines that connect the dots
+                    var linePlot = new Plottable.Plots.Line()
+                        .x( function ( d ) {
+                            return d.x;
+                        }, xScale )
+                        .y( function ( d ) {
+                            return d.y;
+                        }, yScale );
+
+                    styles.setStylesForPlot( styles.getConfiguredDefaultStylesForPlot( linePlot ), linePlot );
+
+                    //add data
+                    linePlot.addDataset( dataset );
+                    scatterPlot.addDataset( dataset );
+
+                    //prepare for plot group
+                    linePlot.addClass( 'line-plot-' + measure );
+                    plots.push( linePlot );
+
+                }
+
+            } );
+
+            // scatter plot is always added regardless of chart type
+            // because Pointer interactions are attached to it
+            scatterPlot.addClass( 'point-plot' );
+            plots.push( scatterPlot );
+
+            var colorScale = null;
+            var legend = null;
+            if ( configuration.getInterfaceSettings().legend ) {
+                //add legend
+                colorScale = new Plottable.Scales.Color();
+                legend = new Plottable.Components.Legend( colorScale );
+                var names = [];
+                var colors = [];
+                d3.entries( parser.getAllMeasureData() ).forEach( function ( entry ) {
+                    var measure = entry.key;
+                    var measureSettings = configuration.getMeasureSettings( measure );
+                    var name = measureSettings.seriesName;
+                    var type = measureSettings.chart.type;
+
+                    // The color to plot depends on the type of chart
+                    var color;
+                    switch ( type ) {
+                        case 'clustered_bar':
+                            color = measureSettings.chart.barColor;
+                            break;
+                        default:
+                            color = measureSettings.chart.pointFillColor;
+                            break;
+                    }
+
+                    if ( name && color ) {
+                        names.push( name );
+                        colors.push( color );
+                    }
+                } );
+                colorScale.domain( names );
+                colorScale.range( colors );
+                legend.maxEntriesPerRow( 2 );
+                legend.symbol( Plottable.SymbolFactories.square );
+                legend.xAlignment( "right" );
+                legend.yAlignment( "top" );
+                plots.push( legend );
+            }
+
+
+            //build table
+            var xAxisVisible = configuration.getInterfaceSettings().axes.xAxis.visible;
+            var yAxisVisible = configuration.getInterfaceSettings().axes.yAxis.visible;
+            var plotGroup = new Plottable.Components.Group( plots );
+            var yAxisGroup = yAxisVisible ? new Plottable.Components.Group( [ yAxis, yLabel ] ) : null;
+            var topRow = [ yAxisGroup, plotGroup ];
+            var bottomRow = [ null, xAxisVisible ? xAxis : null ];
+            if ( yAxisVisible ) {
+                secondaryYAxes.forEach( function ( axisComponents ) {
+                    topRow.push( new Plottable.Components.Group( [ axisComponents.axis, axisComponents.label ] ) );
+                    bottomRow.push( null );
+                } );
+            }
+            table = new Plottable.Components.Table( [
+                topRow,
+                bottomRow
+            ] );
+            table.yAlignment( 'bottom' );
+
+            interactions.addToComponents( {
+                'plots': plots,
+                'plotGroup': plotGroup,
+                'table': table,
+                'xScale': xScale,
+                'xAxis': xAxis
+            } );
+
+            /**
+             *  Destroy the resources used to render this chart
+             */
+            this.destroy = function () {
+                interactions.destroy();
+                table && table.destroy();
+                yScaleCallback && yScale.offUpdate( yScaleCallback );
+            };
+
+            /**
+             * Get the Plottable.js chart components
+             * @returns {{}}
+             */
+            this.getComponents = function () {
+
+                if ( !this.initialized ) {
+                    return {};
+                }
+
+                //init the axes, scales, and labels objects with the default measure components
+                var yScales = {};
+                yScales[ measures[ 0 ] ] = yScale;
+                var yAxes = {};
+                yAxes[ measures[ 0 ] ] = yAxis;
+                var yLabels = {};
+                yLabels[ measures[ 0 ] ] = yLabel;
+                var xScales = {};
+                xScales[ measures[ 0 ] ] = xScale;
+                var xAxes = {};
+                xAxes[ measures[ 0 ] ] = xAxis;
+                var colorScales = {};
+                colorScales[ measures[ 0 ] ] = colorScale;
+
+                //populate the axes, scales, and labels objects with the secondary measure components
+                secondaryYAxes.forEach( function ( axisComponents ) {
+                    yScales[ axisComponents.measure ] = axisComponents.scale;
+                    yAxes[ axisComponents.measure ] = axisComponents.axis;
+                    yLabels[ axisComponents.measure ] = axisComponents.label;
+                } );
+
+                return {
+                    'xScales': xScales,
+                    'yScales': yScales,
+                    'colorScales': colorScales,
+                    'gridlines': {
+                        'gridlines': gridlines,
+                        'yAxis': gridlineYAxis,
+                        'values': gridlineValues
+                    },
+                    'legends': [ legend ],
+                    'xAxes': xAxes,
+                    'yAxes': yAxes,
+                    'plots': plots,
+                    'yLabels': yLabels,
+                    'table': table,
+                    'tooltip': interactions.getTooltip(),
+                    'toolbar': interactions.getToolbar(),
+                    'panZoomInteractions': {
+                        'plotGroup': interactions.getPanZoomInteraction(),
+                        'xAxis': interactions.getpanZoomInteractionXAxis()
+                    }
+                };
+
+            };
+
+            /**
+             * Get the plots that are shown in this chart as Plottable.js components
+             * @param {Plottable.Plots.XYPlot} plotClass - Optional parameter gets only plots of the type, eg Plottable.Plots.Scatter
+             * @returns {Array}
+             */
+            this.getPlots = function ( plotClass ) {
+                if ( plotClass ) {
+                    return plots.filter( function ( plot ) {
+                        return plot instanceof plotClass;
+                    } );
+                } else {
+                    return plots;
+                }
+            };
+
+            /**
+             * Add a gridline to the chart at the value
+             * @param {number} value - The location on the y axis of the gridline
+             */
+            this.addGridline = function ( value ) {
+                gridlineValues.push( value );
+            };
+
+            /**
+             * Get the measures that this chart can show
+             * @returns {Array}
+             */
+            this.getMeasures = function () {
+                return measures;
+            };
+
+            /**
+             * Get styles used to render the plots
+             * @returns {ChartStyles}
+             */
+            this.getStyles = function () {
+                return styles;
+            };
+
+            /**
+             * Get the interactions used to present the plots
+             * @returns {ChartInteractions}
+             */
+            this.getInteractions = function () {
+                return interactions;
+            };
+            /**
+             * Get the configuration used to render the plots
+             * @returns {ChartConfiguration}
+             */
+            this.getConfiguration = function () {
+                return configuration;
+            };
+            /**
+             * Get the parser used to process the data
+             * @returns {DataParser}
+             */
+            this.getParser = function () {
+                return parser;
+            };
+
+            /**
+             * Get the D3 selection that this chart is rendered to
+             * @returns {d3.Selection}
+             */
+            this.getD3Selection = function () {
+                return selection;
+            };
+
+            /**
+             * Render the chart to the SVG DOM element
+             * @param {Object} svgElement - The SVG DOM element that will contain the chart elements
+             */
+            this.renderTo = function ( svgElement ) {
+
+                if ( !this.initialized ) {
+                    console.log( "Warning: chart could not be rendered because it was not successfully initialized." );
+                    return;
+                }
+
+                //invoke the tip in the context of the chart
+                selection = d3.select( svgElement );
+
+                //add interactions
+                interactions.addToSelection( selection );
+
+                //render the table
+                table.renderTo( selection );
+
+                //add any needed styles to the selection
+                styles.addToSelection( selection );
+
+                //add tooltips to rendered point plot entities
+                interactions.addTooltipsToEntities( scatterPlot.entities() );
+
+            };
+
+            this.initialized = true;
+
+        };
+
+        parent.Chart = Chart;
+
+        return parent;
+
+    }
+) );
+
+
 ( function ( root, factory ) {
 
     var parentName = 'OMHWebVisualizations';
@@ -199,6 +717,10 @@
                 mergedSettings.measures[ measure ] = parent.Utils.mergeObjects( genericMeasureDefaults, mergedSettings.measures[ measure ] );
             } );
 
+        };
+
+        this.getConfiguredMeasureNames = function(){
+            return Object.keys( mergedSettings.measures );
         };
 
         /**
@@ -1057,6 +1579,62 @@
         };
 
         /**
+         * Get the style specified in the configuration passed in at construction
+         * Filters that match the measures containing each style are added to the returned styles
+         * @param {Plottable.Plots.XYPlot} plot - The plot that the styles are for
+         * @returns {Array} - The styles in the configuration that apply to the type of plot passed in
+         */
+        this.getConfiguredStylesForPlot = function( plot ){
+
+            var measures = configuration.getConfiguredMeasureNames();
+            var styles = [];
+
+            measures.forEach( function( measure ){
+
+                var measureSettings = configuration.getMeasureSettings( measure );
+
+                if ( measureSettings.chart && measureSettings.chart.styles ){
+                    var measureStyles = measureSettings.chart.styles;
+                    measureStyles.forEach( function( style ){
+
+                        if( style.plotType === plot.constructor.name ){
+
+                            // add a filter to the returned style that matches the measure
+                            var measureFilter = function( d ){ return d.measure === measure; };
+                            var newStyle = { name:style.name, filters:[ measureFilter ], attributes:style.attributes };
+
+                            // add the filters that are specified in the config. order may not be preserved, but that is ok
+                            // because all filters must match for the style to be used on a datum
+                            if ( style.filters ){
+                                style.filters.forEach( function( filter ){
+                                    newStyle.filters.push( filter );
+                                });
+                            }
+
+                            styles.push( newStyle );
+
+                        }
+                    });
+                }
+
+            });
+
+            return styles;
+
+        };
+
+        /**
+         * Get the combined default and configured styles for a given plot. Configured styles take priority over defaults
+         * @param {Plottable.Plots.XYPlot} plot - The plot for which styles will be returned
+         * @returns {Array} - The combined styles
+         */
+        this.getConfiguredDefaultStylesForPlot = function( plot ){
+            var defaultStyles = this.getDefaultStylesForPlot( plot );
+            var configuredStyles = this.getConfiguredStylesForPlot( plot );
+            return defaultStyles.concat( configuredStyles );
+        };
+
+        /**
          * Check if the datum meets the conditions of all filters in the array
          * @param {Array} filters - The array of filters to check against.
          * @param {{}} d - The datum to check against the filters
@@ -1173,16 +1751,18 @@
 
         /**
          * Returns the styles that have been set for the particular plot instance passed in
-         * If the returned styles are edited, they must be passed to setStylesForPlot() to affect the chart
+         * If the returned styles are subsequently edited, they must be passed to setStylesForPlot() to affect the chart
          * @param {Plottable.Plots.XYPlot} plot - Get the styles associated with this plot instance
-         * @returns {{}} - The styles for the plot specified in the plot parameter
+         * @returns {Array} - The styles for the plot specified in the plot parameter
          */
         this.getStylesForPlot = function ( plot ) {
+
             for ( var i in plotStyles ) {
                 if ( plotStyles[ i ].plot === plot ) {
                     return plotStyles[ i ].styles;
                 }
             }
+
         };
 
         /**
@@ -1313,7 +1893,6 @@
             }
 
         };
-
     };
 
     /**
@@ -1351,524 +1930,6 @@
     return parent;
 
 } ) );
-
-/***
- * Copyright 2015 Open mHealth
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-( function ( root, factory ) {
-
-    var parentName = 'OMHWebVisualizations';
-    root[ parentName ] = factory( root, parentName );
-
-}( this, function ( root, parentName ) {
-
-        var parent = root.hasOwnProperty( parentName ) ? root[ parentName ] : {};
-
-        var Chart;
-
-        /**
-         *  Construct a new Chart object
-         *  @param {{}} data - The Open mHealth formatted data to build a chart for
-         *  @param {{}} element - The DOM element that contains an SVG element for the chart
-         *  @param {String} measureList - The comma-delimited list of measures to search for in the data
-         *  @param {{}} options - The optional settings used to configure the function and appearance of the chart
-         *  @global
-         *  @constructor
-         *  @classdesc This is the main class used to chart Open mHealth data. At construction time, data is parsed and Plottable.js components are used to build the chart. [Chart.renderTo]{@link Chart#renderTo} can then be called to render the chart in the browser.
-         */
-        Chart = function ( data, element, measureList, options ) {
-
-            var selection;
-            var measures = measureList.split( /\s*,\s*/ );
-            var table = null;
-            var configuration = new OMHWebVisualizations.ChartConfiguration( options );
-            var parser = new OMHWebVisualizations.DataParser( data, measures, configuration );
-            var styles = new OMHWebVisualizations.ChartStyles( configuration );
-            var interactions = new OMHWebVisualizations.ChartInteractions( element, measures[ 0 ], configuration, parser, styles );
-            this.initialized = false;
-
-            // if the element passed in is a jQuery element, then get the dom element
-            if ( typeof jQuery === 'function' && element instanceof jQuery ) {
-                element = element[ 0 ];
-            }
-            //check if the element passed in is a d3 selection
-            if ( !element.node ) {
-                element = d3.select( element );
-            }
-            if ( !options ) {
-                options = {};
-            }
-
-            element.classed( 'omh-chart-container', true );
-
-            // set up axes
-            var xScale = new Plottable.Scales.Time();
-            var yScale = new Plottable.Scales.Linear();
-            var yScaleCallback = null;
-            var domain = configuration.getMeasureSettings( measures[ 0 ] ).range;
-            if ( domain ) {
-                yScale.domainMin( domain.min ).domainMax( domain.max );
-            }
-
-            var xAxis = new Plottable.Axes.Time( xScale, 'bottom' )
-                .margin( 15 )
-                .addClass( 'x-axis' );
-
-            var yAxis = new Plottable.Axes.Numeric( yScale, 'left' );
-
-            var yLabel = new Plottable.Components.AxisLabel( configuration.getMeasureSettings( measures[ 0 ] ).units, '0' )
-                .padding( 5 )
-                .xAlignment( 'right' )
-                .yAlignment( 'top' );
-
-
-            //create a plot with hover states for each data set
-            var plots = [];
-
-            //set up points
-            var scatterPlot = new Plottable.Plots.Scatter()
-                .x( function ( d ) {
-                    return d.x;
-                }, xScale )
-                .y( function ( d ) {
-                    return d.y;
-                }, yScale );
-
-            styles.setStylesForPlot( styles.getDefaultStylesForPlot( scatterPlot ), scatterPlot );
-
-            //prepare for clustered bars
-            var clusteredBarPlots = [];
-            var clusteredBarPlotCount = 0;
-            var secondaryYAxes = [];
-            d3.entries( parser.getAllMeasureData() ).forEach( function ( entry ) {
-                var measure = entry.key;
-                if ( configuration.getMeasureSettings( measure ).chart.type === 'clustered_bar' ) {
-                    clusteredBarPlotCount++;
-                }
-            } );
-
-
-            // If there are thresholds for any of the measures, add them as gridlines
-            var gridlineValues = [];
-            var gridlines;
-            var gridlineYAxis;
-
-            var addGridlineValues = function ( thresholds ) {
-
-                if ( thresholds.max ) {
-                    gridlineValues.push( thresholds.max );
-                }
-                if ( thresholds.min ) {
-                    gridlineValues.push( thresholds.min );
-                }
-
-            };
-
-            if ( configuration.getInterfaceSettings().thresholds.show !== false ) {
-
-                measures.forEach( function ( measure ) {
-
-                    var thresholds = configuration.getMeasureSettings( measure ).thresholds;
-
-                    if ( thresholds ) {
-                        addGridlineValues( thresholds );
-                    }
-
-                } );
-
-                if ( gridlineValues.length > 0 ) {
-
-                    gridlineValues.sort( function ( a, b ) {
-                        return a - b;
-                    } );
-
-                    var gridlineYScale = new Plottable.Scales.Linear();
-                    gridlineYScale.domain( yScale.domain() );
-                    gridlineYScale.range( yScale.range() );
-                    yScaleCallback = function ( updatedScale ) {
-                        gridlineYScale.domain( updatedScale.domain() );
-                        gridlineYScale.range( updatedScale.range() );
-                    };
-                    yScale.onUpdate( yScaleCallback );
-                    var yScaleTickGenerator = function ( scale ) {
-                        var ticks = gridlineValues;
-                        return ticks;
-                    };
-                    gridlineYScale.tickGenerator( yScaleTickGenerator );
-
-                    gridlineYAxis = new Plottable.Axes.Numeric( gridlineYScale, "right" )
-                        .tickLabelPosition( "top" )
-                        .tickLabelPadding( 1 )
-                        .showEndTickLabels( true )
-                        .addClass( 'gridlines-axis' );
-
-                    gridlines = new Plottable.Components.Gridlines( null, gridlineYScale );
-
-                    plots.push( gridlines );
-                    plots.push( gridlineYAxis );
-
-                }
-
-            }
-
-            //iterate across the measures and add plots
-            measures.forEach( function ( measure ) {
-
-                if ( !parser.hasMeasureData( measure ) ) {
-                    return;
-                }
-
-                var data = parser.getMeasureData( measure );
-
-                var dataset = new Plottable.Dataset( data );
-                var measureSettings = configuration.getMeasureSettings( measure );
-
-                dataset.measure = measure;
-
-                if ( measureSettings.chart.type === 'clustered_bar' ) {
-
-                    //because datasets cannot have different scales in the clustered bars
-                    //multiple plots are added, each with all but one dataset zeroed out,
-                    //and each with a different scale and its own y axis
-
-                    var barYScale = yScale;
-                    if ( clusteredBarPlots.length > 0 ) {
-                        var domain = measureSettings.range;
-                        var units = measureSettings.units;
-                        barYScale = new Plottable.Scales.Linear()
-                            .domainMin( domain.min ).domainMax( domain.max );
-                        var barYAxis = new Plottable.Axes.Numeric( barYScale, 'right' );
-                        var barYLabel = new Plottable.Components.AxisLabel( units, '0' )
-                            .padding( 5 )
-                            .xAlignment( 'left' )
-                            .yAlignment( 'top' );
-                        secondaryYAxes.push( {
-                            'measure': measure,
-                            'axis': barYAxis,
-                            'label': barYLabel,
-                            'scale': barYScale
-                        } );
-                    }
-
-                    var clusteredBarPlot = new Plottable.Plots.ClusteredBar()
-                        .x( function ( d ) {
-                            return d.x;
-                        }, xScale )
-                        .y( function ( d ) {
-                            return d.y;
-                        }, barYScale );
-
-                    styles.setStylesForPlot( styles.getDefaultStylesForPlot( clusteredBarPlot ), clusteredBarPlot );
-
-                    clusteredBarPlots.push( clusteredBarPlot );
-
-                    for ( var i = 0; i < clusteredBarPlotCount; i++ ) {
-
-                        //add blank data for all but one of the datasets
-                        if ( i === clusteredBarPlots.length - 1 ) {
-                            clusteredBarPlot.addDataset( dataset );
-                        } else {
-                            clusteredBarPlot.addDataset( new Plottable.Dataset( [] ) );
-                        }
-
-                    }
-
-                    //prevent time axis from showing detail past the day level
-                    var axisConfigs = xAxis.axisConfigurations();
-                    var filteredAxisConfigs = [];
-                    axisConfigs.forEach( function ( config ) {
-                        if ( config[ 0 ].interval === 'day' || config[ 0 ].interval === 'month' || config[ 0 ].interval === 'year' ) {
-                            filteredAxisConfigs.push( config );
-                        }
-                    } );
-                    xAxis.axisConfigurations( filteredAxisConfigs );
-
-                    clusteredBarPlot.addClass( 'clustered-bar-plot-' + measure );
-                    plots.push( clusteredBarPlot );
-
-                } else {
-
-                    //set up lines that connect the dots
-                    var linePlot = new Plottable.Plots.Line()
-                        .x( function ( d ) {
-                            return d.x;
-                        }, xScale )
-                        .y( function ( d ) {
-                            return d.y;
-                        }, yScale );
-
-                    styles.setStylesForPlot( styles.getDefaultStylesForPlot( linePlot ), linePlot );
-
-                    //add data
-                    linePlot.addDataset( dataset );
-                    scatterPlot.addDataset( dataset );
-
-                    //prepare for plot group
-                    linePlot.addClass( 'line-plot-' + measure );
-                    plots.push( linePlot );
-
-                }
-
-            } );
-
-            // scatter plot is always added regardless of chart type
-            // because Pointer interactions are attached to it
-            scatterPlot.addClass( 'point-plot' );
-            plots.push( scatterPlot );
-
-            var colorScale = null;
-            var legend = null;
-            if ( configuration.getInterfaceSettings().legend ) {
-                //add legend
-                colorScale = new Plottable.Scales.Color();
-                legend = new Plottable.Components.Legend( colorScale );
-                var names = [];
-                var colors = [];
-                d3.entries( parser.getAllMeasureData() ).forEach( function ( entry ) {
-                    var measure = entry.key;
-                    var measureSettings = configuration.getMeasureSettings( measure );
-                    var name = measureSettings.seriesName;
-                    var type = measureSettings.chart.type;
-
-                    // The color to plot depends on the type of chart
-                    var color;
-                    switch ( type ) {
-                        case 'clustered_bar':
-                            color = measureSettings.chart.barColor;
-                            break;
-                        default:
-                            color = measureSettings.chart.pointFillColor;
-                            break;
-                    }
-
-                    if ( name && color ) {
-                        names.push( name );
-                        colors.push( color );
-                    }
-                } );
-                colorScale.domain( names );
-                colorScale.range( colors );
-                legend.maxEntriesPerRow( 2 );
-                legend.symbol( Plottable.SymbolFactories.square );
-                legend.xAlignment( "right" );
-                legend.yAlignment( "top" );
-                plots.push( legend );
-            }
-
-
-            //build table
-            var xAxisVisible = configuration.getInterfaceSettings().axes.xAxis.visible;
-            var yAxisVisible = configuration.getInterfaceSettings().axes.yAxis.visible;
-            var plotGroup = new Plottable.Components.Group( plots );
-            var yAxisGroup = yAxisVisible ? new Plottable.Components.Group( [ yAxis, yLabel ] ) : null;
-            var topRow = [ yAxisGroup, plotGroup ];
-            var bottomRow = [ null, xAxisVisible ? xAxis : null ];
-            if ( yAxisVisible ) {
-                secondaryYAxes.forEach( function ( axisComponents ) {
-                    topRow.push( new Plottable.Components.Group( [ axisComponents.axis, axisComponents.label ] ) );
-                    bottomRow.push( null );
-                } );
-            }
-            table = new Plottable.Components.Table( [
-                topRow,
-                bottomRow
-            ] );
-            table.yAlignment( 'bottom' );
-
-            interactions.addToComponents( {
-                'plots': plots,
-                'plotGroup': plotGroup,
-                'table': table,
-                'xScale': xScale,
-                'xAxis': xAxis
-            } );
-
-            /**
-             *  Destroy the resources used to render this chart
-             */
-            this.destroy = function () {
-                interactions.destroy();
-                table && table.destroy();
-                yScaleCallback && yScale.offUpdate( yScaleCallback );
-            };
-
-            /**
-             * Get the Plottable.js chart components
-             * @returns {{}}
-             */
-            this.getComponents = function () {
-
-                if ( !this.initialized ) {
-                    return {};
-                }
-
-                //init the axes, scales, and labels objects with the default measure components
-                var yScales = {};
-                yScales[ measures[ 0 ] ] = yScale;
-                var yAxes = {};
-                yAxes[ measures[ 0 ] ] = yAxis;
-                var yLabels = {};
-                yLabels[ measures[ 0 ] ] = yLabel;
-                var xScales = {};
-                xScales[ measures[ 0 ] ] = xScale;
-                var xAxes = {};
-                xAxes[ measures[ 0 ] ] = xAxis;
-                var colorScales = {};
-                colorScales[ measures[ 0 ] ] = colorScale;
-
-                //populate the axes, scales, and labels objects with the secondary measure components
-                secondaryYAxes.forEach( function ( axisComponents ) {
-                    yScales[ axisComponents.measure ] = axisComponents.scale;
-                    yAxes[ axisComponents.measure ] = axisComponents.axis;
-                    yLabels[ axisComponents.measure ] = axisComponents.label;
-                } );
-
-                return {
-                    'xScales': xScales,
-                    'yScales': yScales,
-                    'colorScales': colorScales,
-                    'gridlines': {
-                        'gridlines': gridlines,
-                        'yAxis': gridlineYAxis,
-                        'values': gridlineValues
-                    },
-                    'legends': [ legend ],
-                    'xAxes': xAxes,
-                    'yAxes': yAxes,
-                    'plots': plots,
-                    'yLabels': yLabels,
-                    'table': table,
-                    'tooltip': interactions.getTooltip(),
-                    'toolbar': interactions.getToolbar(),
-                    'panZoomInteractions': {
-                        'plotGroup': interactions.getPanZoomInteraction(),
-                        'xAxis': interactions.getpanZoomInteractionXAxis()
-                    }
-                };
-
-            };
-
-            /**
-             * Get the plots that are shown in this chart as Plottable.js components
-             * @param {Plottable.Plots.XYPlot} plotClass - Optional parameter gets only plots of the type, eg Plottable.Plots.Scatter
-             * @returns {Array}
-             */
-            this.getPlots = function ( plotClass ) {
-                if ( plotClass ) {
-                    return plots.filter( function ( plot ) {
-                        return plot instanceof plotClass;
-                    } );
-                } else {
-                    return plots;
-                }
-            };
-
-            /**
-             * Add a gridline to the chart at the value
-             * @param {number} value - The location on the y axis of the gridline
-             */
-            this.addGridline = function ( value ) {
-                gridlineValues.push( value );
-            };
-
-            /**
-             * Get the measures that this chart can show
-             * @returns {Array}
-             */
-            this.getMeasures = function () {
-                return measures;
-            };
-
-            /**
-             * Get styles used to render the plots
-             * @returns {ChartStyles}
-             */
-            this.getStyles = function () {
-                return styles;
-            };
-
-            /**
-             * Get the interactions used to present the plots
-             * @returns {ChartInteractions}
-             */
-            this.getInteractions = function () {
-                return interactions;
-            };
-            /**
-             * Get the configuration used to render the plots
-             * @returns {ChartConfiguration}
-             */
-            this.getConfiguration = function () {
-                return configuration;
-            };
-            /**
-             * Get the parser used to process the data
-             * @returns {DataParser}
-             */
-            this.getParser = function () {
-                return parser;
-            };
-
-            /**
-             * Get the D3 selection that this chart is rendered to
-             * @returns {d3.Selection}
-             */
-            this.getD3Selection = function () {
-                return selection;
-            };
-
-            /**
-             * Render the chart to the SVG DOM element
-             * @param {Object} svgElement - The SVG DOM element that will contain the chart elements
-             */
-            this.renderTo = function ( svgElement ) {
-
-                if ( !this.initialized ) {
-                    console.log( "Warning: chart could not be rendered because it was not successfully initialized." );
-                    return;
-                }
-
-                //invoke the tip in the context of the chart
-                selection = d3.select( svgElement );
-
-                //add interactions
-                interactions.addToSelection( selection );
-
-                //render the table
-                table.renderTo( selection );
-
-                //add any needed styles to the selection
-                styles.addToSelection( selection );
-
-                //add tooltips to rendered point plot entities
-                interactions.addTooltipsToEntities( scatterPlot.entities() );
-
-            };
-
-            this.initialized = true;
-
-        };
-
-        parent.Chart = Chart;
-
-        return parent;
-
-    }
-) );
-
 
 ( function ( root, factory ) {
 

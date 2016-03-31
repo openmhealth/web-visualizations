@@ -200,6 +200,62 @@
         };
 
         /**
+         * Get the style specified in the configuration passed in at construction
+         * Filters that match the measures containing each style are added to the returned styles
+         * @param {Plottable.Plots.XYPlot} plot - The plot that the styles are for
+         * @returns {Array} - The styles in the configuration that apply to the type of plot passed in
+         */
+        this.getConfiguredStylesForPlot = function( plot ){
+
+            var measures = configuration.getConfiguredMeasureNames();
+            var styles = [];
+
+            measures.forEach( function( measure ){
+
+                var measureSettings = configuration.getMeasureSettings( measure );
+
+                if ( measureSettings.chart && measureSettings.chart.styles ){
+                    var measureStyles = measureSettings.chart.styles;
+                    measureStyles.forEach( function( style ){
+
+                        if( style.plotType === plot.constructor.name ){
+
+                            // add a filter to the returned style that matches the measure
+                            var measureFilter = function( d ){ return d.measure === measure; };
+                            var newStyle = { name:style.name, filters:[ measureFilter ], attributes:style.attributes };
+
+                            // add the filters that are specified in the config. order may not be preserved, but that is ok
+                            // because all filters must match for the style to be used on a datum
+                            if ( style.filters ){
+                                style.filters.forEach( function( filter ){
+                                    newStyle.filters.push( filter );
+                                });
+                            }
+
+                            styles.push( newStyle );
+
+                        }
+                    });
+                }
+
+            });
+
+            return styles;
+
+        };
+
+        /**
+         * Get the combined default and configured styles for a given plot. Configured styles take priority over defaults
+         * @param {Plottable.Plots.XYPlot} plot - The plot for which styles will be returned
+         * @returns {Array} - The combined styles
+         */
+        this.getConfiguredDefaultStylesForPlot = function( plot ){
+            var defaultStyles = this.getDefaultStylesForPlot( plot );
+            var configuredStyles = this.getConfiguredStylesForPlot( plot );
+            return defaultStyles.concat( configuredStyles );
+        };
+
+        /**
          * Check if the datum meets the conditions of all filters in the array
          * @param {Array} filters - The array of filters to check against.
          * @param {{}} d - The datum to check against the filters
@@ -316,16 +372,18 @@
 
         /**
          * Returns the styles that have been set for the particular plot instance passed in
-         * If the returned styles are edited, they must be passed to setStylesForPlot() to affect the chart
+         * If the returned styles are subsequently edited, they must be passed to setStylesForPlot() to affect the chart
          * @param {Plottable.Plots.XYPlot} plot - Get the styles associated with this plot instance
-         * @returns {{}} - The styles for the plot specified in the plot parameter
+         * @returns {Array} - The styles for the plot specified in the plot parameter
          */
         this.getStylesForPlot = function ( plot ) {
+
             for ( var i in plotStyles ) {
                 if ( plotStyles[ i ].plot === plot ) {
                     return plotStyles[ i ].styles;
                 }
             }
+
         };
 
         /**
@@ -456,7 +514,6 @@
             }
 
         };
-
     };
 
     /**
