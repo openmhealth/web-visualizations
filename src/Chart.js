@@ -37,15 +37,6 @@
          */
         Chart = function ( data, element, measureList, settings ) {
 
-            var selection;
-            var measures = measureList.split( /\s*,\s*/ );
-            var table = null;
-            var configuration = new OMHWebVisualizations.ChartConfiguration( settings );
-            var parser = new OMHWebVisualizations.DataParser( data, measures, configuration );
-            var styles = new OMHWebVisualizations.ChartStyles( configuration );
-            var interactions = new OMHWebVisualizations.ChartInteractions( element, measures[ 0 ], configuration, parser, styles );
-            this.initialized = false;
-
             // if the element passed in is a jQuery element, then get the dom element
             if ( typeof jQuery === 'function' && element instanceof jQuery ) {
                 element = element[ 0 ];
@@ -59,6 +50,15 @@
             }
 
             element.classed( 'omh-chart-container', true );
+
+            var selection;
+            var measures = measureList.split( /\s*,\s*/ );
+            var table = null;
+            var configuration = new OMHWebVisualizations.ChartConfiguration( settings );
+            var parser = new OMHWebVisualizations.DataParser( data, measures, configuration );
+            var styles = new OMHWebVisualizations.ChartStyles( configuration );
+            var interactions = new OMHWebVisualizations.ChartInteractions( element, measures[ 0 ], configuration, parser, styles );
+            this.initialized = false;
 
             // set up axes
             var xScale = new Plottable.Scales.Time();
