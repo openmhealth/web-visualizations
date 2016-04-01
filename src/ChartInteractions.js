@@ -252,12 +252,12 @@
 
             var initializeToolbarInteraction = function () {
 
-                if ( settings.toolbar.enabled ) {
+                if ( settings.toolbar.visible ) {
                     toolbar = element.append( "div" )
                         .classed( 'omh-chart-toolbar', true )
                         .attr( 'unselectable', 'on' );
 
-                    if ( settings.timespanButtons.enabled ) {
+                    if ( settings.toolbar.timespanButtons.visible ) {
 
                         var zoomLevels = {
                             '1wk': 7,
@@ -281,7 +281,7 @@
 
                     }
 
-                    if ( settings.zoomButtons.enabled ) {
+                    if ( settings.toolbar.zoomButtons.visible ) {
 
                         var zoomPercentageIncrements = {
                             '&#8722;': -20,
@@ -301,7 +301,7 @@
 
                     }
 
-                    if ( settings.navigation.enabled ) {
+                    if ( settings.toolbar.navigationButtons.visible ) {
                         var $prevButton = toolbar.append( 'span', ":first-child" ).classed( 'previous-time-period-button', true ).text( '< prev' );
                         $prevButton.on( 'click', function () {
                             shiftVisibleTimeByPercentageIncrement( -100 );
@@ -319,7 +319,7 @@
 
             var initializeTooltipInteraction = function () {
 
-                if ( settings.tooltips.enabled ) {
+                if ( settings.tooltips.visible ) {
 
                     //set up hover
 
@@ -508,7 +508,7 @@
             this.addToComponents = function ( components ) {
 
                 // add tooltips to the first scatter plot found
-                if ( settings.tooltips.enabled ) {
+                if ( settings.tooltips.visible ) {
                     for ( var i in components.plots ) {
                         var plot = components.plots[ i ];
                         if ( plot instanceof Plottable.Plots.Scatter && plot.datasets() && plot.datasets().length > 0 ) {
@@ -524,14 +524,14 @@
                     limitScaleExtents( components.xScale );
                 }
 
-                if ( settings.panZoom.enabled ) {
+                if ( settings.panZoomUsingMouse.enabled ) {
 
                     // add pan/zoom interactions
                     attachPanZoomInteractionToComponents( components );
 
-                    if ( settings.panZoom.showHint ) {
-                        // add pan/zoom hint label to the plots
-                        components.plots.push( panZoomHint );
+                    if ( settings.panZoomUsingMouse.hint.visible ) {
+                        // add pan/zoom hint label to the plot group
+                        components.plotGroup.append( panZoomHint );
                     }
 
                     dragInteraction.attachTo( components.table );

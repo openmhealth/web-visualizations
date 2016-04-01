@@ -30,17 +30,17 @@
          *  @param {{}} data - The Open mHealth formatted data to build a chart for
          *  @param {{}} element - The DOM element that contains an SVG element for the chart
          *  @param {String} measureList - The comma-delimited list of measures to search for in the data
-         *  @param {{}} options - The optional settings used to configure the function and appearance of the chart
+         *  @param {{}} settings - The optional settings used to configure the function and appearance of the chart
          *  @global
          *  @constructor
          *  @classdesc This is the main class used to chart Open mHealth data. At construction time, data is parsed and Plottable.js components are used to build the chart. [Chart.renderTo]{@link Chart#renderTo} can then be called to render the chart in the browser.
          */
-        Chart = function ( data, element, measureList, options ) {
+        Chart = function ( data, element, measureList, settings ) {
 
             var selection;
             var measures = measureList.split( /\s*,\s*/ );
             var table = null;
-            var configuration = new OMHWebVisualizations.ChartConfiguration( options );
+            var configuration = new OMHWebVisualizations.ChartConfiguration( settings );
             var parser = new OMHWebVisualizations.DataParser( data, measures, configuration );
             var styles = new OMHWebVisualizations.ChartStyles( configuration );
             var interactions = new OMHWebVisualizations.ChartInteractions( element, measures[ 0 ], configuration, parser, styles );
@@ -54,8 +54,8 @@
             if ( !element.node ) {
                 element = d3.select( element );
             }
-            if ( !options ) {
-                options = {};
+            if ( !settings ) {
+                settings = {};
             }
 
             element.classed( 'omh-chart-container', true );
@@ -64,7 +64,7 @@
             var xScale = new Plottable.Scales.Time();
             var yScale = new Plottable.Scales.Linear();
             var yScaleCallback = null;
-            var domain = configuration.getMeasureSettings( measures[ 0 ] ).range;
+            var domain = configuration.getMeasureSettings( measures[ 0 ] ).yAxis.range;
             if ( domain ) {
                 yScale.domainMin( domain.min ).domainMax( domain.max );
             }
@@ -75,7 +75,7 @@
 
             var yAxis = new Plottable.Axes.Numeric( yScale, 'left' );
 
-            var yLabel = new Plottable.Components.AxisLabel( configuration.getMeasureSettings( measures[ 0 ] ).units, '0' )
+            var yLabel = new Plottable.Components.AxisLabel( configuration.getMeasureSettings( measures[ 0 ] ).yAxis.label, '0' )
                 .padding( 5 )
                 .xAlignment( 'right' )
                 .yAlignment( 'top' );
@@ -111,68 +111,63 @@
             var gridlines;
             var gridlineYAxis;
 
-            if ( !configuration.getInterfaceSettings().hasOwnProperty('gridlines') ||
-                    configuration.getInterfaceSettings().gridlines.show !== false ) {
+            measures.forEach( function ( measure ) {
 
-                measures.forEach( function ( measure ) {
+                var measureSettings = configuration.getMeasureSettings( measure );
 
-                    var measureSettings = configuration.getMeasureSettings( measure );
-
-                    if ( measureSettings.chart && measureSettings.chart.gridlines ) {
-                        var measureGridlines = measureSettings.chart.gridlines;
-                        measureGridlines.forEach( function ( gridline ) {
-                            if ( !gridline.hasOwnProperty( 'visible' ) || gridline.visible === true ) {
-                                gridlineValues.push( gridline );
-                            }
-                        } );
-                    }
-
-                } );
-
-                if ( gridlineValues.length > 0 ) {
-
-                    gridlineValues.sort( function ( a, b ) {
-                        return a.value - b.value;
-                    } );
-
-                    var gridlineYScale = new Plottable.Scales.Linear();
-                    gridlineYScale.domain( yScale.domain() );
-                    gridlineYScale.range( yScale.range() );
-                    yScaleCallback = function ( updatedScale ) {
-                        gridlineYScale.domain( updatedScale.domain() );
-                        gridlineYScale.range( updatedScale.range() );
-                    };
-                    yScale.onUpdate( yScaleCallback );
-                    var yScaleTickGenerator = function ( scale ) {
-                        var ticks = gridlineValues.map( function ( element ) {
-                            return element.value;
-                        } );
-                        return ticks;
-                    };
-
-                    gridlineYScale.tickGenerator( yScaleTickGenerator );
-
-                    gridlineYAxis = new Plottable.Axes.Numeric( gridlineYScale, "right" )
-                        .tickLabelPosition( "top" )
-                        .tickLabelPadding( 1 )
-                        .showEndTickLabels( true )
-                        .addClass( 'gridlines-axis' );
-
-                    gridlineYAxis.formatter( function ( value ) {
-                        for ( var index in gridlineValues ) {
-                            if ( gridlineValues[ index ].value === value ) {
-                                var label = gridlineValues[ index ].label? gridlineValues[ index ].label: gridlineValues[ index ].value;
-                                return String( label );
-                            }
+                if ( measureSettings.chart && measureSettings.chart.gridlines ) {
+                    var measureGridlines = measureSettings.chart.gridlines;
+                    measureGridlines.forEach( function ( gridline ) {
+                        if ( !gridline.hasOwnProperty( 'visible' ) || gridline.visible === true ) {
+                            gridlineValues.push( gridline );
                         }
                     } );
-
-                    gridlines = new Plottable.Components.Gridlines( null, gridlineYScale );
-
-                    plots.push( gridlines );
-                    plots.push( gridlineYAxis );
-
                 }
+
+            } );
+
+            if ( gridlineValues.length > 0 ) {
+
+                gridlineValues.sort( function ( a, b ) {
+                    return a.value - b.value;
+                } );
+
+                var gridlineYScale = new Plottable.Scales.Linear();
+                gridlineYScale.domain( yScale.domain() );
+                gridlineYScale.range( yScale.range() );
+                yScaleCallback = function ( updatedScale ) {
+                    gridlineYScale.domain( updatedScale.domain() );
+                    gridlineYScale.range( updatedScale.range() );
+                };
+                yScale.onUpdate( yScaleCallback );
+                var yScaleTickGenerator = function ( scale ) {
+                    var ticks = gridlineValues.map( function ( element ) {
+                        return element.value;
+                    } );
+                    return ticks;
+                };
+
+                gridlineYScale.tickGenerator( yScaleTickGenerator );
+
+                gridlineYAxis = new Plottable.Axes.Numeric( gridlineYScale, "right" )
+                    .tickLabelPosition( "top" )
+                    .tickLabelPadding( 1 )
+                    .showEndTickLabels( true )
+                    .addClass( 'gridlines-axis' );
+
+                gridlineYAxis.formatter( function ( value ) {
+                    for ( var index in gridlineValues ) {
+                        if ( gridlineValues[ index ].value === value ) {
+                            var label = gridlineValues[ index ].label ? gridlineValues[ index ].label : gridlineValues[ index ].value;
+                            return String( label );
+                        }
+                    }
+                } );
+
+                gridlines = new Plottable.Components.Gridlines( null, gridlineYScale );
+
+                plots.push( gridlines );
+                plots.push( gridlineYAxis );
 
             }
 
@@ -198,12 +193,12 @@
 
                     var barYScale = yScale;
                     if ( clusteredBarPlots.length > 0 ) {
-                        var domain = measureSettings.range;
-                        var units = measureSettings.units;
+                        var domain = measureSettings.yAxis.range;
+                        var label = measureSettings.yAxis.label;
                         barYScale = new Plottable.Scales.Linear()
                             .domainMin( domain.min ).domainMax( domain.max );
                         var barYAxis = new Plottable.Axes.Numeric( barYScale, 'right' );
-                        var barYLabel = new Plottable.Components.AxisLabel( units, '0' )
+                        var barYLabel = new Plottable.Components.AxisLabel( label, '0' )
                             .padding( 5 )
                             .xAlignment( 'left' )
                             .yAlignment( 'top' );
@@ -321,7 +316,7 @@
             }
 
 
-//build table
+            //build table
             var xAxisVisible = configuration.getInterfaceSettings().axes.xAxis.visible;
             var yAxisVisible = configuration.getInterfaceSettings().axes.yAxis.visible;
             var plotGroup = new Plottable.Components.Group( plots );
@@ -544,80 +539,111 @@
      * @global
      * @example
      * // An example of the settings parameter
-     * {
-            'userInterface': {
-                'toolbar': { 'enabled': true },
-                'timespanButtons': { 'enabled': true },
-                'zoomButtons': { 'enabled': true },
-                'navigation': { 'enabled': true },
-                'gridlines': { 'show': true },
-                'tooltips': {
-                    'enabled': true,
-                    'timeFormat': 'M/D/YY, h:mma',
-                    'decimalPlaces': 0,
-                    'contentFormatter': ChartStyles.formatters.defaultTooltip.bind( this ),
-                    'grouped': true
-                },
-                'panZoom': {
-                    'enabled': true,
-                    'showHint': true
-                },
-                'axes': {
-                    'yAxis': {
-                        'visible': true
-                    },
-                    'xAxis': {
-                        'visible': true
-                    }
-                }
-            },
-            'measures': {
-                'body_weight': {
-                    'valueKeyPath': 'body.body_weight.value',
-                    'range': { 'min': 0, 'max': 100 },
-                    'units': 'kg',
-                },
-                'heart_rate': {
-                    'valueKeyPath': 'body.heart_rate.value',
-                    'range': { 'min': 30, 'max': 150 },
-                    'units': 'bpm'
-                },
-                'step_count': {
-                    'valueKeyPath': 'body.step_count',
-                    'range': { 'min': 0, 'max': 1500 },
-                    'units': 'Steps',
-                    'seriesName': 'Steps',
-                    'timeQuantizationLevel': DataParser.QUANTIZE_DAY,
-                    'quantizedDataConsolidationFunction': DataParser.consolidators.summation,
-                    'chart': {
-                        'type': 'clustered_bar',
-                        'daysShownOnTimeline': { 'min': 7, 'max': 90 }
-                    }
-                },
-                'minutes_moderate_activity': {
-                    'valueKeyPath': 'body.minutes_moderate_activity.value',
-                    'range': { 'min': 0, 'max': 300 },
-                    'units': 'Minutes',
-                    'seriesName': 'Minutes of moderate activity',
-                    'timeQuantizationLevel': DataParser.QUANTIZE_DAY,
-                    'quantizedDataConsolidationFunction': DataParser.consolidators.summation,
-                    'chart': {
-                        'type': 'clustered_bar',
-                        'daysShownOnTimeline': { 'min': 7, 'max': 90 }
-                    }
-                },
-                'systolic_blood_pressure': {
-                    'valueKeyPath': 'body.systolic_blood_pressure.value',
-                    'range': { 'min': 30, 'max': 200 },
-                    'units': 'mmHg',
-                },
-                'diastolic_blood_pressure': {
-                    'valueKeyPath': 'body.diastolic_blood_pressure.value',
-                    'range': { 'min': 30, 'max': 200 },
-                    'units': 'mmHg',
-                }
-            }
-        }
+     {
+         'interface': {
+             'toolbar': {
+                 'visible': true,
+                 'timespanButtons': { 'visible': true },
+                 'zoomButtons': { 'visible': true },
+                 'navigationButtons': { 'visible': true }
+             },
+             'tooltips': {
+                 'visible': true,
+                 'timeFormat': 'M/D/YY, h:mma',
+                 'decimalPlaces': 0,
+                 'contentFormatter': parent.ChartStyles.formatters.defaultTooltip.bind( this ),
+                 'grouped': true
+             },
+             'panZoomUsingMouse': {
+                 'enabled': true,
+                 'hint':{
+                     'visible': true
+                 }
+             },
+             'axes': {
+                 'yAxis': {
+                     'visible': true
+                 },
+                 'xAxis': {
+                     'visible': true
+                 }
+             }
+         },
+         'measures': {
+             'body_weight': {
+                 'data': {
+                     'yValuePath': 'body.body_weight.value',
+                 },
+                 'yAxis': {
+                     'range': { 'min': 0, 'max': 100 },
+                     'label': 'kg'
+                 }
+             },
+             'heart_rate': {
+                 'data':{
+                     'yValuePath': 'body.heart_rate.value'
+                 },
+                 'yAxis': {
+                     'range': { 'min': 30, 'max': 150 },
+                     'label': 'bpm'
+                 }
+             },
+             'step_count': {
+                 'seriesName': 'Steps',
+                 'data': {
+                     'yValuePath': 'body.step_count',
+                     'xValueQuantization': {
+                         'period': parent.DataParser.QUANTIZE_DAY,
+                         'aggregator': parent.DataParser.aggregators.summation
+                     }
+                 },
+                 'chart': {
+                     'type': 'clustered_bar',
+                     'daysShownOnTimeline': { 'min': 7, 'max': 90 }
+                 },
+                 'yAxis': {
+                     'range': { 'min': 0, 'max': 1500 },
+                     'label': 'Steps'
+                 }
+             },
+             'minutes_moderate_activity': {
+                 'data':{
+                     'yValuePath': 'body.minutes_moderate_activity.value',
+                     'xValueQuantization': {
+                         'period': parent.DataParser.QUANTIZE_DAY,
+                         'aggregator': parent.DataParser.aggregators.summation
+                     }
+                 },
+                 'seriesName': 'Minutes of moderate activity',
+                 'chart': {
+                     'type': 'clustered_bar',
+                     'daysShownOnTimeline': { 'min': 7, 'max': 90 }
+                 },
+                 'yAxis':{
+                     'range': { 'min': 0, 'max': 300 },
+                     'label': 'Minutes'
+                 }
+             },
+             'systolic_blood_pressure': {
+                 'data': {
+                     'yValuePath': 'body.systolic_blood_pressure.value'
+                 },
+                 'yAxis': {
+                     'range': { 'min': 30, 'max': 200 },
+                     'label': 'mmHg'
+                 }
+             },
+             'diastolic_blood_pressure': {
+                 'data': {
+                     'yValuePath': 'body.diastolic_blood_pressure.value'
+                 },
+                 'yAxis':{
+                     'range': { 'min': 30, 'max': 200 },
+                     'label': 'mmHg'
+                 }
+             }
+         }
+     }
      */
     ChartConfiguration = function ( settings ) {
 
@@ -625,22 +651,25 @@
         var measureNames;
 
         var defaultSettings = {
-            'userInterface': {
-                'toolbar': { 'enabled': true },
-                'timespanButtons': { 'enabled': true },
-                'zoomButtons': { 'enabled': true },
-                'navigation': { 'enabled': true },
-                'gridlines': { 'show': true },
+            'interface': {
+                'toolbar': {
+                    'visible': true,
+                    'timespanButtons': { 'visible': true },
+                    'zoomButtons': { 'visible': true },
+                    'navigationButtons': { 'visible': true }
+                },
                 'tooltips': {
-                    'enabled': true,
+                    'visible': true,
                     'timeFormat': 'M/D/YY, h:mma',
                     'decimalPlaces': 0,
                     'contentFormatter': parent.ChartStyles.formatters.defaultTooltip.bind( this ),
                     'grouped': true
                 },
-                'panZoom': {
+                'panZoomUsingMouse': {
                     'enabled': true,
-                    'showHint': true
+                    'hint': {
+                        'visible': true
+                    }
                 },
                 'axes': {
                     'yAxis': {
@@ -653,58 +682,92 @@
             },
             'measures': {
                 'body_weight': {
-                    'valueKeyPath': 'body.body_weight.value',
-                    'range': { 'min': 0, 'max': 100 },
-                    'units': 'kg',
+                    'data': {
+                        'yValuePath': 'body.body_weight.value',
+                    },
+                    'yAxis': {
+                        'range': { 'min': 0, 'max': 100 },
+                        'label': 'kg'
+                    }
                 },
                 'heart_rate': {
-                    'valueKeyPath': 'body.heart_rate.value',
-                    'range': { 'min': 30, 'max': 150 },
-                    'units': 'bpm'
+                    'data': {
+                        'yValuePath': 'body.heart_rate.value'
+                    },
+                    'yAxis': {
+                        'range': { 'min': 30, 'max': 150 },
+                        'label': 'bpm'
+                    }
                 },
                 'step_count': {
-                    'valueKeyPath': 'body.step_count',
-                    'range': { 'min': 0, 'max': 1500 },
-                    'units': 'Steps',
                     'seriesName': 'Steps',
-                    'timeQuantizationLevel': parent.DataParser.QUANTIZE_DAY,
-                    'quantizedDataConsolidationFunction': parent.DataParser.consolidators.summation,
+                    'data': {
+                        'yValuePath': 'body.step_count',
+                        'xValueQuantization': {
+                            'period': parent.DataParser.QUANTIZE_DAY,
+                            'aggregator': parent.DataParser.aggregators.summation
+                        }
+                    },
                     'chart': {
                         'type': 'clustered_bar',
                         'daysShownOnTimeline': { 'min': 7, 'max': 90 }
+                    },
+                    'yAxis': {
+                        'range': { 'min': 0, 'max': 1500 },
+                        'label': 'Steps'
                     }
                 },
                 'minutes_moderate_activity': {
-                    'valueKeyPath': 'body.minutes_moderate_activity.value',
-                    'range': { 'min': 0, 'max': 300 },
-                    'units': 'Minutes',
+                    'data': {
+                        'yValuePath': 'body.minutes_moderate_activity.value',
+                        'xValueQuantization': {
+                            'period': parent.DataParser.QUANTIZE_DAY,
+                            'aggregator': parent.DataParser.aggregators.summation
+                        }
+                    },
                     'seriesName': 'Minutes of moderate activity',
-                    'timeQuantizationLevel': parent.DataParser.QUANTIZE_DAY,
-                    'quantizedDataConsolidationFunction': parent.DataParser.consolidators.summation,
                     'chart': {
                         'type': 'clustered_bar',
                         'daysShownOnTimeline': { 'min': 7, 'max': 90 }
+                    },
+                    'yAxis': {
+                        'range': { 'min': 0, 'max': 300 },
+                        'label': 'Minutes'
                     }
                 },
                 'systolic_blood_pressure': {
-                    'valueKeyPath': 'body.systolic_blood_pressure.value',
-                    'range': { 'min': 30, 'max': 200 },
-                    'units': 'mmHg',
+                    'data': {
+                        'yValuePath': 'body.systolic_blood_pressure.value'
+                    },
+                    'yAxis': {
+                        'range': { 'min': 30, 'max': 200 },
+                        'label': 'mmHg'
+                    }
                 },
                 'diastolic_blood_pressure': {
-                    'valueKeyPath': 'body.diastolic_blood_pressure.value',
-                    'range': { 'min': 30, 'max': 200 },
-                    'units': 'mmHg',
+                    'data': {
+                        'yValuePath': 'body.diastolic_blood_pressure.value'
+                    },
+                    'yAxis': {
+                        'range': { 'min': 30, 'max': 200 },
+                        'label': 'mmHg'
+                    }
                 }
             }
         };
 
         var genericMeasureDefaults = {
-            'range': { 'min': 0, 'max': 100 },
-            'units': 'Units',
             'seriesName': 'Series',
-            'timeQuantizationLevel': parent.DataParser.QUANTIZE_NONE,
-            'quantizedDataConsolidationFunction': parent.DataParser.consolidators.average,
+            'yAxis': {
+                'range': { 'min': 0, 'max': 100 },
+                'label': 'Units'
+            },
+            'data': {
+                'xValueQuantization': {
+                    'period': parent.DataParser.QUANTIZE_NONE,
+                    'aggregator': parent.DataParser.aggregators.average
+                }
+            },
             'chart': {
                 'type': 'line',
                 'daysShownOnTimeline': { 'min': 1, 'max': 1000 }
@@ -722,7 +785,7 @@
 
         };
 
-        this.getConfiguredMeasureNames = function(){
+        this.getConfiguredMeasureNames = function () {
             return Object.keys( mergedSettings.measures );
         };
 
@@ -740,7 +803,7 @@
          * @returns {{}}
          */
         this.getInterfaceSettings = function () {
-            return mergedSettings.userInterface;
+            return mergedSettings.interface;
         };
 
         // Initialize the ChartConfiguration
@@ -1009,12 +1072,12 @@
 
             var initializeToolbarInteraction = function () {
 
-                if ( settings.toolbar.enabled ) {
+                if ( settings.toolbar.visible ) {
                     toolbar = element.append( "div" )
                         .classed( 'omh-chart-toolbar', true )
                         .attr( 'unselectable', 'on' );
 
-                    if ( settings.timespanButtons.enabled ) {
+                    if ( settings.toolbar.timespanButtons.visible ) {
 
                         var zoomLevels = {
                             '1wk': 7,
@@ -1038,7 +1101,7 @@
 
                     }
 
-                    if ( settings.zoomButtons.enabled ) {
+                    if ( settings.toolbar.zoomButtons.visible ) {
 
                         var zoomPercentageIncrements = {
                             '&#8722;': -20,
@@ -1058,7 +1121,7 @@
 
                     }
 
-                    if ( settings.navigation.enabled ) {
+                    if ( settings.toolbar.navigationButtons.visible ) {
                         var $prevButton = toolbar.append( 'span', ":first-child" ).classed( 'previous-time-period-button', true ).text( '< prev' );
                         $prevButton.on( 'click', function () {
                             shiftVisibleTimeByPercentageIncrement( -100 );
@@ -1076,7 +1139,7 @@
 
             var initializeTooltipInteraction = function () {
 
-                if ( settings.tooltips.enabled ) {
+                if ( settings.tooltips.visible ) {
 
                     //set up hover
 
@@ -1265,7 +1328,7 @@
             this.addToComponents = function ( components ) {
 
                 // add tooltips to the first scatter plot found
-                if ( settings.tooltips.enabled ) {
+                if ( settings.tooltips.visible ) {
                     for ( var i in components.plots ) {
                         var plot = components.plots[ i ];
                         if ( plot instanceof Plottable.Plots.Scatter && plot.datasets() && plot.datasets().length > 0 ) {
@@ -1281,14 +1344,14 @@
                     limitScaleExtents( components.xScale );
                 }
 
-                if ( settings.panZoom.enabled ) {
+                if ( settings.panZoomUsingMouse.enabled ) {
 
                     // add pan/zoom interactions
                     attachPanZoomInteractionToComponents( components );
 
-                    if ( settings.panZoom.showHint ) {
-                        // add pan/zoom hint label to the plots
-                        components.plots.push( panZoomHint );
+                    if ( settings.panZoomUsingMouse.hint.visible ) {
+                        // add pan/zoom hint label to the plot group
+                        components.plotGroup.append( panZoomHint );
                     }
 
                     dragInteraction.attachTo( components.table );
@@ -1380,6 +1443,7 @@
 
     }
 ) );
+
 ( function ( root, factory ) {
 
     var parentName = 'OMHWebVisualizations';
@@ -1828,7 +1892,9 @@
     };
 
     /**
-     * A list of useful filters to help with conditional styling
+     * An array of functions that return useful filter functions, to help with conditional styling
+     * @alias filters
+     * @memberof! ChartStyles
      * @type {{}}
      */
     ChartStyles.filters = {
@@ -1903,7 +1969,7 @@
          * Creates an object that parses omh data into a format usable Plottable.js
          * @param {{}} data - The data to parse now
          * @param {{}} measures - Strings representing the measures to extract from the data
-         * @param {ChartConfiguration} configuration - A configuration object containing options for parsing data
+         * @param {ChartConfiguration} configuration - A configuration object containing settings for parsing data
          * @constructor
          * @global
          * @classdesc This class parses Open mHealth data into a format that is usable by d3 and Plottable.js.
@@ -1912,11 +1978,11 @@
          *
          * The following [ChartConfiguration]{@link ChartConfiguration} settings for each measure are used to parse the data:
          *
-         * valueKeyPath - a dot-delimited string that indicates where in a data point the y value of a point can be found
+         * data.yValuePath - a dot-delimited string that indicates where in a data point the y value of a point can be found
          *
-         * timeQuantizationLevel - the granularity of time quantization desired for the data (e.g. [DataParser.QUANTIZE_DAY]{@link DataParser.QUANTIZE_DAY} )
+         * data.xValueQuantization.period - the granularity of time quantization desired for the data (e.g. [DataParser.QUANTIZE_DAY]{@link DataParser.QUANTIZE_DAY} )
          *
-         * quantizedDataConsolidationFunction - how to consolidate data points that are quantized to the same moment in time (e.g. [DataParser.consolidators.average]{@link DataParser.consolidators.average} )
+         * data.xValueQuantization.aggregator - how to aggregate data points that are quantized to the same moment in time (e.g. [DataParser.aggregators.average]{@link DataParser.aggregators.average} )
          */
         DataParser = function ( data, measures, configuration ) {
 
@@ -2071,8 +2137,8 @@
                 }
 
                 measuresToParse.forEach( function ( measure, i ) {
-                    quantizationLevels[ measure ] = configuration.getMeasureSettings( measure ).timeQuantizationLevel;
-                    keyPaths[ measure ] = configuration.getMeasureSettings( measure ).valueKeyPath;
+                    quantizationLevels[ measure ] = configuration.getMeasureSettings( measure ).data.xValueQuantization.period;
+                    keyPaths[ measure ] = configuration.getMeasureSettings( measure ).data.yValuePath;
                 } );
 
                 omhData.forEach( function ( omhDatum ) {
@@ -2127,10 +2193,10 @@
 
                 } );
 
-                //quantized data should be consolidated
+                //quantized data should be aggregated
                 measuresToParse.forEach( function ( measure, i ) {
                     if ( quantizationLevels[ measure ] !== OMHWebVisualizations.DataParser.QUANTIZE_NONE ) {
-                        _self.consolidateData( measure, parsedData );
+                        _self.aggregateData( measure, parsedData );
                     }
                 } );
 
@@ -2140,13 +2206,13 @@
 
 
             /**
-             * Consolidate Plottable.js data points at the same time coordinates
-             * @param {string} measure - The measure will be used to look up the consolidation settings in the ChartConfiguration
-             * @param {Array} data - The Plottable.js data the should be consolidated
+             * Aggregate Plottable.js data points at the same time coordinates
+             * @param {string} measure - The measure will be used to look up the aggregation settings in the ChartConfiguration
+             * @param {Array} data - The Plottable.js data the should be aggregated
              */
-            this.consolidateData = function ( measure, data ) {
-                var consolidator = configuration.getMeasureSettings( measure ).quantizedDataConsolidationFunction;
-                consolidator( data[ measure ] );
+            this.aggregateData = function ( measure, data ) {
+                var aggregator = configuration.getMeasureSettings( measure ).data.xValueQuantization.aggregator;
+                aggregator( data[ measure ] );
             };
 
             /**
@@ -2229,53 +2295,53 @@
         DataParser.QUANTIZE_NONE = -1;
 
         /**
-         * DataParser.consolidators
-         * A static collection of methods for consolidating data points
+         * DataParser.aggregators
+         * A static collection of methods for aggregating data points
          * That sit at the same point in time after quantization
          * @type {{}}
          */
-        DataParser.consolidators = {};
+        DataParser.aggregators = {};
 
         /**
-         * Consolidate points with the same time value by summing them.
+         * Aggregate points with the same time value by summing them.
          *
-         * Provenance data for the first point (chronologically) will be preserved. For a given moment in time shared by more than one point, all but one point at that time are removed from the data array, and references to consolidated points are stored in the remaining point as 'consolidatedData' field.
-         * @param {Array} data - The data to consolidate
-         * @alias consolidators.summation
+         * Provenance data for the first point (chronologically) will be preserved. For a given moment in time shared by more than one point, all but one point at that time are removed from the data array, and references to aggregated points are stored in the remaining point as 'aggregatedData' field.
+         * @param {Array} data - The data to aggregate
+         * @alias aggregators.summation
          * @memberof! DataParser
          */
-        DataParser.consolidators.summation = function ( data ) {
+        DataParser.aggregators.summation = function ( data ) {
             data.sort( function ( a, b ) {
                 return a.x.getTime() - b.x.getTime();
             } );
             for ( var i = 0; i < data.length; i++ ) {
                 while ( i + 1 < data.length && ( data[ i + 1 ].x.getTime() === data[ i ].x.getTime() ) ) {
                     data[ i ].y += data[ i + 1 ].y;
-                    if ( !data[ i ].consolidatedData ) {
-                        data[ i ].consolidatedData = [ data[ i ].omhDatum ];
+                    if ( !data[ i ].aggregatedData ) {
+                        data[ i ].aggregatedData = [ data[ i ].omhDatum ];
                     }
-                    data[ i ].consolidatedData.push( data[ i + 1 ].omhDatum );
-                    data[ i ].consolidationType = 'summation';
+                    data[ i ].aggregatedData.push( data[ i + 1 ].omhDatum );
+                    data[ i ].aggregationType = 'summation';
                     data.splice( i + 1, 1 );
                 }
             }
         };
 
         /**
-         * Consolidate points with the same time value by averaging them.
+         * Aggregate points with the same time value by averaging them.
          *
-         * Provenance data for the first point( chronologically ) will be preserved. For a given moment in time shared by more than one point, all but one point at that time are removed from the data array, and references to consolidated points are stored in the remaining point as 'consolidatedData' field.
-         * @param {Array} data - The data to consolidate
-         * @alias consolidators.average
+         * Provenance data for the first point( chronologically ) will be preserved. For a given moment in time shared by more than one point, all but one point at that time are removed from the data array, and references to aggregated points are stored in the remaining point as 'aggregatedData' field.
+         * @param {Array} data - The data to aggregate
+         * @alias aggregators.average
          * @memberof! DataParser
          */
-        DataParser.consolidators.average = function ( data ) {
-            parent.DataParser.consolidators.summation( data );
+        DataParser.aggregators.average = function ( data ) {
+            parent.DataParser.aggregators.summation( data );
             for ( var i = 0; i < data.length; i++ ) {
-                var count = data[ i ].consolidatedData ? data[ i ].consolidatedData.length : 0;
+                var count = data[ i ].aggregatedData ? data[ i ].aggregatedData.length : 0;
                 if ( count > 0 ) {
                     data[ i ].y /= count;
-                    data[ i ].consolidationType = 'average';
+                    data[ i ].aggregationType = 'average';
                 }
             }
         };
@@ -2286,6 +2352,7 @@
 
     }
 ) );
+
 ( function ( root, factory ) {
 
     var parentName = 'OMHWebVisualizations';

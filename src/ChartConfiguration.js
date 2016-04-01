@@ -17,80 +17,111 @@
      * @global
      * @example
      * // An example of the settings parameter
-     * {
-            'userInterface': {
-                'toolbar': { 'enabled': true },
-                'timespanButtons': { 'enabled': true },
-                'zoomButtons': { 'enabled': true },
-                'navigation': { 'enabled': true },
-                'gridlines': { 'show': true },
-                'tooltips': {
-                    'enabled': true,
-                    'timeFormat': 'M/D/YY, h:mma',
-                    'decimalPlaces': 0,
-                    'contentFormatter': ChartStyles.formatters.defaultTooltip.bind( this ),
-                    'grouped': true
-                },
-                'panZoom': {
-                    'enabled': true,
-                    'showHint': true
-                },
-                'axes': {
-                    'yAxis': {
-                        'visible': true
-                    },
-                    'xAxis': {
-                        'visible': true
-                    }
-                }
-            },
-            'measures': {
-                'body_weight': {
-                    'valueKeyPath': 'body.body_weight.value',
-                    'range': { 'min': 0, 'max': 100 },
-                    'units': 'kg',
-                },
-                'heart_rate': {
-                    'valueKeyPath': 'body.heart_rate.value',
-                    'range': { 'min': 30, 'max': 150 },
-                    'units': 'bpm'
-                },
-                'step_count': {
-                    'valueKeyPath': 'body.step_count',
-                    'range': { 'min': 0, 'max': 1500 },
-                    'units': 'Steps',
-                    'seriesName': 'Steps',
-                    'timeQuantizationLevel': DataParser.QUANTIZE_DAY,
-                    'quantizedDataConsolidationFunction': DataParser.consolidators.summation,
-                    'chart': {
-                        'type': 'clustered_bar',
-                        'daysShownOnTimeline': { 'min': 7, 'max': 90 }
-                    }
-                },
-                'minutes_moderate_activity': {
-                    'valueKeyPath': 'body.minutes_moderate_activity.value',
-                    'range': { 'min': 0, 'max': 300 },
-                    'units': 'Minutes',
-                    'seriesName': 'Minutes of moderate activity',
-                    'timeQuantizationLevel': DataParser.QUANTIZE_DAY,
-                    'quantizedDataConsolidationFunction': DataParser.consolidators.summation,
-                    'chart': {
-                        'type': 'clustered_bar',
-                        'daysShownOnTimeline': { 'min': 7, 'max': 90 }
-                    }
-                },
-                'systolic_blood_pressure': {
-                    'valueKeyPath': 'body.systolic_blood_pressure.value',
-                    'range': { 'min': 30, 'max': 200 },
-                    'units': 'mmHg',
-                },
-                'diastolic_blood_pressure': {
-                    'valueKeyPath': 'body.diastolic_blood_pressure.value',
-                    'range': { 'min': 30, 'max': 200 },
-                    'units': 'mmHg',
-                }
-            }
-        }
+     {
+         'interface': {
+             'toolbar': {
+                 'visible': true,
+                 'timespanButtons': { 'visible': true },
+                 'zoomButtons': { 'visible': true },
+                 'navigationButtons': { 'visible': true }
+             },
+             'tooltips': {
+                 'visible': true,
+                 'timeFormat': 'M/D/YY, h:mma',
+                 'decimalPlaces': 0,
+                 'contentFormatter': parent.ChartStyles.formatters.defaultTooltip.bind( this ),
+                 'grouped': true
+             },
+             'panZoomUsingMouse': {
+                 'enabled': true,
+                 'hint':{
+                     'visible': true
+                 }
+             },
+             'axes': {
+                 'yAxis': {
+                     'visible': true
+                 },
+                 'xAxis': {
+                     'visible': true
+                 }
+             }
+         },
+         'measures': {
+             'body_weight': {
+                 'data': {
+                     'yValuePath': 'body.body_weight.value',
+                 },
+                 'yAxis': {
+                     'range': { 'min': 0, 'max': 100 },
+                     'label': 'kg'
+                 }
+             },
+             'heart_rate': {
+                 'data':{
+                     'yValuePath': 'body.heart_rate.value'
+                 },
+                 'yAxis': {
+                     'range': { 'min': 30, 'max': 150 },
+                     'label': 'bpm'
+                 }
+             },
+             'step_count': {
+                 'seriesName': 'Steps',
+                 'data': {
+                     'yValuePath': 'body.step_count',
+                     'xValueQuantization': {
+                         'period': parent.DataParser.QUANTIZE_DAY,
+                         'aggregator': parent.DataParser.aggregators.summation
+                     }
+                 },
+                 'chart': {
+                     'type': 'clustered_bar',
+                     'daysShownOnTimeline': { 'min': 7, 'max': 90 }
+                 },
+                 'yAxis': {
+                     'range': { 'min': 0, 'max': 1500 },
+                     'label': 'Steps'
+                 }
+             },
+             'minutes_moderate_activity': {
+                 'data':{
+                     'yValuePath': 'body.minutes_moderate_activity.value',
+                     'xValueQuantization': {
+                         'period': parent.DataParser.QUANTIZE_DAY,
+                         'aggregator': parent.DataParser.aggregators.summation
+                     }
+                 },
+                 'seriesName': 'Minutes of moderate activity',
+                 'chart': {
+                     'type': 'clustered_bar',
+                     'daysShownOnTimeline': { 'min': 7, 'max': 90 }
+                 },
+                 'yAxis':{
+                     'range': { 'min': 0, 'max': 300 },
+                     'label': 'Minutes'
+                 }
+             },
+             'systolic_blood_pressure': {
+                 'data': {
+                     'yValuePath': 'body.systolic_blood_pressure.value'
+                 },
+                 'yAxis': {
+                     'range': { 'min': 30, 'max': 200 },
+                     'label': 'mmHg'
+                 }
+             },
+             'diastolic_blood_pressure': {
+                 'data': {
+                     'yValuePath': 'body.diastolic_blood_pressure.value'
+                 },
+                 'yAxis':{
+                     'range': { 'min': 30, 'max': 200 },
+                     'label': 'mmHg'
+                 }
+             }
+         }
+     }
      */
     ChartConfiguration = function ( settings ) {
 
@@ -98,22 +129,25 @@
         var measureNames;
 
         var defaultSettings = {
-            'userInterface': {
-                'toolbar': { 'enabled': true },
-                'timespanButtons': { 'enabled': true },
-                'zoomButtons': { 'enabled': true },
-                'navigation': { 'enabled': true },
-                'gridlines': { 'show': true },
+            'interface': {
+                'toolbar': {
+                    'visible': true,
+                    'timespanButtons': { 'visible': true },
+                    'zoomButtons': { 'visible': true },
+                    'navigationButtons': { 'visible': true }
+                },
                 'tooltips': {
-                    'enabled': true,
+                    'visible': true,
                     'timeFormat': 'M/D/YY, h:mma',
                     'decimalPlaces': 0,
                     'contentFormatter': parent.ChartStyles.formatters.defaultTooltip.bind( this ),
                     'grouped': true
                 },
-                'panZoom': {
+                'panZoomUsingMouse': {
                     'enabled': true,
-                    'showHint': true
+                    'hint': {
+                        'visible': true
+                    }
                 },
                 'axes': {
                     'yAxis': {
@@ -126,58 +160,92 @@
             },
             'measures': {
                 'body_weight': {
-                    'valueKeyPath': 'body.body_weight.value',
-                    'range': { 'min': 0, 'max': 100 },
-                    'units': 'kg',
+                    'data': {
+                        'yValuePath': 'body.body_weight.value',
+                    },
+                    'yAxis': {
+                        'range': { 'min': 0, 'max': 100 },
+                        'label': 'kg'
+                    }
                 },
                 'heart_rate': {
-                    'valueKeyPath': 'body.heart_rate.value',
-                    'range': { 'min': 30, 'max': 150 },
-                    'units': 'bpm'
+                    'data': {
+                        'yValuePath': 'body.heart_rate.value'
+                    },
+                    'yAxis': {
+                        'range': { 'min': 30, 'max': 150 },
+                        'label': 'bpm'
+                    }
                 },
                 'step_count': {
-                    'valueKeyPath': 'body.step_count',
-                    'range': { 'min': 0, 'max': 1500 },
-                    'units': 'Steps',
                     'seriesName': 'Steps',
-                    'timeQuantizationLevel': parent.DataParser.QUANTIZE_DAY,
-                    'quantizedDataConsolidationFunction': parent.DataParser.consolidators.summation,
+                    'data': {
+                        'yValuePath': 'body.step_count',
+                        'xValueQuantization': {
+                            'period': parent.DataParser.QUANTIZE_DAY,
+                            'aggregator': parent.DataParser.aggregators.summation
+                        }
+                    },
                     'chart': {
                         'type': 'clustered_bar',
                         'daysShownOnTimeline': { 'min': 7, 'max': 90 }
+                    },
+                    'yAxis': {
+                        'range': { 'min': 0, 'max': 1500 },
+                        'label': 'Steps'
                     }
                 },
                 'minutes_moderate_activity': {
-                    'valueKeyPath': 'body.minutes_moderate_activity.value',
-                    'range': { 'min': 0, 'max': 300 },
-                    'units': 'Minutes',
+                    'data': {
+                        'yValuePath': 'body.minutes_moderate_activity.value',
+                        'xValueQuantization': {
+                            'period': parent.DataParser.QUANTIZE_DAY,
+                            'aggregator': parent.DataParser.aggregators.summation
+                        }
+                    },
                     'seriesName': 'Minutes of moderate activity',
-                    'timeQuantizationLevel': parent.DataParser.QUANTIZE_DAY,
-                    'quantizedDataConsolidationFunction': parent.DataParser.consolidators.summation,
                     'chart': {
                         'type': 'clustered_bar',
                         'daysShownOnTimeline': { 'min': 7, 'max': 90 }
+                    },
+                    'yAxis': {
+                        'range': { 'min': 0, 'max': 300 },
+                        'label': 'Minutes'
                     }
                 },
                 'systolic_blood_pressure': {
-                    'valueKeyPath': 'body.systolic_blood_pressure.value',
-                    'range': { 'min': 30, 'max': 200 },
-                    'units': 'mmHg',
+                    'data': {
+                        'yValuePath': 'body.systolic_blood_pressure.value'
+                    },
+                    'yAxis': {
+                        'range': { 'min': 30, 'max': 200 },
+                        'label': 'mmHg'
+                    }
                 },
                 'diastolic_blood_pressure': {
-                    'valueKeyPath': 'body.diastolic_blood_pressure.value',
-                    'range': { 'min': 30, 'max': 200 },
-                    'units': 'mmHg',
+                    'data': {
+                        'yValuePath': 'body.diastolic_blood_pressure.value'
+                    },
+                    'yAxis': {
+                        'range': { 'min': 30, 'max': 200 },
+                        'label': 'mmHg'
+                    }
                 }
             }
         };
 
         var genericMeasureDefaults = {
-            'range': { 'min': 0, 'max': 100 },
-            'units': 'Units',
             'seriesName': 'Series',
-            'timeQuantizationLevel': parent.DataParser.QUANTIZE_NONE,
-            'quantizedDataConsolidationFunction': parent.DataParser.consolidators.average,
+            'yAxis': {
+                'range': { 'min': 0, 'max': 100 },
+                'label': 'Units'
+            },
+            'data': {
+                'xValueQuantization': {
+                    'period': parent.DataParser.QUANTIZE_NONE,
+                    'aggregator': parent.DataParser.aggregators.average
+                }
+            },
             'chart': {
                 'type': 'line',
                 'daysShownOnTimeline': { 'min': 1, 'max': 1000 }
@@ -195,7 +263,7 @@
 
         };
 
-        this.getConfiguredMeasureNames = function(){
+        this.getConfiguredMeasureNames = function () {
             return Object.keys( mergedSettings.measures );
         };
 
@@ -213,7 +281,7 @@
          * @returns {{}}
          */
         this.getInterfaceSettings = function () {
-            return mergedSettings.userInterface;
+            return mergedSettings.interface;
         };
 
         // Initialize the ChartConfiguration

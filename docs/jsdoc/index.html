@@ -127,7 +127,7 @@ It currently generates line charts and bar charts, with default settings include
 </li>
 </ol>
 <h3>Building a chart</h3><p>You can create a chart by calling:</p>
-<pre class="prettyprint source lang-javascript"><code>chart = new OMHWebVisualizations.Chart( data, element, measureList, options );</code></pre><p>The arguments passed to the constructor are:</p>
+<pre class="prettyprint source lang-javascript"><code>chart = new OMHWebVisualizations.Chart( data, element, measureList, settings );</code></pre><p>The arguments passed to the constructor are:</p>
 <table>
 <thead>
 <tr>
@@ -149,86 +149,119 @@ It currently generates line charts and bar charts, with default settings include
 <td>A string containing a comma-separated list of Open mHealth measures to display.</td>
 </tr>
 <tr>
-<td style="text-align:right"><em>options</em></td>
+<td style="text-align:right"><em>settings</em></td>
 <td>An object with <a href="#configuring_a_chart">settings</a> for the chart. If this is omitted or if an empty object is passed in, the function uses the default settings explained below.</td>
 </tr>
 </tbody>
 </table>
 <p>The easiest way to create data points to pass to the <code>data</code> parameter is to use our <a href="https://github.com/openmhealth/sample-data-generator">sample data generator</a>. You can either use a pre-generated <a href="https://github.com/openmhealth/sample-data-generator/releases/download/v1.0.0/one-year-of-data.json.gz">data set</a>, or download the generator itself to create data that fits your needs.</p>
 <p>A chart is considered <em>initialized</em> if the constructor <code>OMHWebVisualizations.Chart(...);</code> completes. If, for example, no measures specified in the <code>measureList</code> argument can be found in the <code>data</code> argument, the constructor will not complete, and the chart will not be initialized. Initialization state is tracked by the <code>Chart.initialized</code> property, which can be used as a condition for rendering a chart or requesting its components after construction.</p>
-<h3>Configuring a chart</h3><p>The <code>options</code> parameter of the <code>OMHWebVisualization.Chart(...)</code> function is divided into two sections. A <code>userInterface</code> section controls the UI of the chart as a whole. The <code>measures</code> section contains settings that customize charts for specific measures. </p>
-<p>The following object is the default settings object used by the <code>OMHWebVisualization.Chart(...)</code> function when its <code>options</code> parameter is empty. You can specify any subset of these settings to override them:</p>
+<h3>Configuring a chart</h3><p>The <code>settings</code> parameter of the <code>OMHWebVisualization.Chart(...)</code> function is divided into two sections. The <code>interface</code> section controls the UI of the chart as a whole. The <code>measures</code> section contains settings that customize charts for specific measures. </p>
+<p>The following object is the default settings object used by the <code>OMHWebVisualization.Chart(...)</code> function when its <code>settings</code> parameter is empty. You can specify any subset of these settings to override them:</p>
 <pre class="prettyprint source lang-javascript"><code>
-'userInterface': {
-    'toolbar': { 'enabled': true },
-    'timespanButtons': { 'enabled': true },
-    'zoomButtons': { 'enabled': true },
-    'navigation': { 'enabled': true },
-    'gridlines': { 'show': true },
-    'tooltips': {
-        'enabled': true,
-        'timeFormat': 'M/D/YY, h:mma',
-        'decimalPlaces': 0,
-        'contentFormatter': OMHWebVisualizations.ChartStyles.formatters.defaultTooltip,
-        'grouped': true
-    },
-    'panZoom': {
-        'enabled': true,
-        'showHint': true
-    },
-    'axes': {
-        'yAxis': {
-            'visible': true
+{
+    'interface': {
+        'toolbar': {
+            'visible': true,
+            'timespanButtons': { 'visible': true },
+            'zoomButtons': { 'visible': true },
+            'navigationButtons': { 'visible': true }
         },
-        'xAxis': {
-            'visible': true
+        'tooltips': {
+            'visible': true,
+            'timeFormat': 'M/D/YY, h:mma',
+            'decimalPlaces': 0,
+            'contentFormatter': parent.ChartStyles.formatters.defaultTooltip.bind( this ),
+            'grouped': true
+        },
+        'panZoomUsingMouse': {
+            'enabled': true,
+            'hint':{
+                'visible': true
+            }
+        },
+        'axes': {
+            'yAxis': {
+                'visible': true
+            },
+            'xAxis': {
+                'visible': true
+            }
         }
-    }
-},
-'measures': {
-    'body_weight': {
-        'valueKeyPath': 'body.body_weight.value',
-        'range': { 'min': 0, 'max': 100 },
-        'units': 'kg',
     },
-    'heart_rate': {
-        'valueKeyPath': 'body.heart_rate.value',
-        'range': { 'min': 30, 'max': 150 },
-        'units': 'bpm'
-    },
-    'step_count': {
-        'valueKeyPath': 'body.step_count',
-        'range': { 'min': 0, 'max': 1500 },
-        'units': 'Steps',
-        'seriesName': 'Steps',
-        'timeQuantizationLevel': OMHWebVisualizations.DataParser.QUANTIZE_DAY,
-        'quantizedDataConsolidationFunction': OMHWebVisualizations.DataParser.consolidators.summation,
-        'chart': {
-            'type': 'clustered_bar',
-            'daysShownOnTimeline': { 'min': 7, 'max': 90 }
+    'measures': {
+        'body_weight': {
+            'data': {
+                'yValuePath': 'body.body_weight.value',
+            },
+            'yAxis': {
+                'range': { 'min': 0, 'max': 100 },
+                'label': 'kg'
+            }
         },
-    },
-    'minutes_moderate_activity': {
-        'valueKeyPath': 'body.minutes_moderate_activity.value',
-        'range': { 'min': 0, 'max': 300 },
-        'units': 'Minutes',
-        'seriesName': 'Minutes of moderate activity',
-        'timeQuantizationLevel': OMHWebVisualizations.DataParser.QUANTIZE_DAY,
-        'quantizedDataConsolidationFunction': OMHWebVisualizations.DataParser.consolidators.summation,
-        'chart': {
-            'type': 'clustered_bar',
-            'daysShownOnTimeline': { 'min': 7, 'max': 90 }
+        'heart_rate': {
+            'data':{
+                'yValuePath': 'body.heart_rate.value'
+            },
+            'yAxis': {
+                'range': { 'min': 30, 'max': 150 },
+                'label': 'bpm'
+            }
         },
-    },
-    'systolic_blood_pressure': {
-        'valueKeyPath': 'body.systolic_blood_pressure.value',
-        'range': { 'min': 30, 'max': 200 },
-        'units': 'mmHg',
-    },
-    'diastolic_blood_pressure': {
-        'valueKeyPath': 'body.diastolic_blood_pressure.value',
-        'range': { 'min': 30, 'max': 200 },
-        'units': 'mmHg',
+        'step_count': {
+            'seriesName': 'Steps',
+            'data': {
+                'yValuePath': 'body.step_count',
+                'xValueQuantization': {
+                    'period': parent.DataParser.QUANTIZE_DAY,
+                    'aggregator': parent.DataParser.aggregators.summation
+                }
+            },
+            'chart': {
+                'type': 'clustered_bar',
+                'daysShownOnTimeline': { 'min': 7, 'max': 90 }
+            },
+            'yAxis': {
+                'range': { 'min': 0, 'max': 1500 },
+                'label': 'Steps'
+            }
+        },
+        'minutes_moderate_activity': {
+            'data':{
+                'yValuePath': 'body.minutes_moderate_activity.value',
+                'xValueQuantization': {
+                    'period': parent.DataParser.QUANTIZE_DAY,
+                    'aggregator': parent.DataParser.aggregators.summation
+                }
+            },
+            'seriesName': 'Minutes of moderate activity',
+            'chart': {
+                'type': 'clustered_bar',
+                'daysShownOnTimeline': { 'min': 7, 'max': 90 }
+            },
+            'yAxis':{
+                'range': { 'min': 0, 'max': 300 },
+                'label': 'Minutes'
+            }
+        },
+        'systolic_blood_pressure': {
+            'data': {
+                'yValuePath': 'body.systolic_blood_pressure.value'
+            },
+            'yAxis': {
+                'range': { 'min': 30, 'max': 200 },
+                'label': 'mmHg'
+            }
+        },
+        'diastolic_blood_pressure': {
+            'data': {
+                'yValuePath': 'body.diastolic_blood_pressure.value'
+            },
+            'yAxis':{
+                'range': { 'min': 30, 'max': 200 },
+                'label': 'mmHg'
+            }
+        }
     }
 }</code></pre><p>For example, using these default settings to graph <code>heart_rate</code> data will generate a chart that looks like this:</p>
 <p><img src="http://www.openmhealth.org/media/viz_example_default_options.png" alt="Configured Chart" title="Default Chart"></p>
@@ -244,12 +277,12 @@ It currently generates line charts and bar charts, with default settings include
        'daysShownOnTimeline': { 'min': 1, 'max': 1000 },
    }
 }</code></pre><p>Additionally, default styles are provided for rendering each measure's plot.</p>
-<p>To override the defaults, specify the new interface settings and styles in the <code>options</code> object passed to <code>OMHWebVisualization.Chart(...)</code>.
-For example, if you would like to graph <code>heart_rate</code> data with a blue line and no tooltips, you'd use the following <code>options</code> object:</p>
+<p>To override the defaults, specify the new interface settings and styles in the <code>settings</code> object passed to <code>OMHWebVisualization.Chart(...)</code>.
+For example, if you would like to graph <code>heart_rate</code> data with a blue line and no tooltips, you'd use the following <code>settings</code> object:</p>
 <pre class="prettyprint source lang-javascript"><code>{
-  'userInterface': {
+  'interface': {
     'tooltips': {
-      'enabled': false,
+      'visible': false,
      }
   },
   'measures': {
@@ -269,6 +302,7 @@ For example, if you would like to graph <code>heart_rate</code> data with a blue
   }
 }</code></pre><p>This will produce a chart that looks something like the following screenshot:</p>
 <p><img src="http://www.openmhealth.org/media/viz_example_user_options.png" alt="Configured Chart" title="Configured Chart"></p>
+<h3>Automatic Y Axis Ranging</h3><p>The Y axis range can be set to adapt to the data by setting the <code>yAxis.range</code> property of a measure's settings to <code>undefined</code> e.g. <code>settings.measures.heart_rate.yAxis.range = undefined</code>_</p>
 <h3>Quantization</h3><p>Quantization reduces the dataset's size by summarizing each group of points that fall into a common time range, or &quot;bucket,&quot; with a single point that represents their bucket's range.</p>
 <p>Currently, quantized data point values within each subsequent quantization bucket are <em>averaged</em> for most measures and <em>summed</em> for <code>step_count</code> and <code>minutes_moderate_activity</code>.</p>
 <p>If you wish to configure the <code>timeQuantizationLevel</code> for a measure, you will need the following constants:</p>
@@ -282,9 +316,9 @@ For example, if you would like to graph <code>heart_rate</code> data with a blue
 <li><code>OMHWebVisualizations.DataParser.QUANTIZE_MILLISECOND</code></li>
 <li><code>OMHWebVisualizations.DataParser.QUANTIZE_NONE</code></li>
 </ul>
-<p>These can be used in an <code>options</code> object as follows:</p>
-<pre class="prettyprint source lang-javascript"><code>// an example of some options for a distance chart
-var options = {
+<p>These can be used in an <code>settings</code> object as follows:</p>
+<pre class="prettyprint source lang-javascript"><code>// an example of some settings for a distance chart
+var settings = {
     'measures': {
       'distance': {
           'valueKeyPath': 'body.distance.value',
@@ -307,8 +341,8 @@ var options = {
 <img src="http://www.openmhealth.org/media/viz_example_quantized_data.png" alt="Quantized Data" title="Quantized Data"></p>
 <h3>Gridlines</h3><p>Horizontal lines (e.g. representing safe thresholds) can be drawn on charts. Each line is labelled with a custom label or its <code>y</code> value, unless that label will overlap another gridline's label. Here are two maximum gridlines with default appearance:
 <img src="http://www.openmhealth.org/media/viz_example_threshold_basic.png" alt="Default Gridlines" title="Default Maximum Gridline"></p>
-<p>Gridlines can be specified in the <code>chart</code> property of a measure in the <code>measures</code> section of the configuration <code>options</code> object. To disable gridlines entirely, the <code>userInterface.gridlines.show</code> property of the <code>options</code> object can be set to <code>false</code>.</p>
-<p>A gridline in the <code>options</code> object should have the following properties:</p>
+<p>Gridlines can be specified in the <code>chart</code> property of a measure in the <code>measures</code> section of the configuration <code>settings</code> object.</p>
+<p>A gridline in the <code>settings</code> object should have the following properties:</p>
 <table>
 <thead>
 <tr>
@@ -332,15 +366,15 @@ var options = {
 </tbody>
 </table>
 <p>On a chart of type <code>line</code>, a labeled horizontal rule is drawn all the way across the chart for each gridline. Gridlines are not drawn on bar charts.</p>
-<p>To create a new gridline without using the <code>options</code> object, you can alternatively call <code>chart.addGridline()</code> before the chart is rendered.</p>
-<h3>Extending default appearances with ChartStyles</h3><p>To change the colors and other visual attributes of points on the chart, you can specify a <code>chart.styles</code> section in each measure in the <code>measures</code> block of the configuration <code>options</code> object.
+<p>To create a new gridline without using the <code>settings</code> object, you can alternatively call <code>chart.addGridline()</code> before the chart is rendered.</p>
+<h3>Extending default appearances with ChartStyles</h3><p>To change the colors and other visual attributes of points on the chart, you can specify a <code>chart.styles</code> section in each measure in the <code>measures</code> block of the configuration <code>settings</code> object.
 You can alternatively customize the chart's <code>ChartStyles</code> object before rendering the chart by calling <code>chart.getStylesForPlot()</code> and <code>chart.setStylesForPlot()</code>. The Plottable plot you wish to affect must be passed into these functions.</p>
 <p>Below are some examples of what can be done. See <code>examples/charts.html</code> for code samples.</p>
 <p>Change the color of points above the gridline:
 <img src="http://www.openmhealth.org/media/viz_example_threshold_color.png" alt="Above Gridline Color" title="Above Gridline Color"></p>
 <p>Add a range in the chart that is colored differently:
 <img src="http://www.openmhealth.org/media/viz_example_threshold_color_band.png" alt="Above Gridline Color with Colored Range" title="Above Gridline Color with Colored Range"></p>
-<h3>Tooltips</h3><p>Tooltips can be enabled, disabled, and configured using the <code>userInterface.tooltips</code> property of the <code>options</code> object passed into the constructor (<a href="#configuring_a_chart">see 'Configuring a Chart'</a>). The properties of <code>userInterface.tooltips</code> are explained in the following table:</p>
+<h3>Tooltips</h3><p>Tooltips can be enabled, disabled, and configured using the <code>userInterface.tooltips</code> property of the <code>settings</code> object passed into the constructor (<a href="#configuring_a_chart">see 'Configuring a Chart'</a>). The properties of <code>userInterface.tooltips</code> are explained in the following table:</p>
 <table>
 <thead>
 <tr>
@@ -398,7 +432,7 @@ In order for this to work, the corresponding chart style's <code>name</code> pro
    color:#e8ac4e;
 }</code></pre><p>See <code>examples/charts.html</code> for js and css code samples.</p>
 <h3>Rendering a chart</h3><p>Once a chart has been constructed, it must be rendered to an <code>&lt;svg&gt;</code> element. Render the chart by calling:</p>
-<pre class="prettyprint source lang-javascript"><code>chart.renderTo( svgElement );</code></pre><h3>Further customizations</h3><p>After a chart has been constructed, but <em>before it is rendered</em>, you may choose to get the Plottable components and make further modifications that are not afforded by the constructor's <code>options</code> parameter. Get the Plottable components, modify them, and render the chart as follows:</p>
+<pre class="prettyprint source lang-javascript"><code>chart.renderTo( svgElement );</code></pre><h3>Further customizations</h3><p>After a chart has been constructed, but <em>before it is rendered</em>, you may choose to get the Plottable components and make further modifications that are not afforded by the constructor's <code>settings</code> parameter. Get the Plottable components, modify them, and render the chart as follows:</p>
 <pre class="prettyprint source lang-javascript"><code>
 // construct chart here...
 
@@ -466,7 +500,7 @@ if (chart.initialized) {
 <span class="jsdoc-message">
 	Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.0</a>
 	
-		on March 31st 2016, 7:28:30 pm
+		on March 31st 2016, 10:47:11 pm
 	
 	using the <a href="https://github.com/docstrap/docstrap">DocStrap template</a>.
 </span>

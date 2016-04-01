@@ -40,7 +40,7 @@ If you'd like to experiment with the library using a demonstration page,
 You can create a chart by calling:
 
 ```javascript
-chart = new OMHWebVisualizations.Chart( data, element, measureList, options );
+chart = new OMHWebVisualizations.Chart( data, element, measureList, settings );
 ```
 
 The arguments passed to the constructor are:
@@ -50,7 +50,7 @@ Argument | Description
 *data* | An array of Open mHealth structured data points.
 *element* | A dom element, such as a `<div>` containing an `<svg>` node. This can also be a D3 selection. For backward compatibility, it can also be a jQuery object, however this functionality is deprecated and may be removed in a future release.
 *measureList* | A string containing a comma-separated list of Open mHealth measures to display.
-*options* | An object with [settings](#configuring_a_chart) for the chart. If this is omitted or if an empty object is passed in, the function uses the default settings explained below.
+*settings* | An object with [settings](#configuring_a_chart) for the chart. If this is omitted or if an empty object is passed in, the function uses the default settings explained below.
 
 The easiest way to create data points to pass to the `data` parameter is to use our [sample data generator](https://github.com/openmhealth/sample-data-generator). You can either use a pre-generated [data set](https://github.com/openmhealth/sample-data-generator/releases/download/v1.0.0/one-year-of-data.json.gz), or download the generator itself to create data that fits your needs.
 
@@ -58,84 +58,118 @@ A chart is considered *initialized* if the constructor `OMHWebVisualizations.Cha
 
 ### Configuring a chart
 
-The `options` parameter of the `OMHWebVisualization.Chart(...)` function is divided into two sections. A `userInterface` section controls the UI of the chart as a whole. The `measures` section contains settings that customize charts for specific measures. 
+The `settings` parameter of the `OMHWebVisualization.Chart(...)` function is divided into two sections. The `interface` section controls the UI of the chart as a whole. The `measures` section contains settings that customize charts for specific measures. 
 
-The following object is the default settings object used by the `OMHWebVisualization.Chart(...)` function when its `options` parameter is empty. You can specify any subset of these settings to override them:
+The following object is the default settings object used by the `OMHWebVisualization.Chart(...)` function when its `settings` parameter is empty. You can specify any subset of these settings to override them:
 
 ```javascript
 
-'userInterface': {
-    'toolbar': { 'enabled': true },
-    'timespanButtons': { 'enabled': true },
-    'zoomButtons': { 'enabled': true },
-    'navigation': { 'enabled': true },
-    'gridlines': { 'show': true },
-    'tooltips': {
-        'enabled': true,
-        'timeFormat': 'M/D/YY, h:mma',
-        'decimalPlaces': 0,
-        'contentFormatter': OMHWebVisualizations.ChartStyles.formatters.defaultTooltip,
-        'grouped': true
-    },
-    'panZoom': {
-        'enabled': true,
-        'showHint': true
-    },
-    'axes': {
-        'yAxis': {
-            'visible': true
+{
+    'interface': {
+        'toolbar': {
+            'visible': true,
+            'timespanButtons': { 'visible': true },
+            'zoomButtons': { 'visible': true },
+            'navigationButtons': { 'visible': true }
         },
-        'xAxis': {
-            'visible': true
+        'tooltips': {
+            'visible': true,
+            'timeFormat': 'M/D/YY, h:mma',
+            'decimalPlaces': 0,
+            'contentFormatter': parent.ChartStyles.formatters.defaultTooltip.bind( this ),
+            'grouped': true
+        },
+        'panZoomUsingMouse': {
+            'enabled': true,
+            'hint':{
+                'visible': true
+            }
+        },
+        'axes': {
+            'yAxis': {
+                'visible': true
+            },
+            'xAxis': {
+                'visible': true
+            }
+        }
+    },
+    'measures': {
+        'body_weight': {
+            'data': {
+                'yValuePath': 'body.body_weight.value',
+            },
+            'yAxis': {
+                'range': { 'min': 0, 'max': 100 },
+                'label': 'kg'
+            }
+        },
+        'heart_rate': {
+            'data':{
+                'yValuePath': 'body.heart_rate.value'
+            },
+            'yAxis': {
+                'range': { 'min': 30, 'max': 150 },
+                'label': 'bpm'
+            }
+        },
+        'step_count': {
+            'seriesName': 'Steps',
+            'data': {
+                'yValuePath': 'body.step_count',
+                'xValueQuantization': {
+                    'period': parent.DataParser.QUANTIZE_DAY,
+                    'aggregator': parent.DataParser.aggregators.summation
+                }
+            },
+            'chart': {
+                'type': 'clustered_bar',
+                'daysShownOnTimeline': { 'min': 7, 'max': 90 }
+            },
+            'yAxis': {
+                'range': { 'min': 0, 'max': 1500 },
+                'label': 'Steps'
+            }
+        },
+        'minutes_moderate_activity': {
+            'data':{
+                'yValuePath': 'body.minutes_moderate_activity.value',
+                'xValueQuantization': {
+                    'period': parent.DataParser.QUANTIZE_DAY,
+                    'aggregator': parent.DataParser.aggregators.summation
+                }
+            },
+            'seriesName': 'Minutes of moderate activity',
+            'chart': {
+                'type': 'clustered_bar',
+                'daysShownOnTimeline': { 'min': 7, 'max': 90 }
+            },
+            'yAxis':{
+                'range': { 'min': 0, 'max': 300 },
+                'label': 'Minutes'
+            }
+        },
+        'systolic_blood_pressure': {
+            'data': {
+                'yValuePath': 'body.systolic_blood_pressure.value'
+            },
+            'yAxis': {
+                'range': { 'min': 30, 'max': 200 },
+                'label': 'mmHg'
+            }
+        },
+        'diastolic_blood_pressure': {
+            'data': {
+                'yValuePath': 'body.diastolic_blood_pressure.value'
+            },
+            'yAxis':{
+                'range': { 'min': 30, 'max': 200 },
+                'label': 'mmHg'
+            }
         }
     }
-},
-'measures': {
-    'body_weight': {
-        'valueKeyPath': 'body.body_weight.value',
-        'range': { 'min': 0, 'max': 100 },
-        'units': 'kg',
-    },
-    'heart_rate': {
-        'valueKeyPath': 'body.heart_rate.value',
-        'range': { 'min': 30, 'max': 150 },
-        'units': 'bpm'
-    },
-    'step_count': {
-        'valueKeyPath': 'body.step_count',
-        'range': { 'min': 0, 'max': 1500 },
-        'units': 'Steps',
-        'seriesName': 'Steps',
-        'timeQuantizationLevel': OMHWebVisualizations.DataParser.QUANTIZE_DAY,
-        'quantizedDataConsolidationFunction': OMHWebVisualizations.DataParser.consolidators.summation,
-        'chart': {
-            'type': 'clustered_bar',
-            'daysShownOnTimeline': { 'min': 7, 'max': 90 }
-        },
-    },
-    'minutes_moderate_activity': {
-        'valueKeyPath': 'body.minutes_moderate_activity.value',
-        'range': { 'min': 0, 'max': 300 },
-        'units': 'Minutes',
-        'seriesName': 'Minutes of moderate activity',
-        'timeQuantizationLevel': OMHWebVisualizations.DataParser.QUANTIZE_DAY,
-        'quantizedDataConsolidationFunction': OMHWebVisualizations.DataParser.consolidators.summation,
-        'chart': {
-            'type': 'clustered_bar',
-            'daysShownOnTimeline': { 'min': 7, 'max': 90 }
-        },
-    },
-    'systolic_blood_pressure': {
-        'valueKeyPath': 'body.systolic_blood_pressure.value',
-        'range': { 'min': 30, 'max': 200 },
-        'units': 'mmHg',
-    },
-    'diastolic_blood_pressure': {
-        'valueKeyPath': 'body.diastolic_blood_pressure.value',
-        'range': { 'min': 30, 'max': 200 },
-        'units': 'mmHg',
-    }
 }
+
 
 ```
 
@@ -147,11 +181,17 @@ If you look carefully at the default settings object, you'll also notice that so
 
 ```javascript
 {
-   'range': { 'min': 0, 'max': 100 },
-   'units': 'Units',
+   'yAxis': {
+       'range': { 'min': 0, 'max': 100 },
+       'label': 'Units',
+   },
    'seriesName': 'Series',
-   'timeQuantizationLevel': OMHWebVisualizations.DataParser.QUANTIZE_NONE,
-   'quantizedDataConsolidationFunction': OMHWebVisualizations.DataParser.consolidators.average,
+   'data':{
+        'xValueQuantization': {
+           'period': OMHWebVisualizations.DataParser.QUANTIZE_NONE,
+           'aggregator': OMHWebVisualizations.DataParser.consolidators.average,
+        }
+   }
    'chart': {
        'type': 'line',
        'daysShownOnTimeline': { 'min': 1, 'max': 1000 },
@@ -161,14 +201,14 @@ If you look carefully at the default settings object, you'll also notice that so
 
 Additionally, default styles are provided for rendering each measure's plot.
 
-To override the defaults, specify the new interface settings and styles in the `options` object passed to `OMHWebVisualization.Chart(...)`.
-For example, if you would like to graph `heart_rate` data with a blue line and no tooltips, you'd use the following `options` object:
+To override the defaults, specify the new interface settings and styles in the `settings` object passed to `OMHWebVisualization.Chart(...)`.
+For example, if you would like to graph `heart_rate` data with a blue line and no tooltips, you'd use the following `settings` object:
 
 ```javascript
 {
-  'userInterface': {
+  'interface': {
     'tooltips': {
-      'enabled': false,
+      'visible': false,
      }
   },
   'measures': {
@@ -192,6 +232,10 @@ This will produce a chart that looks something like the following screenshot:
 
 ![Configured Chart](http://www.openmhealth.org/media/viz_example_user_options.png "Configured Chart")
 
+### Automatic Y Axis Ranging
+
+The Y axis range can be set to adapt to the data by setting the `yAxis.range` property of a measure's settings to `undefined` e.g. `settings.measures.heart_rate.yAxis.range = undefined`_
+
 ### Quantization
 
 Quantization reduces the dataset's size by summarizing each group of points that fall into a common time range, or "bucket," with a single point that represents their bucket's range.
@@ -209,11 +253,11 @@ If you wish to configure the `timeQuantizationLevel` for a measure, you will nee
 * `OMHWebVisualizations.DataParser.QUANTIZE_MILLISECOND`
 * `OMHWebVisualizations.DataParser.QUANTIZE_NONE`
 
-These can be used in an `options` object as follows:
+These can be used in an `settings` object as follows:
 
 ```javascript
-// an example of some options for a distance chart
-var options = {
+// an example of some settings for a distance chart
+var settings = {
     'measures': {
       'distance': {
           'valueKeyPath': 'body.distance.value',
@@ -245,9 +289,9 @@ And here is a chart of the same data *quantized* by hour. The points before 05:0
 Horizontal lines (e.g. representing safe thresholds) can be drawn on charts. Each line is labelled with a custom label or its `y` value, unless that label will overlap another gridline's label. Here are two maximum gridlines with default appearance:
 ![Default Gridlines](http://www.openmhealth.org/media/viz_example_threshold_basic.png "Default Maximum Gridline")
 
-Gridlines can be specified in the `chart` property of a measure in the `measures` section of the configuration `options` object. To disable gridlines entirely, the `userInterface.gridlines.show` property of the `options` object can be set to `false`.
+Gridlines can be specified in the `chart` property of a measure in the `measures` section of the configuration `settings` object.
 
-A gridline in the `options` object should have the following properties:
+A gridline in the `settings` object should have the following properties:
 
 Property | Description
 ---: | ---
@@ -257,11 +301,11 @@ Property | Description
 
 On a chart of type `line`, a labeled horizontal rule is drawn all the way across the chart for each gridline. Gridlines are not drawn on bar charts.
 
-To create a new gridline without using the `options` object, you can alternatively call `chart.addGridline()` before the chart is rendered.
+To create a new gridline without using the `settings` object, you can alternatively call `chart.addGridline()` before the chart is rendered.
 
 ### Extending default appearances with ChartStyles
 
-To change the colors and other visual attributes of points on the chart, you can specify a `chart.styles` section in each measure in the `measures` block of the configuration `options` object.
+To change the colors and other visual attributes of points on the chart, you can specify a `chart.styles` section in each measure in the `measures` block of the configuration `settings` object.
 You can alternatively customize the chart's `ChartStyles` object before rendering the chart by calling `chart.getStylesForPlot()` and `chart.setStylesForPlot()`. The Plottable plot you wish to affect must be passed into these functions.
 
 Below are some examples of what can be done. See `examples/charts.html` for code samples.
@@ -274,7 +318,7 @@ Add a range in the chart that is colored differently:
 
 ### Tooltips
 
-Tooltips can be enabled, disabled, and configured using the `userInterface.tooltips` property of the `options` object passed into the constructor ([see 'Configuring a Chart'](#configuring_a_chart)). The properties of `userInterface.tooltips` are explained in the following table:
+Tooltips can be enabled, disabled, and configured using the `userInterface.tooltips` property of the `settings` object passed into the constructor ([see 'Configuring a Chart'](#configuring_a_chart)). The properties of `userInterface.tooltips` are explained in the following table:
 
 Property | Description
 ---: | ---
@@ -350,7 +394,7 @@ chart.renderTo( svgElement );
 
 ### Further customizations
 
-After a chart has been constructed, but *before it is rendered*, you may choose to get the Plottable components and make further modifications that are not afforded by the constructor's `options` parameter. Get the Plottable components, modify them, and render the chart as follows:
+After a chart has been constructed, but *before it is rendered*, you may choose to get the Plottable components and make further modifications that are not afforded by the constructor's `settings` parameter. Get the Plottable components, modify them, and render the chart as follows:
 
 ```javascript
 

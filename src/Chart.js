@@ -30,17 +30,17 @@
          *  @param {{}} data - The Open mHealth formatted data to build a chart for
          *  @param {{}} element - The DOM element that contains an SVG element for the chart
          *  @param {String} measureList - The comma-delimited list of measures to search for in the data
-         *  @param {{}} options - The optional settings used to configure the function and appearance of the chart
+         *  @param {{}} settings - The optional settings used to configure the function and appearance of the chart
          *  @global
          *  @constructor
          *  @classdesc This is the main class used to chart Open mHealth data. At construction time, data is parsed and Plottable.js components are used to build the chart. [Chart.renderTo]{@link Chart#renderTo} can then be called to render the chart in the browser.
          */
-        Chart = function ( data, element, measureList, options ) {
+        Chart = function ( data, element, measureList, settings ) {
 
             var selection;
             var measures = measureList.split( /\s*,\s*/ );
             var table = null;
-            var configuration = new OMHWebVisualizations.ChartConfiguration( options );
+            var configuration = new OMHWebVisualizations.ChartConfiguration( settings );
             var parser = new OMHWebVisualizations.DataParser( data, measures, configuration );
             var styles = new OMHWebVisualizations.ChartStyles( configuration );
             var interactions = new OMHWebVisualizations.ChartInteractions( element, measures[ 0 ], configuration, parser, styles );
@@ -54,8 +54,8 @@
             if ( !element.node ) {
                 element = d3.select( element );
             }
-            if ( !options ) {
-                options = {};
+            if ( !settings ) {
+                settings = {};
             }
 
             element.classed( 'omh-chart-container', true );
@@ -64,7 +64,7 @@
             var xScale = new Plottable.Scales.Time();
             var yScale = new Plottable.Scales.Linear();
             var yScaleCallback = null;
-            var domain = configuration.getMeasureSettings( measures[ 0 ] ).range;
+            var domain = configuration.getMeasureSettings( measures[ 0 ] ).yAxis.range;
             if ( domain ) {
                 yScale.domainMin( domain.min ).domainMax( domain.max );
             }
@@ -75,7 +75,7 @@
 
             var yAxis = new Plottable.Axes.Numeric( yScale, 'left' );
 
-            var yLabel = new Plottable.Components.AxisLabel( configuration.getMeasureSettings( measures[ 0 ] ).units, '0' )
+            var yLabel = new Plottable.Components.AxisLabel( configuration.getMeasureSettings( measures[ 0 ] ).yAxis.label, '0' )
                 .padding( 5 )
                 .xAlignment( 'right' )
                 .yAlignment( 'top' );
@@ -111,68 +111,63 @@
             var gridlines;
             var gridlineYAxis;
 
-            if ( !configuration.getInterfaceSettings().hasOwnProperty('gridlines') ||
-                    configuration.getInterfaceSettings().gridlines.show !== false ) {
+            measures.forEach( function ( measure ) {
 
-                measures.forEach( function ( measure ) {
+                var measureSettings = configuration.getMeasureSettings( measure );
 
-                    var measureSettings = configuration.getMeasureSettings( measure );
-
-                    if ( measureSettings.chart && measureSettings.chart.gridlines ) {
-                        var measureGridlines = measureSettings.chart.gridlines;
-                        measureGridlines.forEach( function ( gridline ) {
-                            if ( !gridline.hasOwnProperty( 'visible' ) || gridline.visible === true ) {
-                                gridlineValues.push( gridline );
-                            }
-                        } );
-                    }
-
-                } );
-
-                if ( gridlineValues.length > 0 ) {
-
-                    gridlineValues.sort( function ( a, b ) {
-                        return a.value - b.value;
-                    } );
-
-                    var gridlineYScale = new Plottable.Scales.Linear();
-                    gridlineYScale.domain( yScale.domain() );
-                    gridlineYScale.range( yScale.range() );
-                    yScaleCallback = function ( updatedScale ) {
-                        gridlineYScale.domain( updatedScale.domain() );
-                        gridlineYScale.range( updatedScale.range() );
-                    };
-                    yScale.onUpdate( yScaleCallback );
-                    var yScaleTickGenerator = function ( scale ) {
-                        var ticks = gridlineValues.map( function ( element ) {
-                            return element.value;
-                        } );
-                        return ticks;
-                    };
-
-                    gridlineYScale.tickGenerator( yScaleTickGenerator );
-
-                    gridlineYAxis = new Plottable.Axes.Numeric( gridlineYScale, "right" )
-                        .tickLabelPosition( "top" )
-                        .tickLabelPadding( 1 )
-                        .showEndTickLabels( true )
-                        .addClass( 'gridlines-axis' );
-
-                    gridlineYAxis.formatter( function ( value ) {
-                        for ( var index in gridlineValues ) {
-                            if ( gridlineValues[ index ].value === value ) {
-                                var label = gridlineValues[ index ].label? gridlineValues[ index ].label: gridlineValues[ index ].value;
-                                return String( label );
-                            }
+                if ( measureSettings.chart && measureSettings.chart.gridlines ) {
+                    var measureGridlines = measureSettings.chart.gridlines;
+                    measureGridlines.forEach( function ( gridline ) {
+                        if ( !gridline.hasOwnProperty( 'visible' ) || gridline.visible === true ) {
+                            gridlineValues.push( gridline );
                         }
                     } );
-
-                    gridlines = new Plottable.Components.Gridlines( null, gridlineYScale );
-
-                    plots.push( gridlines );
-                    plots.push( gridlineYAxis );
-
                 }
+
+            } );
+
+            if ( gridlineValues.length > 0 ) {
+
+                gridlineValues.sort( function ( a, b ) {
+                    return a.value - b.value;
+                } );
+
+                var gridlineYScale = new Plottable.Scales.Linear();
+                gridlineYScale.domain( yScale.domain() );
+                gridlineYScale.range( yScale.range() );
+                yScaleCallback = function ( updatedScale ) {
+                    gridlineYScale.domain( updatedScale.domain() );
+                    gridlineYScale.range( updatedScale.range() );
+                };
+                yScale.onUpdate( yScaleCallback );
+                var yScaleTickGenerator = function ( scale ) {
+                    var ticks = gridlineValues.map( function ( element ) {
+                        return element.value;
+                    } );
+                    return ticks;
+                };
+
+                gridlineYScale.tickGenerator( yScaleTickGenerator );
+
+                gridlineYAxis = new Plottable.Axes.Numeric( gridlineYScale, "right" )
+                    .tickLabelPosition( "top" )
+                    .tickLabelPadding( 1 )
+                    .showEndTickLabels( true )
+                    .addClass( 'gridlines-axis' );
+
+                gridlineYAxis.formatter( function ( value ) {
+                    for ( var index in gridlineValues ) {
+                        if ( gridlineValues[ index ].value === value ) {
+                            var label = gridlineValues[ index ].label ? gridlineValues[ index ].label : gridlineValues[ index ].value;
+                            return String( label );
+                        }
+                    }
+                } );
+
+                gridlines = new Plottable.Components.Gridlines( null, gridlineYScale );
+
+                plots.push( gridlines );
+                plots.push( gridlineYAxis );
 
             }
 
@@ -198,12 +193,12 @@
 
                     var barYScale = yScale;
                     if ( clusteredBarPlots.length > 0 ) {
-                        var domain = measureSettings.range;
-                        var units = measureSettings.units;
+                        var domain = measureSettings.yAxis.range;
+                        var label = measureSettings.yAxis.label;
                         barYScale = new Plottable.Scales.Linear()
                             .domainMin( domain.min ).domainMax( domain.max );
                         var barYAxis = new Plottable.Axes.Numeric( barYScale, 'right' );
-                        var barYLabel = new Plottable.Components.AxisLabel( units, '0' )
+                        var barYLabel = new Plottable.Components.AxisLabel( label, '0' )
                             .padding( 5 )
                             .xAlignment( 'left' )
                             .yAlignment( 'top' );
@@ -321,7 +316,7 @@
             }
 
 
-//build table
+            //build table
             var xAxisVisible = configuration.getInterfaceSettings().axes.xAxis.visible;
             var yAxisVisible = configuration.getInterfaceSettings().axes.yAxis.visible;
             var plotGroup = new Plottable.Components.Group( plots );

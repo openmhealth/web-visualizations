@@ -167,9 +167,9 @@
     var clickInteraction = null;
     var clickInteractionComponent = null;
 
-    //an example of some options for custom chart appearance
-    var options = {
-        'userInterface': {
+    //an example of some settings for custom chart appearance
+    var settings = {
+        'interface': {
             'axes': {
                 'yAxis': {
                     'visible': true
@@ -184,12 +184,18 @@
         },
         'measures': {
             'distance': {
-                'valueKeyPath': 'body.distance.value',
-                'range': { 'min': 0, 'max': 200000 },
-                'units': 'm',
-                'timeQuantizationLevel': OMHWebVisualizations.DataParser.QUANTIZE_MONTH,
-                'quantizedDataConsolidationFunction': OMHWebVisualizations.DataParser.consolidators.summation,
                 'seriesName': 'Distance',
+                'yAxis':{
+                    'range': { 'min': 0, 'max': 200000 },
+                    'label': 'm'
+                },
+                'data': {
+                    'yValuePath': 'body.distance.value',
+                    'xValueQuantization': {
+                        'period': OMHWebVisualizations.DataParser.QUANTIZE_MONTH,
+                        'aggregator': OMHWebVisualizations.DataParser.aggregators.summation
+                    }
+                },
                 'chart': {
                     'type': 'clustered_bar',
                     'daysShownOnTimeline': { 'min': 90, 'max': 365 },
@@ -215,18 +221,25 @@
                                 'stroke': '#4a90e2'
                             }
                         }
-                    ],
+                    ]
                 }
             },
             'body_weight': {
-                'timeQuantizationLevel': OMHWebVisualizations.DataParser.QUANTIZE_MONTH
+                'data': {
+                    'xValueQuantization': {
+                        'period': OMHWebVisualizations.DataParser.QUANTIZE_MONTH
+                    }
+                }
             },
             'systolic_blood_pressure': {
                 'seriesName': 'Blood Pressure',
+                'yAxis': {
+                    'range': { 'min': 60, 'max': 140 }
+                },
                 'chart': {
                     'daysShownOnTimeline': { 'min': 0, 'max': Infinity },
                     'styles': [
-                        {
+                        { // make the points above the gridline orange
                             'name': 'above',
                             'plotType': 'Scatter',
                             'filters': [ OMHWebVisualizations.ChartStyles.filters.above( 120 ) ],
@@ -239,13 +252,12 @@
                     'gridlines': [
                         { value: 120, label: '120', visible: true }
                     ]
-                },
-                'range': { 'min': 60, 'max': 140 },
+                }
             },
             'diastolic_blood_pressure': {
                 'seriesName': 'Blood Pressure',
                 'chart': {
-                    'styles': [
+                    'styles': [ // make the points above the gridline orange
                         {
                             'name': 'above',
                             'plotType': 'Scatter',
@@ -264,7 +276,7 @@
         }
     };
 
-    /*=====  End of Variable defninitions and initializations  ======*/
+    /*=====  End of Variable definitions and initializations  ======*/
 
 
     /*===================================================
@@ -313,17 +325,17 @@
             }
         };
 
-        if ( datum.consolidationType ) {
-            // if the point is a consolidation of more than one point
-            // then display the consolidation type and the points that were used
+        if ( datum.aggregationType ) {
+            // if the point is a aggregation of more than one point
+            // then display the aggregation type and the points that were used
             var dataString = '';
-            for ( var i in datum.consolidatedData ) {
-                dataString += JSON.stringify( datum.consolidatedData[ i ], replacer, 4 ) + '\n\n';
-                if ( i < datum.consolidatedData.length - 1 ) {
+            for ( var i in datum.aggregatedData ) {
+                dataString += JSON.stringify( datum.aggregatedData[ i ], replacer, 4 ) + '\n\n';
+                if ( i < datum.aggregatedData.length - 1 ) {
                     dataString += '<hr>\n';
                 }
             }
-            datapointDetails.html( '<h3>Data Point Details: ' + datum.consolidationType + ' of points</h3> ' + dataString );
+            datapointDetails.html( '<h3>Data Point Details: ' + datum.aggregationType + ' of points</h3> ' + dataString );
         } else {
             // otherwise just show the point
             datapointDetails.html( '<h3>Data Point Details: single point</h3> ' + JSON.stringify( datum.omhDatum, replacer, 4 ) );
@@ -431,11 +443,11 @@
         chartStyles.setStylesForPlot( plotStylesWithDanger, scatterPlot );
 
         // add a gridline for the danger zone
-        chart.addGridline( dangerValue, 'Danger!' );
+        chart.addGridline( dangerValue, 'Above ' + dangerValue + ' exceeds patient goal' );
 
     };
 
-    var makeChartForUrl = function ( url, element, measureList, configOptions ) {
+    var makeChartForUrl = function ( url, element, measureList, configSettings ) {
 
         var makeChart = function ( data ) {
 
@@ -452,7 +464,7 @@
             }
 
             //builds a new plottable chart
-            chart = new OMHWebVisualizations.Chart( data, element, measureList, configOptions );
+            chart = new OMHWebVisualizations.Chart( data, element, measureList, configSettings );
 
             if ( chart.initialized ) {
 
@@ -517,23 +529,29 @@
         var url = d3.select( 'input.update-url' ).node().value;
         var measureList = d3.select( 'select' ).node().value;
 
-        // Use options specified at top of script, but overwrite
-        // the step_count options if it has been chosen in the menu.
+        // Use settings specified at top of script, but overwrite
+        // the step_count settings if it has been chosen in the menu.
 
         // This allows us to change the appearance of step_count data,
         // which normally defaults to a bar graph when shown with
         // minutes_of_moderate_activity, to a line graph when
         // shown on its own.
 
-        var chartOptions = options;
+        var chartSettings = settings;
 
         if ( measureList === 'step_count' ) {
 
-            chartOptions = cloneObject( options );
+            chartSettings = cloneObject( settings );
 
-            chartOptions[ 'measures' ][ 'step_count' ] = {
-                'range': undefined,
-                'timeQuantizationLevel': OMHWebVisualizations.DataParser.QUANTIZE_MONTH,
+            chartSettings[ 'measures' ][ 'step_count' ] = {
+                'yAxis':{
+                    'range': undefined
+                },
+                'data': {
+                    'xValueQuantization': {
+                        'period': OMHWebVisualizations.DataParser.QUANTIZE_MONTH
+                    }
+                },
                 'chart': {
                     'type': 'line',
                     'daysShownOnTimeline': undefined
@@ -542,14 +560,14 @@
 
         } else if ( measureList === 'heart_rate' ) {
 
-            chartOptions = cloneObject( options );
+            chartSettings = cloneObject( settings );
 
-            chartOptions.userInterface.tooltips.enabled = false;
+            chartSettings.interface.tooltips.visible = false;
 
         }
 
         // Make the chart
-        makeChartForUrl( url, d3.select( '.demo-chart-container' ), measureList, chartOptions );
+        makeChartForUrl( url, d3.select( '.demo-chart-container' ), measureList, chartSettings );
 
     };
 

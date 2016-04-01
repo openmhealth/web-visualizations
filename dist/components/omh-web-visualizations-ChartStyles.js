@@ -446,7 +446,9 @@
     };
 
     /**
-     * A list of useful filters to help with conditional styling
+     * An array of functions that return useful filter functions, to help with conditional styling
+     * @alias filters
+     * @memberof! ChartStyles
      * @type {{}}
      */
     ChartStyles.filters = {

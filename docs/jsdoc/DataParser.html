@@ -75,9 +75,9 @@
             <div class="class-description"><p>This class parses Open mHealth data into a format that is usable by d3 and Plottable.js.</p>
 <p>When possible, data is structured to make interactions and rendering easier.</p>
 <p>The following <a href="ChartConfiguration.html">ChartConfiguration</a> settings for each measure are used to parse the data:</p>
-<p>valueKeyPath - a dot-delimited string that indicates where in a data point the y value of a point can be found</p>
-<p>timeQuantizationLevel - the granularity of time quantization desired for the data (e.g. <a href="DataParser.html#.QUANTIZE_DAY">DataParser.QUANTIZE_DAY</a> )</p>
-<p>quantizedDataConsolidationFunction - how to consolidate data points that are quantized to the same moment in time (e.g. <a href="DataParser.html#.consolidators.average">DataParser.consolidators.average</a> )</p></div>
+<p>data.yValuePath - a dot-delimited string that indicates where in a data point the y value of a point can be found</p>
+<p>data.xValueQuantization.period - the granularity of time quantization desired for the data (e.g. <a href="DataParser.html#.QUANTIZE_DAY">DataParser.QUANTIZE_DAY</a> )</p>
+<p>data.xValueQuantization.aggregator - how to aggregate data points that are quantized to the same moment in time (e.g. <a href="DataParser.html#.aggregators.average">DataParser.aggregators.average</a> )</p></div>
         
     
 </header>
@@ -197,7 +197,7 @@
 
             
 
-            <td class="description last"><p>A configuration object containing options for parsing data</p></td>
+            <td class="description last"><p>A configuration object containing settings for parsing data</p></td>
         </tr>
 
     
@@ -855,7 +855,7 @@
             
 <hr>
 <dt>
-    <h4 class="name" id=".consolidators.average"><span class="type-signature">&lt;static> </span>consolidators.average(data)</h4>
+    <h4 class="name" id=".aggregators.average"><span class="type-signature">&lt;static> </span>aggregators.average(data)</h4>
     
     
 </dt>
@@ -863,8 +863,8 @@
 
     
     <div class="description">
-        <p>Consolidate points with the same time value by averaging them.</p>
-<p>Provenance data for the first point( chronologically ) will be preserved. For a given moment in time shared by more than one point, all but one point at that time are removed from the data array, and references to consolidated points are stored in the remaining point as 'consolidatedData' field.</p>
+        <p>Aggregate points with the same time value by averaging them.</p>
+<p>Provenance data for the first point( chronologically ) will be preserved. For a given moment in time shared by more than one point, all but one point at that time are removed from the data array, and references to aggregated points are stored in the remaining point as 'aggregatedData' field.</p>
     </div>
     
 
@@ -916,7 +916,7 @@
 
             
 
-            <td class="description last"><p>The data to consolidate</p></td>
+            <td class="description last"><p>The data to aggregate</p></td>
         </tr>
 
     
@@ -984,7 +984,7 @@
             
 <hr>
 <dt>
-    <h4 class="name" id=".consolidators.summation"><span class="type-signature">&lt;static> </span>consolidators.summation(data)</h4>
+    <h4 class="name" id=".aggregators.summation"><span class="type-signature">&lt;static> </span>aggregators.summation(data)</h4>
     
     
 </dt>
@@ -992,8 +992,8 @@
 
     
     <div class="description">
-        <p>Consolidate points with the same time value by summing them.</p>
-<p>Provenance data for the first point (chronologically) will be preserved. For a given moment in time shared by more than one point, all but one point at that time are removed from the data array, and references to consolidated points are stored in the remaining point as 'consolidatedData' field.</p>
+        <p>Aggregate points with the same time value by summing them.</p>
+<p>Provenance data for the first point (chronologically) will be preserved. For a given moment in time shared by more than one point, all but one point at that time are removed from the data array, and references to aggregated points are stored in the remaining point as 'aggregatedData' field.</p>
     </div>
     
 
@@ -1045,7 +1045,7 @@
 
             
 
-            <td class="description last"><p>The data to consolidate</p></td>
+            <td class="description last"><p>The data to aggregate</p></td>
         </tr>
 
     
@@ -1113,7 +1113,7 @@
             
 <hr>
 <dt>
-    <h4 class="name" id="consolidateData"><span class="type-signature"></span>consolidateData(measure, data)</h4>
+    <h4 class="name" id="aggregateData"><span class="type-signature"></span>aggregateData(measure, data)</h4>
     
     
 </dt>
@@ -1121,7 +1121,7 @@
 
     
     <div class="description">
-        <p>Consolidate Plottable.js data points at the same time coordinates</p>
+        <p>Aggregate Plottable.js data points at the same time coordinates</p>
     </div>
     
 
@@ -1173,7 +1173,7 @@
 
             
 
-            <td class="description last"><p>The measure will be used to look up the consolidation settings in the ChartConfiguration</p></td>
+            <td class="description last"><p>The measure will be used to look up the aggregation settings in the ChartConfiguration</p></td>
         </tr>
 
     
@@ -1197,7 +1197,7 @@
 
             
 
-            <td class="description last"><p>The Plottable.js data the should be consolidated</p></td>
+            <td class="description last"><p>The Plottable.js data the should be aggregated</p></td>
         </tr>
 
     
@@ -2427,7 +2427,7 @@
 <span class="jsdoc-message">
 	Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.0</a>
 	
-		on March 31st 2016, 7:28:30 pm
+		on March 31st 2016, 10:47:11 pm
 	
 	using the <a href="https://github.com/docstrap/docstrap">DocStrap template</a>.
 </span>

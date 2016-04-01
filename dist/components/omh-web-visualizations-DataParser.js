@@ -12,7 +12,7 @@
          * Creates an object that parses omh data into a format usable Plottable.js
          * @param {{}} data - The data to parse now
          * @param {{}} measures - Strings representing the measures to extract from the data
-         * @param {ChartConfiguration} configuration - A configuration object containing options for parsing data
+         * @param {ChartConfiguration} configuration - A configuration object containing settings for parsing data
          * @constructor
          * @global
          * @classdesc This class parses Open mHealth data into a format that is usable by d3 and Plottable.js.
@@ -21,11 +21,11 @@
          *
          * The following [ChartConfiguration]{@link ChartConfiguration} settings for each measure are used to parse the data:
          *
-         * valueKeyPath - a dot-delimited string that indicates where in a data point the y value of a point can be found
+         * data.yValuePath - a dot-delimited string that indicates where in a data point the y value of a point can be found
          *
-         * timeQuantizationLevel - the granularity of time quantization desired for the data (e.g. [DataParser.QUANTIZE_DAY]{@link DataParser.QUANTIZE_DAY} )
+         * data.xValueQuantization.period - the granularity of time quantization desired for the data (e.g. [DataParser.QUANTIZE_DAY]{@link DataParser.QUANTIZE_DAY} )
          *
-         * quantizedDataConsolidationFunction - how to consolidate data points that are quantized to the same moment in time (e.g. [DataParser.consolidators.average]{@link DataParser.consolidators.average} )
+         * data.xValueQuantization.aggregator - how to aggregate data points that are quantized to the same moment in time (e.g. [DataParser.aggregators.average]{@link DataParser.aggregators.average} )
          */
         DataParser = function ( data, measures, configuration ) {
 
@@ -180,8 +180,8 @@
                 }
 
                 measuresToParse.forEach( function ( measure, i ) {
-                    quantizationLevels[ measure ] = configuration.getMeasureSettings( measure ).timeQuantizationLevel;
-                    keyPaths[ measure ] = configuration.getMeasureSettings( measure ).valueKeyPath;
+                    quantizationLevels[ measure ] = configuration.getMeasureSettings( measure ).data.xValueQuantization.period;
+                    keyPaths[ measure ] = configuration.getMeasureSettings( measure ).data.yValuePath;
                 } );
 
                 omhData.forEach( function ( omhDatum ) {
@@ -236,10 +236,10 @@
 
                 } );
 
-                //quantized data should be consolidated
+                //quantized data should be aggregated
                 measuresToParse.forEach( function ( measure, i ) {
                     if ( quantizationLevels[ measure ] !== OMHWebVisualizations.DataParser.QUANTIZE_NONE ) {
-                        _self.consolidateData( measure, parsedData );
+                        _self.aggregateData( measure, parsedData );
                     }
                 } );
 
@@ -249,13 +249,13 @@
 
 
             /**
-             * Consolidate Plottable.js data points at the same time coordinates
-             * @param {string} measure - The measure will be used to look up the consolidation settings in the ChartConfiguration
-             * @param {Array} data - The Plottable.js data the should be consolidated
+             * Aggregate Plottable.js data points at the same time coordinates
+             * @param {string} measure - The measure will be used to look up the aggregation settings in the ChartConfiguration
+             * @param {Array} data - The Plottable.js data the should be aggregated
              */
-            this.consolidateData = function ( measure, data ) {
-                var consolidator = configuration.getMeasureSettings( measure ).quantizedDataConsolidationFunction;
-                consolidator( data[ measure ] );
+            this.aggregateData = function ( measure, data ) {
+                var aggregator = configuration.getMeasureSettings( measure ).data.xValueQuantization.aggregator;
+                aggregator( data[ measure ] );
             };
 
             /**
@@ -338,53 +338,53 @@
         DataParser.QUANTIZE_NONE = -1;
 
         /**
-         * DataParser.consolidators
-         * A static collection of methods for consolidating data points
+         * DataParser.aggregators
+         * A static collection of methods for aggregating data points
          * That sit at the same point in time after quantization
          * @type {{}}
          */
-        DataParser.consolidators = {};
+        DataParser.aggregators = {};
 
         /**
-         * Consolidate points with the same time value by summing them.
+         * Aggregate points with the same time value by summing them.
          *
-         * Provenance data for the first point (chronologically) will be preserved. For a given moment in time shared by more than one point, all but one point at that time are removed from the data array, and references to consolidated points are stored in the remaining point as 'consolidatedData' field.
-         * @param {Array} data - The data to consolidate
-         * @alias consolidators.summation
+         * Provenance data for the first point (chronologically) will be preserved. For a given moment in time shared by more than one point, all but one point at that time are removed from the data array, and references to aggregated points are stored in the remaining point as 'aggregatedData' field.
+         * @param {Array} data - The data to aggregate
+         * @alias aggregators.summation
          * @memberof! DataParser
          */
-        DataParser.consolidators.summation = function ( data ) {
+        DataParser.aggregators.summation = function ( data ) {
             data.sort( function ( a, b ) {
                 return a.x.getTime() - b.x.getTime();
             } );
             for ( var i = 0; i < data.length; i++ ) {
                 while ( i + 1 < data.length && ( data[ i + 1 ].x.getTime() === data[ i ].x.getTime() ) ) {
                     data[ i ].y += data[ i + 1 ].y;
-                    if ( !data[ i ].consolidatedData ) {
-                        data[ i ].consolidatedData = [ data[ i ].omhDatum ];
+                    if ( !data[ i ].aggregatedData ) {
+                        data[ i ].aggregatedData = [ data[ i ].omhDatum ];
                     }
-                    data[ i ].consolidatedData.push( data[ i + 1 ].omhDatum );
-                    data[ i ].consolidationType = 'summation';
+                    data[ i ].aggregatedData.push( data[ i + 1 ].omhDatum );
+                    data[ i ].aggregationType = 'summation';
                     data.splice( i + 1, 1 );
                 }
             }
         };
 
         /**
-         * Consolidate points with the same time value by averaging them.
+         * Aggregate points with the same time value by averaging them.
          *
-         * Provenance data for the first point( chronologically ) will be preserved. For a given moment in time shared by more than one point, all but one point at that time are removed from the data array, and references to consolidated points are stored in the remaining point as 'consolidatedData' field.
-         * @param {Array} data - The data to consolidate
-         * @alias consolidators.average
+         * Provenance data for the first point( chronologically ) will be preserved. For a given moment in time shared by more than one point, all but one point at that time are removed from the data array, and references to aggregated points are stored in the remaining point as 'aggregatedData' field.
+         * @param {Array} data - The data to aggregate
+         * @alias aggregators.average
          * @memberof! DataParser
          */
-        DataParser.consolidators.average = function ( data ) {
-            parent.DataParser.consolidators.summation( data );
+        DataParser.aggregators.average = function ( data ) {
+            parent.DataParser.aggregators.summation( data );
             for ( var i = 0; i < data.length; i++ ) {
-                var count = data[ i ].consolidatedData ? data[ i ].consolidatedData.length : 0;
+                var count = data[ i ].aggregatedData ? data[ i ].aggregatedData.length : 0;
                 if ( count > 0 ) {
                     data[ i ].y /= count;
-                    data[ i ].consolidationType = 'average';
+                    data[ i ].aggregationType = 'average';
                 }
             }
         };
