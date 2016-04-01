@@ -114,7 +114,6 @@ The following object is the default settings object used by the `OMHWebVisualiza
             }
         },
         'step_count': {
-            'seriesName': 'Steps',
             'data': {
                 'yValuePath': 'body.step_count',
                 'xValueQuantization': {
@@ -126,7 +125,11 @@ The following object is the default settings object used by the `OMHWebVisualiza
                 'type': 'clustered_bar',
                 'daysShownOnTimeline': { 'min': 7, 'max': 90 }
             },
-            'yAxis': {
+            'legend': {
+                'seriesName': 'Steps',
+                'seriesColor': '#eeeeee'
+            },
+           'yAxis': {
                 'range': { 'min': 0, 'max': 1500 },
                 'label': 'Steps'
             }
@@ -139,10 +142,13 @@ The following object is the default settings object used by the `OMHWebVisualiza
                     'aggregator': parent.DataParser.aggregators.sum
                 }
             },
-            'seriesName': 'Minutes of moderate activity',
             'chart': {
                 'type': 'clustered_bar',
                 'daysShownOnTimeline': { 'min': 7, 'max': 90 }
+            },
+            'legend': {
+                'seriesName': 'Minutes of moderate activity',
+                'seriesColor': '#4a90e2'
             },
             'yAxis':{
                 'range': { 'min': 0, 'max': 300 },
@@ -185,16 +191,19 @@ If you look carefully at the default settings object, you'll also notice that so
        'range': { 'min': 0, 'max': 100 },
        'label': 'Units',
    },
-   'seriesName': 'Series',
    'data':{
         'xValueQuantization': {
            'period': OMHWebVisualizations.DataParser.QUANTIZE_NONE,
            'aggregator': OMHWebVisualizations.DataParser.consolidators.mean,
         }
-   }
+   },
    'chart': {
        'type': 'line',
        'daysShownOnTimeline': { 'min': 1, 'max': 1000 },
+   },
+   'legend': {
+       'seriesName': 'Series',
+       'seriesColor': '#4a90e2'
    }
 }
 ```

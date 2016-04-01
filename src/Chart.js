@@ -278,33 +278,27 @@
 
             var colorScale = null;
             var legend = null;
-            if ( configuration.getInterfaceSettings().legend ) {
+            var legendSettings = configuration.getInterfaceSettings().legend;
+            if ( legendSettings && legendSettings.visible ) {
+
                 //add legend
                 colorScale = new Plottable.Scales.Color();
                 legend = new Plottable.Components.Legend( colorScale );
                 var names = [];
                 var colors = [];
+
                 d3.entries( parser.getAllMeasureData() ).forEach( function ( entry ) {
+
                     var measure = entry.key;
                     var measureSettings = configuration.getMeasureSettings( measure );
-                    var name = measureSettings.seriesName;
-                    var type = measureSettings.chart.type;
-
-                    // The color to plot depends on the type of chart
-                    var color;
-                    switch ( type ) {
-                        case 'clustered_bar':
-                            color = measureSettings.chart.barColor;
-                            break;
-                        default:
-                            color = measureSettings.chart.pointFillColor;
-                            break;
-                    }
+                    var name = measureSettings.legend.seriesName;
+                    var color = measureSettings.legend.seriesColor;
 
                     if ( name && color ) {
                         names.push( name );
                         colors.push( color );
                     }
+
                 } );
                 colorScale.domain( names );
                 colorScale.range( colors );
@@ -313,6 +307,7 @@
                 legend.xAlignment( "right" );
                 legend.yAlignment( "top" );
                 plots.push( legend );
+
             }
 
 
