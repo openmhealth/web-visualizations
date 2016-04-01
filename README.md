@@ -259,18 +259,24 @@ These can be used in an `settings` object as follows:
 // an example of some settings for a distance chart
 var settings = {
     'measures': {
-      'distance': {
-          'valueKeyPath': 'body.distance.value',
-          'range': { 'min':0, 'max':10000 },
-          'units': 'm',
-          'timeQuantizationLevel': OMHWebVisualizations.DataParser.QUANTIZE_MONTH,
-          'quantizedDataConsolidationFunction': OMHWebVisualizations.DataParser.consolidators.summation,
-          'seriesName': 'Distance',
-          'chart': {
-              'type' : 'clustered_bar',
-              'daysShownOnTimeline': { 'min': 90, 'max': 365 }
-          }
-      }
+        'distance': {
+            'seriesName': 'Distance',
+            'yAxis':{
+                'range': { 'min': 0, 'max': 200000 },
+                'label': 'm'
+            },
+            'data': {
+                'yValuePath': 'body.distance.value',
+                'xValueQuantization': {
+                    'period': OMHWebVisualizations.DataParser.QUANTIZE_MONTH,
+                    'aggregator': OMHWebVisualizations.DataParser.aggregators.summation
+                }
+            },
+            'chart': {
+                'type': 'clustered_bar',
+                'daysShownOnTimeline': { 'min': 90, 'max': 365 }
+            }
+        }
     }
 };
 ```
