@@ -171,7 +171,7 @@ It currently generates line charts and bar charts, with default settings include
             'visible': true,
             'timeFormat': 'M/D/YY, h:mma',
             'decimalPlaces': 0,
-            'contentFormatter': parent.ChartStyles.formatters.defaultTooltip.bind( this ),
+            'contentFormatter': OMHWebVisualizations.ChartStyles.formatters.defaultTooltip.bind( this ),
             'grouped': true
         },
         'panZoomUsingMouse': {
@@ -209,19 +209,22 @@ It currently generates line charts and bar charts, with default settings include
             }
         },
         'step_count': {
-            'seriesName': 'Steps',
             'data': {
                 'yValuePath': 'body.step_count',
                 'xValueQuantization': {
-                    'period': parent.DataParser.QUANTIZE_DAY,
-                    'aggregator': parent.DataParser.aggregators.summation
+                    'period': OMHWebVisualizations.DataParser.QUANTIZE_DAY,
+                    'aggregator': parent.DataParser.aggregators.sum
                 }
             },
             'chart': {
                 'type': 'clustered_bar',
                 'daysShownOnTimeline': { 'min': 7, 'max': 90 }
             },
-            'yAxis': {
+            'legend': {
+                'seriesName': 'Steps',
+                'seriesColor': '#eeeeee'
+            },
+           'yAxis': {
                 'range': { 'min': 0, 'max': 1500 },
                 'label': 'Steps'
             }
@@ -230,14 +233,17 @@ It currently generates line charts and bar charts, with default settings include
             'data':{
                 'yValuePath': 'body.minutes_moderate_activity.value',
                 'xValueQuantization': {
-                    'period': parent.DataParser.QUANTIZE_DAY,
-                    'aggregator': parent.DataParser.aggregators.summation
+                    'period': OMHWebVisualizations.DataParser.QUANTIZE_DAY,
+                    'aggregator': parent.DataParser.aggregators.sum
                 }
             },
-            'seriesName': 'Minutes of moderate activity',
             'chart': {
                 'type': 'clustered_bar',
                 'daysShownOnTimeline': { 'min': 7, 'max': 90 }
+            },
+            'legend': {
+                'seriesName': 'Minutes of moderate activity',
+                'seriesColor': '#4a90e2'
             },
             'yAxis':{
                 'range': { 'min': 0, 'max': 300 },
@@ -267,14 +273,23 @@ It currently generates line charts and bar charts, with default settings include
 <p><img src="http://www.openmhealth.org/media/viz_example_default_options.png" alt="Configured Chart" title="Default Chart"></p>
 <p>If you look carefully at the default settings object, you'll also notice that some measure settings have more properties than others. When a property is missing, the following default settings are assumed. </p>
 <pre class="prettyprint source lang-javascript"><code>{
-   'range': { 'min': 0, 'max': 100 },
-   'units': 'Units',
-   'seriesName': 'Series',
-   'timeQuantizationLevel': OMHWebVisualizations.DataParser.QUANTIZE_NONE,
-   'quantizedDataConsolidationFunction': OMHWebVisualizations.DataParser.consolidators.average,
+   'yAxis': {
+       'range': { 'min': 0, 'max': 100 },
+       'label': 'Units',
+   },
+   'data':{
+        'xValueQuantization': {
+           'period': OMHWebVisualizations.DataParser.QUANTIZE_NONE,
+           'aggregator': OMHWebVisualizations.DataParser.consolidators.mean,
+        }
+   },
    'chart': {
        'type': 'line',
        'daysShownOnTimeline': { 'min': 1, 'max': 1000 },
+   },
+   'legend': {
+       'seriesName': 'Series',
+       'seriesColor': '#4a90e2'
    }
 }</code></pre><p>Additionally, default styles are provided for rendering each measure's plot.</p>
 <p>To override the defaults, specify the new interface settings and styles in the <code>settings</code> object passed to <code>OMHWebVisualization.Chart(...)</code>.
@@ -304,7 +319,7 @@ For example, if you would like to graph <code>heart_rate</code> data with a blue
 <p><img src="http://www.openmhealth.org/media/viz_example_user_options.png" alt="Configured Chart" title="Configured Chart"></p>
 <h3>Automatic Y Axis Ranging</h3><p>The Y axis range can be set to adapt to the data by setting the <code>yAxis.range</code> property of a measure's settings to <code>undefined</code> e.g. <code>settings.measures.heart_rate.yAxis.range = undefined</code>_</p>
 <h3>Quantization</h3><p>Quantization reduces the dataset's size by summarizing each group of points that fall into a common time range, or &quot;bucket,&quot; with a single point that represents their bucket's range.</p>
-<p>Currently, quantized data point values within each subsequent quantization bucket are <em>averaged</em> for most measures and <em>summed</em> for <code>step_count</code> and <code>minutes_moderate_activity</code>.</p>
+<p>Currently, quantized data point values within each subsequent quantization bucket are <em>averaged</em> (mean) for most measures and <em>summed</em> for <code>step_count</code> and <code>minutes_moderate_activity</code>.</p>
 <p>If you wish to configure the <code>timeQuantizationLevel</code> for a measure, you will need the following constants:</p>
 <ul>
 <li><code>OMHWebVisualizations.DataParser.QUANTIZE_YEAR</code></li>
@@ -320,18 +335,24 @@ For example, if you would like to graph <code>heart_rate</code> data with a blue
 <pre class="prettyprint source lang-javascript"><code>// an example of some settings for a distance chart
 var settings = {
     'measures': {
-      'distance': {
-          'valueKeyPath': 'body.distance.value',
-          'range': { 'min':0, 'max':10000 },
-          'units': 'm',
-          'timeQuantizationLevel': OMHWebVisualizations.DataParser.QUANTIZE_MONTH,
-          'quantizedDataConsolidationFunction': OMHWebVisualizations.DataParser.consolidators.summation,
-          'seriesName': 'Distance',
-          'chart': {
-              'type' : 'clustered_bar',
-              'daysShownOnTimeline': { 'min': 90, 'max': 365 }
-          }
-      }
+        'distance': {
+            'seriesName': 'Distance',
+            'yAxis':{
+                'range': { 'min': 0, 'max': 200000 },
+                'label': 'm'
+            },
+            'data': {
+                'yValuePath': 'body.distance.value',
+                'xValueQuantization': {
+                    'period': OMHWebVisualizations.DataParser.QUANTIZE_MONTH,
+                    'aggregator': OMHWebVisualizations.DataParser.aggregators.sum
+                }
+            },
+            'chart': {
+                'type': 'clustered_bar',
+                'daysShownOnTimeline': { 'min': 90, 'max': 365 }
+            }
+        }
     }
 };</code></pre><p>Here is a chart of some <em>unquantized</em> data:
 <img src="http://www.openmhealth.org/media/viz_example_unquantized_data.png" alt="Unquantized Data" title="Unquantized Data"></p>
@@ -369,10 +390,43 @@ var settings = {
 <p>To create a new gridline without using the <code>settings</code> object, you can alternatively call <code>chart.addGridline()</code> before the chart is rendered.</p>
 <h3>Extending default appearances with ChartStyles</h3><p>To change the colors and other visual attributes of points on the chart, you can specify a <code>chart.styles</code> section in each measure in the <code>measures</code> block of the configuration <code>settings</code> object.
 You can alternatively customize the chart's <code>ChartStyles</code> object before rendering the chart by calling <code>chart.getStylesForPlot()</code> and <code>chart.setStylesForPlot()</code>. The Plottable plot you wish to affect must be passed into these functions.</p>
-<p>Below are some examples of what can be done. See <code>examples/charts.html</code> for code samples.</p>
-<p>Change the color of points above the gridline:
+<p>Below is an example of what can be done. See <code>examples/charts.html</code> for code samples.</p>
+<pre class="prettyprint source lang-javascript"><code>var dangerValue = 120;
+
+// these filter functions are used to determine which
+// points will be rendered with the style's attributes
+var dangerFilter = function ( d ) {
+
+    // a filter function takes a datum and returns a boolean
+    return d.y >= dangerValue;
+
+};
+
+var dangerSettings = {
+    'measures': {
+        'systolic_blood_pressure':{
+            'chart':{
+                'styles': {
+                    'name': 'danger',
+                    'plotType': 'Scatter',
+                    'filters': [ dangerFilter ],
+                    'attributes': {
+                        'fill': 'red'
+                        'stroke': 'red'
+                    }
+                }
+            }
+        }
+    }
+}
+
+//builds a new plottable chart with the danger settings
+chart = new OMHWebVisualizations.Chart( data, element, measureList, dangerSettings );
+if ( chart.initialized ) {
+    chart.renderTo( element.select( &quot;svg&quot; ).node() );
+}</code></pre><p>The code above changes the color of points above the gridline:
 <img src="http://www.openmhealth.org/media/viz_example_threshold_color.png" alt="Above Gridline Color" title="Above Gridline Color"></p>
-<p>Add a range in the chart that is colored differently:
+<p>You could also add a range in the chart that is colored differently:
 <img src="http://www.openmhealth.org/media/viz_example_threshold_color_band.png" alt="Above Gridline Color with Colored Range" title="Above Gridline Color with Colored Range"></p>
 <h3>Tooltips</h3><p>Tooltips can be enabled, disabled, and configured using the <code>userInterface.tooltips</code> property of the <code>settings</code> object passed into the constructor (<a href="#configuring_a_chart">see 'Configuring a Chart'</a>). The properties of <code>userInterface.tooltips</code> are explained in the following table:</p>
 <table>
@@ -393,11 +447,11 @@ You can alternatively customize the chart's <code>ChartStyles</code> object befo
 </tr>
 <tr>
 <td style="text-align:right"><em>decimalPlaces</em></td>
-<td>The number of decimal places to show by default when rendering a data point value in the tooltip.</td>
+<td>The number of decimal places to show the datum's <code>y</code> value with by default when rendering a data point value in the tooltip.</td>
 </tr>
 <tr>
 <td style="text-align:right"><em>contentFormatter</em></td>
-<td>A function that takes a D3 data point and returns a string. Used to render the data point in the tooltip. If undefined, the data point's <code>y</code> value will be truncated by a default formatter to the number of decimal places specified in the <code>decimalPlaces</code> parameter and converted to a string.</td>
+<td>A function that takes a D3 datum and returns a string. Used to render the datum in the tooltip. If undefined, the datum's <code>y</code> value will be truncated by a default formatter to the number of decimal places specified in the <code>decimalPlaces</code> parameter and converted to a string.</td>
 </tr>
 <tr>
 <td style="text-align:right"><em>grouped</em></td>
@@ -500,7 +554,7 @@ if (chart.initialized) {
 <span class="jsdoc-message">
 	Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.0</a>
 	
-		on March 31st 2016, 10:47:11 pm
+		on April 1st 2016, 3:55:45 pm
 	
 	using the <a href="https://github.com/docstrap/docstrap">DocStrap template</a>.
 </span>

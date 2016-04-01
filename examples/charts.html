@@ -193,7 +193,7 @@
                     'yValuePath': 'body.distance.value',
                     'xValueQuantization': {
                         'period': OMHWebVisualizations.DataParser.QUANTIZE_MONTH,
-                        'aggregator': OMHWebVisualizations.DataParser.aggregators.summation
+                        'aggregator': OMHWebVisualizations.DataParser.aggregators.sum
                     }
                 },
                 'chart': {
@@ -227,7 +227,8 @@
             'body_weight': {
                 'data': {
                     'xValueQuantization': {
-                        'period': OMHWebVisualizations.DataParser.QUANTIZE_MONTH
+                        'period': OMHWebVisualizations.DataParser.QUANTIZE_MONTH,
+                        'aggregator': OMHWebVisualizations.DataParser.aggregators.median
                     }
                 }
             },
@@ -557,6 +558,13 @@
                     'daysShownOnTimeline': undefined
                 }
             };
+
+        } else if ( measureList === 'minutes_moderate_activity, step_count' ) {
+
+            chartSettings = cloneObject( settings );
+
+            chartSettings.interface.legend = { visible: true };
+
 
         } else if ( measureList === 'heart_rate' ) {
 

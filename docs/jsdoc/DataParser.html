@@ -77,7 +77,7 @@
 <p>The following <a href="ChartConfiguration.html">ChartConfiguration</a> settings for each measure are used to parse the data:</p>
 <p>data.yValuePath - a dot-delimited string that indicates where in a data point the y value of a point can be found</p>
 <p>data.xValueQuantization.period - the granularity of time quantization desired for the data (e.g. <a href="DataParser.html#.QUANTIZE_DAY">DataParser.QUANTIZE_DAY</a> )</p>
-<p>data.xValueQuantization.aggregator - how to aggregate data points that are quantized to the same moment in time (e.g. <a href="DataParser.html#.aggregators.average">DataParser.aggregators.average</a> )</p></div>
+<p>data.xValueQuantization.aggregator - how to aggregate data points that are quantized to the same moment in time (e.g. <a href="DataParser.html#.aggregators.mean">DataParser.aggregators.mean</a> )</p></div>
         
     
 </header>
@@ -855,7 +855,7 @@
             
 <hr>
 <dt>
-    <h4 class="name" id=".aggregators.average"><span class="type-signature">&lt;static> </span>aggregators.average(data)</h4>
+    <h4 class="name" id=".aggregators.mean"><span class="type-signature">&lt;static> </span>aggregators.mean(data)</h4>
     
     
 </dt>
@@ -863,7 +863,7 @@
 
     
     <div class="description">
-        <p>Aggregate points with the same time value by averaging them.</p>
+        <p>Aggregate points with the same time value by finding the mean.</p>
 <p>Provenance data for the first point( chronologically ) will be preserved. For a given moment in time shared by more than one point, all but one point at that time are removed from the data array, and references to aggregated points are stored in the remaining point as 'aggregatedData' field.</p>
     </div>
     
@@ -984,7 +984,136 @@
             
 <hr>
 <dt>
-    <h4 class="name" id=".aggregators.summation"><span class="type-signature">&lt;static> </span>aggregators.summation(data)</h4>
+    <h4 class="name" id=".aggregators.mean"><span class="type-signature">&lt;static> </span>aggregators.mean(data)</h4>
+    
+    
+</dt>
+<dd>
+
+    
+    <div class="description">
+        <p>Aggregate points with the same time value by finding the mean.</p>
+<p>Provenance data for the first point( chronologically ) will be preserved. For a given moment in time shared by more than one point, all but one point at that time are removed from the data array, and references to aggregated points are stored in the remaining point as 'aggregatedData' field.</p>
+    </div>
+    
+
+    
+
+    
+
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params table table-striped">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>data</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The data to aggregate</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+    
+
+    
+<dl class="details">
+    
+
+	
+
+	
+
+	
+
+    
+
+    
+
+    
+
+    
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+
+	
+
+	
+
+	
+</dl>
+
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dd>
+
+        
+            
+<hr>
+<dt>
+    <h4 class="name" id=".aggregators.sum"><span class="type-signature">&lt;static> </span>aggregators.sum(data)</h4>
     
     
 </dt>
@@ -1363,7 +1492,7 @@
             
 <hr>
 <dt>
-    <h4 class="name" id="getIntervalDisplayDate"><span class="type-signature"></span>getIntervalDisplayDate(omhDatum, dateProvider, quantizationLevel)</h4>
+    <h4 class="name" id="getIntervalDisplayDate"><span class="type-signature"></span>getIntervalDisplayDate(omhDatum, dateProvider)</h4>
     
     
 </dt>
@@ -1448,30 +1577,6 @@
             
 
             <td class="description last"><p>An object that provides dates. Moment.js is used by default.</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>quantizationLevel</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">number</span>
-
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>Constant defined statically to represent the quantization level, e.g. OMHWebVisualizations.DataParser.QUANTIZE_DAY</p></td>
         </tr>
 
     
@@ -1691,6 +1796,166 @@
     <dd>
         
 <span class="param-type">Array</span>
+
+
+
+    </dd>
+</dl>
+
+
+        
+
+    
+</dd>
+
+        
+            
+<hr>
+<dt>
+    <h4 class="name" id="getSingleDateForDateRange"><span class="type-signature"></span>getSingleDateForDateRange(startTime, endTime)</h4>
+    
+    
+</dt>
+<dd>
+
+    
+    <div class="description">
+        <p>Get a single Date object to represent the range. Currently just returns the startTime parameter as a Date object.</p>
+    </div>
+    
+
+    
+
+    
+
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params table table-striped">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>startTime</code></td>
+            
+
+            <td class="type">
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>endTime</code></td>
+            
+
+            <td class="type">
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+    
+
+    
+<dl class="details">
+    
+
+	
+
+	
+
+	
+
+    
+
+    
+
+    
+
+    
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+
+	
+
+	
+
+	
+</dl>
+
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <h5>Returns:</h5>
+    
+            
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Date</span>
 
 
 
@@ -2427,7 +2692,7 @@
 <span class="jsdoc-message">
 	Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.0</a>
 	
-		on March 31st 2016, 10:47:11 pm
+		on April 1st 2016, 3:55:45 pm
 	
 	using the <a href="https://github.com/docstrap/docstrap">DocStrap template</a>.
 </span>

@@ -323,12 +323,50 @@ To create a new gridline without using the `settings` object, you can alternativ
 To change the colors and other visual attributes of points on the chart, you can specify a `chart.styles` section in each measure in the `measures` block of the configuration `settings` object.
 You can alternatively customize the chart's `ChartStyles` object before rendering the chart by calling `chart.getStylesForPlot()` and `chart.setStylesForPlot()`. The Plottable plot you wish to affect must be passed into these functions.
 
-Below are some examples of what can be done. See `examples/charts.html` for code samples.
+Below is an example of what can be done. See `examples/charts.html` for code samples.
 
-Change the color of points above the gridline:
+```javascript
+var dangerValue = 120;
+
+// these filter functions are used to determine which
+// points will be rendered with the style's attributes
+var dangerFilter = function ( d ) {
+
+    // a filter function takes a datum and returns a boolean
+    return d.y >= dangerValue;
+    
+};
+
+var dangerSettings = {
+    'measures': {
+        'systolic_blood_pressure':{
+            'chart':{
+                'styles': {
+                    'name': 'danger',
+                    'plotType': 'Scatter',
+                    'filters': [ dangerFilter ],
+                    'attributes': {
+                        'fill': 'red'
+                        'stroke': 'red'
+                    }
+                }
+            }
+        }
+    }
+}
+
+//builds a new plottable chart with the danger settings
+chart = new OMHWebVisualizations.Chart( data, element, measureList, dangerSettings );
+if ( chart.initialized ) {
+    chart.renderTo( element.select( "svg" ).node() );
+}
+
+```
+
+The code above changes the color of points above the gridline:
 ![Above Gridline Color](http://www.openmhealth.org/media/viz_example_threshold_color.png "Above Gridline Color")
 
-Add a range in the chart that is colored differently:
+You could also add a range in the chart that is colored differently:
 ![Above Gridline Color with Colored Range](http://www.openmhealth.org/media/viz_example_threshold_color_band.png "Above Gridline Color with Colored Range")
 
 ### Tooltips

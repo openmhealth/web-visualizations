@@ -37,15 +37,6 @@
          */
         Chart = function ( data, element, measureList, settings ) {
 
-            var selection;
-            var measures = measureList.split( /\s*,\s*/ );
-            var table = null;
-            var configuration = new OMHWebVisualizations.ChartConfiguration( settings );
-            var parser = new OMHWebVisualizations.DataParser( data, measures, configuration );
-            var styles = new OMHWebVisualizations.ChartStyles( configuration );
-            var interactions = new OMHWebVisualizations.ChartInteractions( element, measures[ 0 ], configuration, parser, styles );
-            this.initialized = false;
-
             // if the element passed in is a jQuery element, then get the dom element
             if ( typeof jQuery === 'function' && element instanceof jQuery ) {
                 element = element[ 0 ];
@@ -59,6 +50,15 @@
             }
 
             element.classed( 'omh-chart-container', true );
+
+            var selection;
+            var measures = measureList.split( /\s*,\s*/ );
+            var table = null;
+            var configuration = new OMHWebVisualizations.ChartConfiguration( settings );
+            var parser = new OMHWebVisualizations.DataParser( data, measures, configuration );
+            var styles = new OMHWebVisualizations.ChartStyles( configuration );
+            var interactions = new OMHWebVisualizations.ChartInteractions( element, measures[ 0 ], configuration, parser, styles );
+            this.initialized = false;
 
             // set up axes
             var xScale = new Plottable.Scales.Time();
@@ -278,33 +278,27 @@
 
             var colorScale = null;
             var legend = null;
-            if ( configuration.getInterfaceSettings().legend ) {
+            var legendSettings = configuration.getInterfaceSettings().legend;
+            if ( legendSettings && legendSettings.visible ) {
+
                 //add legend
                 colorScale = new Plottable.Scales.Color();
                 legend = new Plottable.Components.Legend( colorScale );
                 var names = [];
                 var colors = [];
+
                 d3.entries( parser.getAllMeasureData() ).forEach( function ( entry ) {
+
                     var measure = entry.key;
                     var measureSettings = configuration.getMeasureSettings( measure );
-                    var name = measureSettings.seriesName;
-                    var type = measureSettings.chart.type;
-
-                    // The color to plot depends on the type of chart
-                    var color;
-                    switch ( type ) {
-                        case 'clustered_bar':
-                            color = measureSettings.chart.barColor;
-                            break;
-                        default:
-                            color = measureSettings.chart.pointFillColor;
-                            break;
-                    }
+                    var name = measureSettings.legend.seriesName;
+                    var color = measureSettings.legend.seriesColor;
 
                     if ( name && color ) {
                         names.push( name );
                         colors.push( color );
                     }
+
                 } );
                 colorScale.domain( names );
                 colorScale.range( colors );
@@ -313,6 +307,7 @@
                 legend.xAlignment( "right" );
                 legend.yAlignment( "top" );
                 plots.push( legend );
+
             }
 
 
@@ -551,7 +546,7 @@
                  'visible': true,
                  'timeFormat': 'M/D/YY, h:mma',
                  'decimalPlaces': 0,
-                 'contentFormatter': parent.ChartStyles.formatters.defaultTooltip.bind( this ),
+                 'contentFormatter': ChartStyles.formatters.defaultTooltip.bind( this ),
                  'grouped': true
              },
              'panZoomUsingMouse': {
@@ -589,17 +584,20 @@
                  }
              },
              'step_count': {
-                 'seriesName': 'Steps',
                  'data': {
                      'yValuePath': 'body.step_count',
                      'xValueQuantization': {
-                         'period': parent.DataParser.QUANTIZE_DAY,
-                         'aggregator': parent.DataParser.aggregators.summation
+                         'period': DataParser.QUANTIZE_DAY,
+                         'aggregator': parent.DataParser.aggregators.sum
                      }
                  },
                  'chart': {
                      'type': 'clustered_bar',
                      'daysShownOnTimeline': { 'min': 7, 'max': 90 }
+                 },
+                 'legend': {
+                     'seriesName': 'Steps',
+                     'seriesColor': '#eeeeee'
                  },
                  'yAxis': {
                      'range': { 'min': 0, 'max': 1500 },
@@ -610,14 +608,17 @@
                  'data':{
                      'yValuePath': 'body.minutes_moderate_activity.value',
                      'xValueQuantization': {
-                         'period': parent.DataParser.QUANTIZE_DAY,
-                         'aggregator': parent.DataParser.aggregators.summation
+                         'period': DataParser.QUANTIZE_DAY,
+                         'aggregator': DataParser.aggregators.sum
                      }
                  },
-                 'seriesName': 'Minutes of moderate activity',
                  'chart': {
                      'type': 'clustered_bar',
                      'daysShownOnTimeline': { 'min': 7, 'max': 90 }
+                 },
+                 'legend': {
+                     'seriesName': 'Minutes of moderate activity',
+                     'seriesColor': '#4a90e2'
                  },
                  'yAxis':{
                      'range': { 'min': 0, 'max': 300 },
@@ -700,17 +701,20 @@
                     }
                 },
                 'step_count': {
-                    'seriesName': 'Steps',
                     'data': {
                         'yValuePath': 'body.step_count',
                         'xValueQuantization': {
                             'period': parent.DataParser.QUANTIZE_DAY,
-                            'aggregator': parent.DataParser.aggregators.summation
+                            'aggregator': parent.DataParser.aggregators.sum
                         }
                     },
                     'chart': {
                         'type': 'clustered_bar',
                         'daysShownOnTimeline': { 'min': 7, 'max': 90 }
+                    },
+                    'legend': {
+                        'seriesName': 'Steps',
+                        'seriesColor': '#eeeeee'
                     },
                     'yAxis': {
                         'range': { 'min': 0, 'max': 1500 },
@@ -722,13 +726,16 @@
                         'yValuePath': 'body.minutes_moderate_activity.value',
                         'xValueQuantization': {
                             'period': parent.DataParser.QUANTIZE_DAY,
-                            'aggregator': parent.DataParser.aggregators.summation
+                            'aggregator': parent.DataParser.aggregators.sum
                         }
                     },
-                    'seriesName': 'Minutes of moderate activity',
                     'chart': {
                         'type': 'clustered_bar',
                         'daysShownOnTimeline': { 'min': 7, 'max': 90 }
+                    },
+                    'legend': {
+                        'seriesName': 'Minutes of moderate activity',
+                        'seriesColor': '#4a90e2'
                     },
                     'yAxis': {
                         'range': { 'min': 0, 'max': 300 },
@@ -757,7 +764,6 @@
         };
 
         var genericMeasureDefaults = {
-            'seriesName': 'Series',
             'yAxis': {
                 'range': { 'min': 0, 'max': 100 },
                 'label': 'Units'
@@ -765,12 +771,16 @@
             'data': {
                 'xValueQuantization': {
                     'period': parent.DataParser.QUANTIZE_NONE,
-                    'aggregator': parent.DataParser.aggregators.average
+                    'aggregator': parent.DataParser.aggregators.mean
                 }
             },
             'chart': {
                 'type': 'line',
                 'daysShownOnTimeline': { 'min': 1, 'max': 1000 }
+            },
+            'legend': {
+                'seriesName': 'Series',
+                'seriesColor': '#4a90e2'
             }
         };
 
@@ -816,7 +826,6 @@
     return parent;
 
 } ) );
-
 
 ( function ( root, factory ) {
 
@@ -1982,7 +1991,7 @@
          *
          * data.xValueQuantization.period - the granularity of time quantization desired for the data (e.g. [DataParser.QUANTIZE_DAY]{@link DataParser.QUANTIZE_DAY} )
          *
-         * data.xValueQuantization.aggregator - how to aggregate data points that are quantized to the same moment in time (e.g. [DataParser.aggregators.average]{@link DataParser.aggregators.average} )
+         * data.xValueQuantization.aggregator - how to aggregate data points that are quantized to the same moment in time (e.g. [DataParser.aggregators.mean]{@link DataParser.aggregators.mean} )
          */
         DataParser = function ( data, measures, configuration ) {
 
@@ -2010,8 +2019,9 @@
 
                 //deep copy data passed in so that it is not altered when we add group names
                 var dataCopy = JSON.parse( JSON.stringify( data ) );
+                var dateProvider = (typeof moment !== 'undefined')? moment: Date;
 
-                measureData = this.parseOmhData( dataCopy, measures, moment );
+                measureData = this.parseOmhData( dataCopy, measures, dateProvider );
 
                 if ( Object.keys( measureData ).length === 0 ) {
                     console.log( "Warning: no data of the specified type could be found." );
@@ -2019,7 +2029,6 @@
                 }
 
             };
-
 
             /**
              * Get the value found at a key path
@@ -2054,10 +2063,9 @@
              * Get the display date for a datum that has specified an interval rather than a point in time
              * @param {object} omhDatum - The omh formatted datum
              * @param {object} dateProvider - An object that provides dates. Moment.js is used by default.
-             * @param {number} quantizationLevel - Constant defined statically to represent the quantization level, e.g. OMHWebVisualizations.DataParser.QUANTIZE_DAY
              * @returns {Date}
              */
-            this.getIntervalDisplayDate = function ( omhDatum, dateProvider, quantizationLevel ) {
+            this.getIntervalDisplayDate = function ( omhDatum, dateProvider ) {
 
                 var interval = omhDatum.body[ 'effective_time_frame' ][ 'time_interval' ];
                 var startTime = interval[ 'start_date_time' ] ? ( new Date( interval[ 'start_date_time' ] ) ).getTime() : null;
@@ -2091,8 +2099,18 @@
                     }
                 }
 
-                return new Date( startTime );
+                return this.getSingleDateForDateRange( startTime, endTime );
 
+            };
+
+            /**
+             * Get a single Date object to represent the range. Currently just returns the startTime parameter as a Date object.
+             * @param startTime
+             * @param endTime
+             * @returns {Date}
+             */
+            this.getSingleDateForDateRange = function( startTime, endTime ){
+                return new Date( startTime );
             };
 
             /**
@@ -2307,10 +2325,10 @@
          *
          * Provenance data for the first point (chronologically) will be preserved. For a given moment in time shared by more than one point, all but one point at that time are removed from the data array, and references to aggregated points are stored in the remaining point as 'aggregatedData' field.
          * @param {Array} data - The data to aggregate
-         * @alias aggregators.summation
+         * @alias aggregators.sum
          * @memberof! DataParser
          */
-        DataParser.aggregators.summation = function ( data ) {
+        DataParser.aggregators.sum = function ( data ) {
             data.sort( function ( a, b ) {
                 return a.x.getTime() - b.x.getTime();
             } );
@@ -2321,28 +2339,54 @@
                         data[ i ].aggregatedData = [ data[ i ].omhDatum ];
                     }
                     data[ i ].aggregatedData.push( data[ i + 1 ].omhDatum );
-                    data[ i ].aggregationType = 'summation';
                     data.splice( i + 1, 1 );
                 }
+                data[ i ].aggregationType = 'sum';
             }
         };
 
         /**
-         * Aggregate points with the same time value by averaging them.
+         * Aggregate points with the same time value by finding the mean.
          *
          * Provenance data for the first point( chronologically ) will be preserved. For a given moment in time shared by more than one point, all but one point at that time are removed from the data array, and references to aggregated points are stored in the remaining point as 'aggregatedData' field.
          * @param {Array} data - The data to aggregate
-         * @alias aggregators.average
+         * @alias aggregators.mean
          * @memberof! DataParser
          */
-        DataParser.aggregators.average = function ( data ) {
-            parent.DataParser.aggregators.summation( data );
+        DataParser.aggregators.mean = function ( data ) {
+            parent.DataParser.aggregators.sum( data );
             for ( var i = 0; i < data.length; i++ ) {
                 var count = data[ i ].aggregatedData ? data[ i ].aggregatedData.length : 0;
                 if ( count > 0 ) {
                     data[ i ].y /= count;
-                    data[ i ].aggregationType = 'average';
+                    data[ i ].aggregationType = 'mean';
                 }
+            }
+        };
+        /**
+         * Aggregate points with the same time value by finding the mean.
+         *
+         * Provenance data for the first point( chronologically ) will be preserved. For a given moment in time shared by more than one point, all but one point at that time are removed from the data array, and references to aggregated points are stored in the remaining point as 'aggregatedData' field.
+         * @param {Array} data - The data to aggregate
+         * @alias aggregators.mean
+         * @memberof! DataParser
+         */
+        DataParser.aggregators.median = function ( data ) {
+            data.sort( function ( a, b ) {
+                return a.x.getTime() - b.x.getTime();
+            } );
+            for ( var i = 0; i < data.length; i++ ) {
+                var values = [ data[ i ].y ];
+                while ( i + 1 < data.length && ( data[ i + 1 ].x.getTime() === data[ i ].x.getTime() ) ) {
+                    if ( !data[ i ].aggregatedData ) {
+                        data[ i ].aggregatedData = [ data[ i ].omhDatum ];
+                    }
+                    values.push( data[ i + 1 ].y );
+                    data[ i ].aggregatedData.push( data[ i + 1 ].omhDatum );
+                    data.splice( i + 1, 1 );
+                }
+                data[ i ].aggregationType = 'median';
+                data[ i ].y = values[ parseInt( data[ i ].aggregatedData.length / 2 ) ];
             }
         };
 
