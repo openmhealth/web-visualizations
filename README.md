@@ -189,7 +189,7 @@ If you look carefully at the default settings object, you'll also notice that so
    'data':{
         'xValueQuantization': {
            'period': OMHWebVisualizations.DataParser.QUANTIZE_NONE,
-           'aggregator': OMHWebVisualizations.DataParser.consolidators.average,
+           'aggregator': OMHWebVisualizations.DataParser.consolidators.mean,
         }
    }
    'chart': {
@@ -240,7 +240,7 @@ The Y axis range can be set to adapt to the data by setting the `yAxis.range` pr
 
 Quantization reduces the dataset's size by summarizing each group of points that fall into a common time range, or "bucket," with a single point that represents their bucket's range.
 
-Currently, quantized data point values within each subsequent quantization bucket are *averaged* for most measures and *summed* for `step_count` and `minutes_moderate_activity`.
+Currently, quantized data point values within each subsequent quantization bucket are *averaged* (mean) for most measures and *summed* for `step_count` and `minutes_moderate_activity`.
 
 If you wish to configure the `timeQuantizationLevel` for a measure, you will need the following constants:
 

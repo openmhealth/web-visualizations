@@ -243,7 +243,7 @@
             'data': {
                 'xValueQuantization': {
                     'period': parent.DataParser.QUANTIZE_NONE,
-                    'aggregator': parent.DataParser.aggregators.average
+                    'aggregator': parent.DataParser.aggregators.mean
                 }
             },
             'chart': {

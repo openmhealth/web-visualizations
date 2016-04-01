@@ -25,7 +25,7 @@
          *
          * data.xValueQuantization.period - the granularity of time quantization desired for the data (e.g. [DataParser.QUANTIZE_DAY]{@link DataParser.QUANTIZE_DAY} )
          *
-         * data.xValueQuantization.aggregator - how to aggregate data points that are quantized to the same moment in time (e.g. [DataParser.aggregators.average]{@link DataParser.aggregators.average} )
+         * data.xValueQuantization.aggregator - how to aggregate data points that are quantized to the same moment in time (e.g. [DataParser.aggregators.mean]{@link DataParser.aggregators.mean} )
          */
         DataParser = function ( data, measures, configuration ) {
 
@@ -371,20 +371,20 @@
         };
 
         /**
-         * Aggregate points with the same time value by averaging them.
+         * Aggregate points with the same time value by finding the mean.
          *
          * Provenance data for the first point( chronologically ) will be preserved. For a given moment in time shared by more than one point, all but one point at that time are removed from the data array, and references to aggregated points are stored in the remaining point as 'aggregatedData' field.
          * @param {Array} data - The data to aggregate
-         * @alias aggregators.average
+         * @alias aggregators.mean
          * @memberof! DataParser
          */
-        DataParser.aggregators.average = function ( data ) {
+        DataParser.aggregators.mean = function ( data ) {
             parent.DataParser.aggregators.sum( data );
             for ( var i = 0; i < data.length; i++ ) {
                 var count = data[ i ].aggregatedData ? data[ i ].aggregatedData.length : 0;
                 if ( count > 0 ) {
                     data[ i ].y /= count;
-                    data[ i ].aggregationType = 'average';
+                    data[ i ].aggregationType = 'mean';
                 }
             }
         };
