@@ -97,10 +97,9 @@
              * Get the display date for a datum that has specified an interval rather than a point in time
              * @param {object} omhDatum - The omh formatted datum
              * @param {object} dateProvider - An object that provides dates. Moment.js is used by default.
-             * @param {number} quantizationLevel - Constant defined statically to represent the quantization level, e.g. OMHWebVisualizations.DataParser.QUANTIZE_DAY
              * @returns {Date}
              */
-            this.getIntervalDisplayDate = function ( omhDatum, dateProvider, quantizationLevel ) {
+            this.getIntervalDisplayDate = function ( omhDatum, dateProvider ) {
 
                 var interval = omhDatum.body[ 'effective_time_frame' ][ 'time_interval' ];
                 var startTime = interval[ 'start_date_time' ] ? ( new Date( interval[ 'start_date_time' ] ) ).getTime() : null;
@@ -134,8 +133,18 @@
                     }
                 }
 
-                return new Date( startTime );
+                return this.getSingleDateForDateRange( startTime, endTime );
 
+            };
+
+            /**
+             * Get a single Date object to represent the range. Currently just returns the startTime parameter as a Date object.
+             * @param startTime
+             * @param endTime
+             * @returns {Date}
+             */
+            this.getSingleDateForDateRange = function( startTime, endTime ){
+                return new Date( startTime );
             };
 
             /**
