@@ -106,31 +106,25 @@
                 }
             } );
 
-
-            // If there are thresholds for any of the measures, add them as gridlines
+            // If there are gridlines, add them
             var gridlineValues = [];
             var gridlines;
             var gridlineYAxis;
 
-            var addGridlineValues = function ( thresholds ) {
-
-                if ( thresholds.max ) {
-                    gridlineValues.push( thresholds.max );
-                }
-                if ( thresholds.min ) {
-                    gridlineValues.push( thresholds.min );
-                }
-
-            };
-
-            if ( configuration.getInterfaceSettings().thresholds.show !== false ) {
+            if ( !configuration.getInterfaceSettings().hasOwnProperty('gridlines') ||
+                    configuration.getInterfaceSettings().gridlines.show !== false ) {
 
                 measures.forEach( function ( measure ) {
 
-                    var thresholds = configuration.getMeasureSettings( measure ).thresholds;
+                    var measureSettings = configuration.getMeasureSettings( measure );
 
-                    if ( thresholds ) {
-                        addGridlineValues( thresholds );
+                    if ( measureSettings.chart && measureSettings.chart.gridlines ) {
+                        var measureGridlines = measureSettings.chart.gridlines;
+                        measureGridlines.forEach( function ( gridline ) {
+                            if ( !gridline.hasOwnProperty( 'visible' ) || gridline.visible === true ) {
+                                gridlineValues.push( gridline );
+                            }
+                        } );
                     }
 
                 } );
@@ -138,7 +132,7 @@
                 if ( gridlineValues.length > 0 ) {
 
                     gridlineValues.sort( function ( a, b ) {
-                        return a - b;
+                        return a.value - b.value;
                     } );
 
                     var gridlineYScale = new Plottable.Scales.Linear();
@@ -150,9 +144,12 @@
                     };
                     yScale.onUpdate( yScaleCallback );
                     var yScaleTickGenerator = function ( scale ) {
-                        var ticks = gridlineValues;
+                        var ticks = gridlineValues.map( function ( element ) {
+                            return element.value;
+                        } );
                         return ticks;
                     };
+
                     gridlineYScale.tickGenerator( yScaleTickGenerator );
 
                     gridlineYAxis = new Plottable.Axes.Numeric( gridlineYScale, "right" )
@@ -160,6 +157,15 @@
                         .tickLabelPadding( 1 )
                         .showEndTickLabels( true )
                         .addClass( 'gridlines-axis' );
+
+                    gridlineYAxis.formatter( function ( value ) {
+                        for ( var index in gridlineValues ) {
+                            if ( gridlineValues[ index ].value === value ) {
+                                var label = gridlineValues[ index ].label? gridlineValues[ index ].label: gridlineValues[ index ].value;
+                                return String( label );
+                            }
+                        }
+                    } );
 
                     gridlines = new Plottable.Components.Gridlines( null, gridlineYScale );
 
@@ -315,7 +321,7 @@
             }
 
 
-            //build table
+//build table
             var xAxisVisible = configuration.getInterfaceSettings().axes.xAxis.visible;
             var yAxisVisible = configuration.getInterfaceSettings().axes.yAxis.visible;
             var plotGroup = new Plottable.Components.Group( plots );
@@ -425,9 +431,10 @@
             /**
              * Add a gridline to the chart at the value
              * @param {number} value - The location on the y axis of the gridline
+             * @param {String} label - The label of the gridline. Optional, defaults to the value.
              */
-            this.addGridline = function ( value ) {
-                gridlineValues.push( value );
+            this.addGridline = function ( value, label ) {
+                gridlineValues.push( { value: value, label: label ? label : value } );
             };
 
             /**
@@ -506,12 +513,14 @@
 
             this.initialized = true;
 
-        };
+        }
+        ;
 
         parent.Chart = Chart;
 
         return parent;
 
     }
-) );
+) )
+;
 

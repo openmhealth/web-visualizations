@@ -3,26 +3,7 @@ describe( "ChartStyles", function () {
     beforeEach( function () {
 
         this.lib = OMHWebVisualizations;
-        this.configuration = new this.lib.ChartConfiguration( {
-            measures: {
-                measure_with_threshold_max: {
-                    thresholds: {
-                        max: 99
-                    }
-                },
-                measure_with_threshold_min: {
-                    thresholds: {
-                        min: 101
-                    }
-                },
-                measure_with_threshold_max_and_min: {
-                    thresholds: {
-                        min: 99, max: 101
-                    }
-                },
-                measure_with_no_threshold: {}
-            }
-        } );
+        this.configuration = new this.lib.ChartConfiguration( {} );
 
         this.styles = new this.lib.ChartStyles( this.configuration );
 
@@ -32,32 +13,6 @@ describe( "ChartStyles", function () {
     describe( "Filters", function () {
 
         beforeAll( function () {
-
-            this.measureResults = {
-                measure_with_threshold_max: { aboveMax: true, belowMin: false },
-                measure_with_threshold_min: { aboveMax: false, belowMin: true },
-                measure_with_threshold_max_and_min: { aboveMax: false, belowMin: false },
-                measure_with_no_threshold: { aboveMax: false, belowMin: false }
-            };
-
-        } );
-
-        it( "filters a datum based on a threshold in a configuration", function () {
-
-            for ( var measure in this.measureResults ) {
-
-                var d = {
-                    y: 100,
-                    measure: measure
-                };
-
-                var aboveMax = this.styles.filters.aboveThresholdMax()( d );
-                expect( aboveMax ).toEqual( this.measureResults[ measure ].aboveMax );
-
-                var belowMin = this.styles.filters.belowThresholdMin()( d );
-                expect( belowMin ).toEqual( this.measureResults[ measure ].belowMin );
-
-            }
 
         } );
 
@@ -70,10 +25,10 @@ describe( "ChartStyles", function () {
                     measure: measure
                 };
 
-                var measureMatches = this.styles.filters.measure( measure )( d );
+                var measureMatches = ChartStyles.filters.measure( measure )( d );
                 expect( measureMatches ).toEqual( true );
 
-                measureMatches = this.styles.filters.measure( measure + Math.random() )( d );
+                measureMatches = ChartStyles.filters.measure( measure + Math.random() )( d );
                 expect( measureMatches ).toEqual( false );
 
             }

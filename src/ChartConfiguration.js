@@ -23,7 +23,7 @@
                 'timespanButtons': { 'enabled': true },
                 'zoomButtons': { 'enabled': true },
                 'navigation': { 'enabled': true },
-                'thresholds': { 'show': true },
+                'gridlines': { 'show': true },
                 'tooltips': {
                     'enabled': true,
                     'timeFormat': 'M/D/YY, h:mma',
@@ -49,7 +49,6 @@
                     'valueKeyPath': 'body.body_weight.value',
                     'range': { 'min': 0, 'max': 100 },
                     'units': 'kg',
-                    'thresholds': { 'max': 57 }
                 },
                 'heart_rate': {
                     'valueKeyPath': 'body.heart_rate.value',
@@ -84,13 +83,11 @@
                     'valueKeyPath': 'body.systolic_blood_pressure.value',
                     'range': { 'min': 30, 'max': 200 },
                     'units': 'mmHg',
-                    'thresholds': { 'max': 120 }
                 },
                 'diastolic_blood_pressure': {
                     'valueKeyPath': 'body.diastolic_blood_pressure.value',
                     'range': { 'min': 30, 'max': 200 },
                     'units': 'mmHg',
-                    'thresholds': { 'max': 80 }
                 }
             }
         }
@@ -106,7 +103,7 @@
                 'timespanButtons': { 'enabled': true },
                 'zoomButtons': { 'enabled': true },
                 'navigation': { 'enabled': true },
-                'thresholds': { 'show': true },
+                'gridlines': { 'show': true },
                 'tooltips': {
                     'enabled': true,
                     'timeFormat': 'M/D/YY, h:mma',
@@ -132,7 +129,6 @@
                     'valueKeyPath': 'body.body_weight.value',
                     'range': { 'min': 0, 'max': 100 },
                     'units': 'kg',
-                    'thresholds': { 'max': 57 }
                 },
                 'heart_rate': {
                     'valueKeyPath': 'body.heart_rate.value',
@@ -167,13 +163,11 @@
                     'valueKeyPath': 'body.systolic_blood_pressure.value',
                     'range': { 'min': 30, 'max': 200 },
                     'units': 'mmHg',
-                    'thresholds': { 'max': 120 }
                 },
                 'diastolic_blood_pressure': {
                     'valueKeyPath': 'body.diastolic_blood_pressure.value',
                     'range': { 'min': 30, 'max': 200 },
                     'units': 'mmHg',
-                    'thresholds': { 'max': 80 }
                 }
             }
         };
@@ -216,7 +210,7 @@
 
         /**
          * Get the settings for the user interface
-         * @returns {defaultSettings.userInterface|{toolbar, timespanButtons, zoomButtons, navigation, thresholds, tooltips, panZoom, axes}|options.userInterface|{axes, thresholds, tooltips}|i.userInterface|n.userInterface|*}
+         * @returns {{}}
          */
         this.getInterfaceSettings = function () {
             return mergedSettings.userInterface;

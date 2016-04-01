@@ -106,31 +106,25 @@
                 }
             } );
 
-
-            // If there are thresholds for any of the measures, add them as gridlines
+            // If there are gridlines, add them
             var gridlineValues = [];
             var gridlines;
             var gridlineYAxis;
 
-            var addGridlineValues = function ( thresholds ) {
-
-                if ( thresholds.max ) {
-                    gridlineValues.push( thresholds.max );
-                }
-                if ( thresholds.min ) {
-                    gridlineValues.push( thresholds.min );
-                }
-
-            };
-
-            if ( configuration.getInterfaceSettings().thresholds.show !== false ) {
+            if ( !configuration.getInterfaceSettings().hasOwnProperty('gridlines') ||
+                    configuration.getInterfaceSettings().gridlines.show !== false ) {
 
                 measures.forEach( function ( measure ) {
 
-                    var thresholds = configuration.getMeasureSettings( measure ).thresholds;
+                    var measureSettings = configuration.getMeasureSettings( measure );
 
-                    if ( thresholds ) {
-                        addGridlineValues( thresholds );
+                    if ( measureSettings.chart && measureSettings.chart.gridlines ) {
+                        var measureGridlines = measureSettings.chart.gridlines;
+                        measureGridlines.forEach( function ( gridline ) {
+                            if ( !gridline.hasOwnProperty( 'visible' ) || gridline.visible === true ) {
+                                gridlineValues.push( gridline );
+                            }
+                        } );
                     }
 
                 } );
@@ -138,7 +132,7 @@
                 if ( gridlineValues.length > 0 ) {
 
                     gridlineValues.sort( function ( a, b ) {
-                        return a - b;
+                        return a.value - b.value;
                     } );
 
                     var gridlineYScale = new Plottable.Scales.Linear();
@@ -150,9 +144,12 @@
                     };
                     yScale.onUpdate( yScaleCallback );
                     var yScaleTickGenerator = function ( scale ) {
-                        var ticks = gridlineValues;
+                        var ticks = gridlineValues.map( function ( element ) {
+                            return element.value;
+                        } );
                         return ticks;
                     };
+
                     gridlineYScale.tickGenerator( yScaleTickGenerator );
 
                     gridlineYAxis = new Plottable.Axes.Numeric( gridlineYScale, "right" )
@@ -160,6 +157,15 @@
                         .tickLabelPadding( 1 )
                         .showEndTickLabels( true )
                         .addClass( 'gridlines-axis' );
+
+                    gridlineYAxis.formatter( function ( value ) {
+                        for ( var index in gridlineValues ) {
+                            if ( gridlineValues[ index ].value === value ) {
+                                var label = gridlineValues[ index ].label? gridlineValues[ index ].label: gridlineValues[ index ].value;
+                                return String( label );
+                            }
+                        }
+                    } );
 
                     gridlines = new Plottable.Components.Gridlines( null, gridlineYScale );
 
@@ -315,7 +321,7 @@
             }
 
 
-            //build table
+//build table
             var xAxisVisible = configuration.getInterfaceSettings().axes.xAxis.visible;
             var yAxisVisible = configuration.getInterfaceSettings().axes.yAxis.visible;
             var plotGroup = new Plottable.Components.Group( plots );
@@ -425,9 +431,10 @@
             /**
              * Add a gridline to the chart at the value
              * @param {number} value - The location on the y axis of the gridline
+             * @param {String} label - The label of the gridline. Optional, defaults to the value.
              */
-            this.addGridline = function ( value ) {
-                gridlineValues.push( value );
+            this.addGridline = function ( value, label ) {
+                gridlineValues.push( { value: value, label: label ? label : value } );
             };
 
             /**
@@ -506,14 +513,16 @@
 
             this.initialized = true;
 
-        };
+        }
+        ;
 
         parent.Chart = Chart;
 
         return parent;
 
     }
-) );
+) )
+;
 
 
 ( function ( root, factory ) {
@@ -541,7 +550,7 @@
                 'timespanButtons': { 'enabled': true },
                 'zoomButtons': { 'enabled': true },
                 'navigation': { 'enabled': true },
-                'thresholds': { 'show': true },
+                'gridlines': { 'show': true },
                 'tooltips': {
                     'enabled': true,
                     'timeFormat': 'M/D/YY, h:mma',
@@ -567,7 +576,6 @@
                     'valueKeyPath': 'body.body_weight.value',
                     'range': { 'min': 0, 'max': 100 },
                     'units': 'kg',
-                    'thresholds': { 'max': 57 }
                 },
                 'heart_rate': {
                     'valueKeyPath': 'body.heart_rate.value',
@@ -602,13 +610,11 @@
                     'valueKeyPath': 'body.systolic_blood_pressure.value',
                     'range': { 'min': 30, 'max': 200 },
                     'units': 'mmHg',
-                    'thresholds': { 'max': 120 }
                 },
                 'diastolic_blood_pressure': {
                     'valueKeyPath': 'body.diastolic_blood_pressure.value',
                     'range': { 'min': 30, 'max': 200 },
                     'units': 'mmHg',
-                    'thresholds': { 'max': 80 }
                 }
             }
         }
@@ -624,7 +630,7 @@
                 'timespanButtons': { 'enabled': true },
                 'zoomButtons': { 'enabled': true },
                 'navigation': { 'enabled': true },
-                'thresholds': { 'show': true },
+                'gridlines': { 'show': true },
                 'tooltips': {
                     'enabled': true,
                     'timeFormat': 'M/D/YY, h:mma',
@@ -650,7 +656,6 @@
                     'valueKeyPath': 'body.body_weight.value',
                     'range': { 'min': 0, 'max': 100 },
                     'units': 'kg',
-                    'thresholds': { 'max': 57 }
                 },
                 'heart_rate': {
                     'valueKeyPath': 'body.heart_rate.value',
@@ -685,13 +690,11 @@
                     'valueKeyPath': 'body.systolic_blood_pressure.value',
                     'range': { 'min': 30, 'max': 200 },
                     'units': 'mmHg',
-                    'thresholds': { 'max': 120 }
                 },
                 'diastolic_blood_pressure': {
                     'valueKeyPath': 'body.diastolic_blood_pressure.value',
                     'range': { 'min': 30, 'max': 200 },
                     'units': 'mmHg',
-                    'thresholds': { 'max': 80 }
                 }
             }
         };
@@ -734,7 +737,7 @@
 
         /**
          * Get the settings for the user interface
-         * @returns {defaultSettings.userInterface|{toolbar, timespanButtons, zoomButtons, navigation, thresholds, tooltips, panZoom, axes}|options.userInterface|{axes, thresholds, tooltips}|i.userInterface|n.userInterface|*}
+         * @returns {{}}
          */
         this.getInterfaceSettings = function () {
             return mergedSettings.userInterface;
@@ -1408,176 +1411,6 @@
             return configuration.getMeasureSettings( d.measure ).thresholds;
         };
 
-        var filters = {
-            /**
-             * Get a filter that matches the measure
-             * @param {String} measure - The measure to match
-             * @returns {Function} - The filter function that can be added to a filter array in a style
-             * @alias filters.measure
-             * @memberof! ChartStyles#
-             */
-            'measure': function ( measure ) {
-                return function ( d ) {
-                    return d.measure === measure;
-                };
-            },
-            /**
-             * Get a filter that matches points with y values above max
-             * @returns {Function} - The filter function that can be added to a filter array in a style
-             * @alias filters.above
-             * @memberof! ChartStyles#
-             * @param {Number} max - The value, above which the matched points' y values must fall
-             */
-            'above': function ( max ) {
-                return function ( d ) {
-                    return d.y > max;
-                };
-            },
-            /**
-             * Get a filter that matches points with y values above the threshold for their measure, found in the configuration passed in during construction
-             * @returns {Function} - The filter function that can be added to a filter array in a style
-             * @alias filters.aboveThresholdMax
-             * @memberof! ChartStyles#
-             */
-            'aboveThresholdMax': function () {
-                return function ( d ) {
-                    var thresholds = getPointThresholds( d );
-                    var max = thresholds ? thresholds.max : null;
-                    return max ? d.y > max : false;
-                };
-            },
-            /**
-             * Get a filter that matches points with y values below min
-             * @returns {Function} - The filter function that can be added to a filter array in a style
-             * @alias filters.below
-             * @memberof! ChartStyles#
-             * @param {Number} min - The value, below which the matched points' y values must fall
-             */
-            'below': function ( min ) {
-                return function ( d ) {
-                    return d.y < min;
-                };
-            },
-            /**
-             * Get a filter that matches points with y values below the threshold for their measure, found in the configuration passed in during construction
-             * @returns {Function} - The filter function that can be added to a filter array in a style
-             * @alias filters.belowThresholdMin
-             * @memberof! ChartStyles#
-             */
-            'belowThresholdMin': function () {
-                return function ( d ) {
-                    var thresholds = getPointThresholds( d );
-                    var min = thresholds ? thresholds.min : null;
-                    return min ? d.y < min : false;
-                };
-            },
-            /**
-             * Get a filter that matches the points with an x value that falls prior to the given hour of each day
-             * @returns {Function} - The filter function that can be added to a filter array in a style
-             * @alias filters.dailyBeforeHour
-             * @memberof! ChartStyles#
-             * @param {Number} hour - The hour, below which the matched points' x.getHours() must fall
-             */
-            'dailyBeforeHour': function ( hour ) {
-                return function ( d ) {
-                    return d.x.getHours() < hour;
-                };
-            }
-        };
-
-
-        /**
-         * A list of useful filters to help with conditional styling
-         * These are not static because they depend on the settings in the configuration
-         * @type {{}}
-         */
-        this.filters = filters;
-
-        /**
-         * Get a fresh copy of default styles for the plot
-         * This cannot be static because it depends on the configuration.
-         * Styles will be returned if the plot is of type Plottable.Plots.Scatter, Plottable.Plots.Line, or Plottable.Plots.ClusteredBar
-         * @param {Plottable.Plots.XYPlot} plot - The plot that the styles will be used for. Different styles are returned depending on the type of the plot.
-         * @returns {{}}
-         */
-        this.getDefaultStylesForPlot = function ( plot ) {
-
-            // define these defaults every time this function is called,
-            // so that the defaults are preserved even if the return value
-            // is altered outside of this function
-
-            var defaults = {
-
-                'Scatter': [
-                    {
-                        'name': 'default',
-                        'attributes': {
-                            'fill': '#4a90e2',
-                            'stroke': '#0066d6',
-                            'stroke-width': '1px',
-                            'size': 9,
-                            'opacity': 0.5
-                        }
-                    },
-                    {
-                        'name': 'above',
-                        'filters': [ filters.aboveThresholdMax() ],
-                        'attributes': {
-                            'fill': '#e8ac4e',
-                            'stroke': '#745628'
-                        }
-                    },
-                    {
-                        'name': 'below',
-                        'filters': [ filters.belowThresholdMin() ],
-                        'attributes': {
-                            'fill': '#e8ac4e',
-                            'stroke': '#745628'
-                        }
-                    }
-                ],
-
-                'Line': [
-                    {
-                        'name': 'default',
-                        'attributes': {
-                            'stroke': '#dedede',
-                            'stroke-width': '1px'
-                        }
-                    }
-                ],
-
-                'ClusteredBar': [
-                    {
-                        'name': 'default',
-                        'attributes': {
-                            'fill': '#4a90e2'
-                        }
-                    },
-                    {
-                        'name': 'secondary',
-                        'filters': [
-                            function ( d ) {
-                                return !d.primary;
-                            }
-                        ],
-                        'attributes': {
-                            'fill': '#eeeeee'
-                        }
-                    }
-                ]
-
-            };
-
-            var defaultStyleForPlot = defaults[ plot.constructor.name ];
-
-            if ( !defaultStyleForPlot ) {
-                return {};
-            }
-
-            return defaultStyleForPlot;
-        };
-
         /**
          * Get the style specified in the configuration passed in at construction
          * Filters that match the measures containing each style are added to the returned styles
@@ -1629,7 +1462,7 @@
          * @returns {Array} - The combined styles
          */
         this.getConfiguredDefaultStylesForPlot = function( plot ){
-            var defaultStyles = this.getDefaultStylesForPlot( plot );
+            var defaultStyles = ChartStyles.getDefaultStylesForPlot( plot );
             var configuredStyles = this.getConfiguredStylesForPlot( plot );
             return defaultStyles.concat( configuredStyles );
         };
@@ -1925,11 +1758,136 @@
         return content;
     };
 
+    /**
+     * Get a fresh copy of default styles for the plot.
+     * Styles will be returned if the plot is of type Plottable.Plots.Scatter, Plottable.Plots.Line, or Plottable.Plots.ClusteredBar
+     * @param {Plottable.Plots.XYPlot} plot - The plot that the styles will be used for. Different styles are returned depending on the type of the plot.
+     * @returns {{}}
+     * @memberof ChartStyles
+     */
+    ChartStyles.getDefaultStylesForPlot = function ( plot ) {
+
+        // define these defaults every time this function is called,
+        // so that the defaults are preserved even if the return value
+        // is altered outside of this function
+
+        var defaults = {
+
+            'Scatter': [
+                {
+                    'name': 'default',
+                    'attributes': {
+                        'fill': '#4a90e2',
+                        'stroke': '#0066d6',
+                        'stroke-width': '1px',
+                        'size': 9,
+                        'opacity': 0.5
+                    }
+                }
+            ],
+
+            'Line': [
+                {
+                    'name': 'default',
+                    'attributes': {
+                        'stroke': '#dedede',
+                        'stroke-width': '1px'
+                    }
+                }
+            ],
+
+            'ClusteredBar': [
+                {
+                    'name': 'default',
+                    'attributes': {
+                        'fill': '#4a90e2'
+                    }
+                },
+                {
+                    'name': 'secondary',
+                    'filters': [
+                        function ( d ) {
+                            return !d.primary;
+                        }
+                    ],
+                    'attributes': {
+                        'fill': '#eeeeee'
+                    }
+                }
+            ]
+
+        };
+
+        var defaultStyleForPlot = defaults[ plot.constructor.name ];
+
+        if ( !defaultStyleForPlot ) {
+            return {};
+        }
+
+        return defaultStyleForPlot;
+    };
+
+    /**
+     * A list of useful filters to help with conditional styling
+     * @type {{}}
+     */
+    ChartStyles.filters = {
+        /**
+         * Get a filter that matches the measure
+         * @param {String} measure - The measure to match
+         * @returns {Function} - The filter function that can be added to a filter array in a style
+         * @alias filters.measure
+         * @memberof! ChartStyles
+         */
+        'measure': function ( measure ) {
+            return function ( d ) {
+                return d.measure === measure;
+            };
+        },
+        /**
+         * Get a filter that matches points with y values above max
+         * @returns {Function} - The filter function that can be added to a filter array in a style
+         * @alias filters.above
+         * @memberof! ChartStyles
+         * @param {Number} max - The value, above which the matched points' y values must fall
+         */
+        'above': function ( max ) {
+            return function ( d ) {
+                return d.y > max;
+            };
+        },
+        /**
+         * Get a filter that matches points with y values below min
+         * @returns {Function} - The filter function that can be added to a filter array in a style
+         * @alias filters.below
+         * @memberof! ChartStyles
+         * @param {Number} min - The value, below which the matched points' y values must fall
+         */
+        'below': function ( min ) {
+            return function ( d ) {
+                return d.y < min;
+            };
+        },
+        /**
+         * Get a filter that matches the points with an x value that falls prior to the given hour of each day
+         * @returns {Function} - The filter function that can be added to a filter array in a style
+         * @alias filters.dailyBeforeHour
+         * @memberof! ChartStyles
+         * @param {Number} hour - The hour, below which the matched points' x.getHours() must fall
+         */
+        'dailyBeforeHour': function ( hour ) {
+            return function ( d ) {
+                return d.x.getHours() < hour;
+            };
+        }
+    };
+
     parent.ChartStyles = ChartStyles;
 
     return parent;
 
 } ) );
+
 
 ( function ( root, factory ) {
 

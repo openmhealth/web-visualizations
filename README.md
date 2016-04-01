@@ -69,7 +69,7 @@ The following object is the default settings object used by the `OMHWebVisualiza
     'timespanButtons': { 'enabled': true },
     'zoomButtons': { 'enabled': true },
     'navigation': { 'enabled': true },
-    'thresholds': { 'show': true },
+    'gridlines': { 'show': true },
     'tooltips': {
         'enabled': true,
         'timeFormat': 'M/D/YY, h:mma',
@@ -95,7 +95,6 @@ The following object is the default settings object used by the `OMHWebVisualiza
         'valueKeyPath': 'body.body_weight.value',
         'range': { 'min': 0, 'max': 100 },
         'units': 'kg',
-        'thresholds': { 'max': 57 }
     },
     'heart_rate': {
         'valueKeyPath': 'body.heart_rate.value',
@@ -130,13 +129,11 @@ The following object is the default settings object used by the `OMHWebVisualiza
         'valueKeyPath': 'body.systolic_blood_pressure.value',
         'range': { 'min': 30, 'max': 200 },
         'units': 'mmHg',
-        'thresholds': { 'max': 120 }
     },
     'diastolic_blood_pressure': {
         'valueKeyPath': 'body.diastolic_blood_pressure.value',
         'range': { 'min': 30, 'max': 200 },
         'units': 'mmHg',
-        'thresholds': { 'max': 80 }
     }
 }
 
@@ -243,34 +240,37 @@ As an example, the data will be quantized by hour using `OMHWebVisualizations.Da
 And here is a chart of the same data *quantized* by hour. The points before 05:00 in the zoomed-in view above have been accumulated into a single point, shown in dark blue:
 ![Quantized Data](http://www.openmhealth.org/media/viz_example_quantized_data.png "Quantized Data")
 
-### Thresholds
+### Gridlines
 
-Lines representing thresholds can be drawn on charts. Each line is labelled with its `y` value, unless that label will overlap another threshold's label. Here are two maximum thresholds with default appearance:
-![Default Maximum Thresholds](http://www.openmhealth.org/media/viz_example_threshold_basic.png "Default Maximum Thresholds")
+Horizontal lines (e.g. representing safe thresholds) can be drawn on charts. Each line is labelled with a custom label or its `y` value, unless that label will overlap another gridline's label. Here are two maximum gridlines with default appearance:
+![Default Gridlines](http://www.openmhealth.org/media/viz_example_threshold_basic.png "Default Maximum Gridline")
 
-Thresholds of type `max` and `min` can be specified using the `options` parameter, passed in during construction ([see 'Configuring a Chart'](#configuring_a_chart)). For some measures, thresholds are enabled by default. To disable them for just one measure, set the measure's `thresholds` setting to `undefined` in the `options` object. To disable thresholds entirely, the `userInterface.thresholds.show` property of the `options` object can be set to `false`.
+Gridlines can be specified in the `chart` property of a measure in the `measures` section of the configuration `options` object. To disable gridlines entirely, the `userInterface.gridlines.show` property of the `options` object can be set to `false`.
 
-To configure the individual thresholds for a measure, a `thresholds` property can be added to the measure's section in the `options` object. The `thresholds` property must be specified as a single threshold object. In the threshold object, a `min` and a `max` field can be specified.
+A gridline in the `options` object should have the following properties:
 
 Property | Description
 ---: | ---
-*max* | A maximum value. Above this value, points will be colored according to the default styles returned by ChartStyles.getDefaultStylesForPlot().
-*min* | A minimum value. Below this value, points will be colored according to the default styles returned by ChartStyles.getDefaultStylesForPlot().
+*value* | The y value of the horizontal line.
+*label* | The label to show above the line (optional). If no label is specified, the `value` property is used.
+*visible* | Whether to show the gridline (optional).
 
-On a chart of type `line`, a labeled horizontal rule is drawn all the way across the chart for each threshold, and the points are colored differently, depending on where they fall in relation to the thresholds.
+On a chart of type `line`, a labeled horizontal rule is drawn all the way across the chart for each gridline. Gridlines are not drawn on bar charts.
 
-By default, a point is colored differently if it exceeds a `max` threshold or falls below a `min` threshold. This is achieved by the settings returned by ChartStyles.getDefaultStylesForPlot(). By default, this is set to the light orange color in the previous example.
+To create a new gridline without using the `options` object, you can alternatively call `chart.addGridline()` before the chart is rendered.
 
-#### Extending default thresholds with ChartStyles
+### Extending default appearances with ChartStyles
 
-To add more thresholds and change the colors of the points they affect, you can call `chart.addGridline()` and customize the chart's `ChartStyles` object before rendering the chart.
+To change the colors and other visual attributes of points on the chart, you can specify a `chart.styles` section in each measure in the `measures` block of the configuration `options` object.
+You can alternatively customize the chart's `ChartStyles` object before rendering the chart by calling `chart.getStylesForPlot()` and `chart.setStylesForPlot()`. The Plottable plot you wish to affect must be passed into these functions.
+
 Below are some examples of what can be done. See `examples/charts.html` for code samples.
 
-Change the color of points above the threshold:
-![Above Threshold Color](http://www.openmhealth.org/media/viz_example_threshold_color.png "Above Threshold Color")
+Change the color of points above the gridline:
+![Above Gridline Color](http://www.openmhealth.org/media/viz_example_threshold_color.png "Above Gridline Color")
 
 Add a range in the chart that is colored differently:
-![Above Threshold Color with Colored Range](http://www.openmhealth.org/media/viz_example_threshold_color_band.png "Above Threshold Color with Colored Range")
+![Above Gridline Color with Colored Range](http://www.openmhealth.org/media/viz_example_threshold_color_band.png "Above Gridline Color with Colored Range")
 
 ### Tooltips
 
@@ -287,7 +287,7 @@ Property | Description
 
 In the following chart, we see a tooltip that has been colored light orange to match its point in the diastolic blood pressure series:
 
-![Above Threshold Tooltip](http://www.openmhealth.org/media/viz_example_threshold_above_tip_2.png "Above Threshold Tooltip")
+![Above Gridline Tooltip](http://www.openmhealth.org/media/viz_example_threshold_above_tip_2.png "Above Gridline Tooltip")
 
 And here is the CSS used for the tooltip:
 ```css
@@ -305,9 +305,9 @@ You can restrict the tooltip colors to only `diastolic_blood_pressure` as follow
 ```
 
 
-In the same chart, we see a tooltip that has been colored red to match its point below the minimum threshold in the systolic blood pressure series:
+In the same chart, we see a tooltip that has been colored red to match its point below the gridline in the systolic blood pressure series:
 
-![Above Threshold Tooltip with Custom Color](http://www.openmhealth.org/media/viz_example_threshold_above_tip_1.png "Above Threshold Tooltip with Custom Color")
+![Above Gridline Tooltip with Custom Color](http://www.openmhealth.org/media/viz_example_threshold_above_tip_1.png "Above Gridline Tooltip with Custom Color")
 
 Here is the CSS used for the systolic tooltip:
 ```css
@@ -318,7 +318,7 @@ Here is the CSS used for the systolic tooltip:
 
 
 And again, in the same chart, we see a tooltip that has been colored light orange to match its point in the first measure:
-![Within Threshold Tooltip with Custom Color](http://www.openmhealth.org/media/viz_example_threshold_warning_tip.png "Within Threshold Tooltip with Custom Color")
+![Within Gridline Tooltip with Custom Color](http://www.openmhealth.org/media/viz_example_threshold_warning_tip.png "Within Gridline Tooltip with Custom Color")
 
 The point shown above has matched a chart style named `warning`:
 In order for this to work, the corresponding chart style's `name` property is set to `warning` as follows:

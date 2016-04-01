@@ -164,7 +164,7 @@ It currently generates line charts and bar charts, with default settings include
     'timespanButtons': { 'enabled': true },
     'zoomButtons': { 'enabled': true },
     'navigation': { 'enabled': true },
-    'thresholds': { 'show': true },
+    'gridlines': { 'show': true },
     'tooltips': {
         'enabled': true,
         'timeFormat': 'M/D/YY, h:mma',
@@ -190,7 +190,6 @@ It currently generates line charts and bar charts, with default settings include
         'valueKeyPath': 'body.body_weight.value',
         'range': { 'min': 0, 'max': 100 },
         'units': 'kg',
-        'thresholds': { 'max': 57 }
     },
     'heart_rate': {
         'valueKeyPath': 'body.heart_rate.value',
@@ -225,13 +224,11 @@ It currently generates line charts and bar charts, with default settings include
         'valueKeyPath': 'body.systolic_blood_pressure.value',
         'range': { 'min': 30, 'max': 200 },
         'units': 'mmHg',
-        'thresholds': { 'max': 120 }
     },
     'diastolic_blood_pressure': {
         'valueKeyPath': 'body.diastolic_blood_pressure.value',
         'range': { 'min': 30, 'max': 200 },
         'units': 'mmHg',
-        'thresholds': { 'max': 80 }
     }
 }</code></pre><p>For example, using these default settings to graph <code>heart_rate</code> data will generate a chart that looks like this:</p>
 <p><img src="http://www.openmhealth.org/media/viz_example_default_options.png" alt="Configured Chart" title="Default Chart"></p>
@@ -246,39 +243,31 @@ It currently generates line charts and bar charts, with default settings include
        'type': 'line',
        'daysShownOnTimeline': { 'min': 1, 'max': 1000 },
    }
-}</code></pre><p>To override these defaults, edit the default styles, and specify the interface settings in the <code>options</code> object passed to <code>OMHWebVisualization.Chart(...)</code>.
-If you would like to graph <code>heart_rate</code> data with a blue line and no tooltips, for example, you'd use the following settings object to turn off tooltips:</p>
+}</code></pre><p>Additionally, default styles are provided for rendering each measure's plot.</p>
+<p>To override the defaults, specify the new interface settings and styles in the <code>options</code> object passed to <code>OMHWebVisualization.Chart(...)</code>.
+For example, if you would like to graph <code>heart_rate</code> data with a blue line and no tooltips, you'd use the following <code>options</code> object:</p>
 <pre class="prettyprint source lang-javascript"><code>{
   'userInterface': {
     'tooltips': {
       'enabled': false,
      }
   },
-}</code></pre><p>And the following code would change the line color:</p>
-<pre class="prettyprint source lang-javascript"><code>
-// ...initialize the chart here...
-
-// get the existing styles from the chart so we can alter them
-var chartStyles = chart.getStyles();
-var linePlot = chart.getPlots( Plottable.Plots.Line )[ 0 ];
-
-// initialize new styles with the existing ones
-var plotStylesWithBlueLines = chartStyles.getStylesForPlot( linePlot );
-
-// add blue line style
-plotStylesWithBlueLines.push(
-        {
-            'name': 'blue-lines',
-            'attributes': {
-                'stroke': '#4a90e2'
-            }
-        }
-);
-
-// replace styles for the plot with extended blue-line styles
-chartStyles.setStylesForPlot( plotStylesWithBlueLines, linePlot );
-
-// ...render the chart here...</code></pre><p>This will produce a chart that looks something like the following screenshot:</p>
+  'measures': {
+      'heart_rate': {
+          'chart': {
+              'styles': [
+                  {
+                      'name': 'blue-lines',
+                      'plotType': 'Line',
+                      'attributes': {
+                          'stroke': '#4a90e2'
+                      }
+                  }
+              ]
+          }
+      }
+  }
+}</code></pre><p>This will produce a chart that looks something like the following screenshot:</p>
 <p><img src="http://www.openmhealth.org/media/viz_example_user_options.png" alt="Configured Chart" title="Configured Chart"></p>
 <h3>Quantization</h3><p>Quantization reduces the dataset's size by summarizing each group of points that fall into a common time range, or &quot;bucket,&quot; with a single point that represents their bucket's range.</p>
 <p>Currently, quantized data point values within each subsequent quantization bucket are <em>averaged</em> for most measures and <em>summed</em> for <code>step_count</code> and <code>minutes_moderate_activity</code>.</p>
@@ -316,10 +305,10 @@ var options = {
 <img src="http://www.openmhealth.org/media/viz_example_unquantized_data_detail1.png" alt="Unquantized Data Detail" title="Unquantized Data Detail"></p>
 <p>And here is a chart of the same data <em>quantized</em> by hour. The points before 05:00 in the zoomed-in view above have been accumulated into a single point, shown in dark blue:
 <img src="http://www.openmhealth.org/media/viz_example_quantized_data.png" alt="Quantized Data" title="Quantized Data"></p>
-<h3>Thresholds</h3><p>Lines representing thresholds can be drawn on charts. Each line is labelled with its <code>y</code> value, unless that label will overlap another threshold's label. Here are two maximum thresholds with default appearance:
-<img src="http://www.openmhealth.org/media/viz_example_threshold_basic.png" alt="Default Maximum Thresholds" title="Default Maximum Thresholds"></p>
-<p>Thresholds of type <code>max</code> and <code>min</code> can be specified using the <code>options</code> parameter, passed in during construction (<a href="#configuring_a_chart">see 'Configuring a Chart'</a>). For some measures, thresholds are enabled by default. To disable them for just one measure, set the measure's <code>thresholds</code> setting to <code>undefined</code> in the <code>options</code> object. To disable thresholds entirely, the <code>userInterface.thresholds.show</code> property of the <code>options</code> object can be set to <code>false</code>.</p>
-<p>To configure the individual thresholds for a measure, a <code>thresholds</code> property can be added to the measure's section in the <code>options</code> object. The <code>thresholds</code> property must be specified as a single threshold object. In the threshold object, a <code>min</code> and a <code>max</code> field can be specified.</p>
+<h3>Gridlines</h3><p>Horizontal lines (e.g. representing safe thresholds) can be drawn on charts. Each line is labelled with a custom label or its <code>y</code> value, unless that label will overlap another gridline's label. Here are two maximum gridlines with default appearance:
+<img src="http://www.openmhealth.org/media/viz_example_threshold_basic.png" alt="Default Gridlines" title="Default Maximum Gridline"></p>
+<p>Gridlines can be specified in the <code>chart</code> property of a measure in the <code>measures</code> section of the configuration <code>options</code> object. To disable gridlines entirely, the <code>userInterface.gridlines.show</code> property of the <code>options</code> object can be set to <code>false</code>.</p>
+<p>A gridline in the <code>options</code> object should have the following properties:</p>
 <table>
 <thead>
 <tr>
@@ -329,23 +318,28 @@ var options = {
 </thead>
 <tbody>
 <tr>
-<td style="text-align:right"><em>max</em></td>
-<td>A maximum value. Above this value, points will be colored according to the default styles returned by ChartStyles.getDefaultStylesForPlot().</td>
+<td style="text-align:right"><em>value</em></td>
+<td>The y value of the horizontal line.</td>
 </tr>
 <tr>
-<td style="text-align:right"><em>min</em></td>
-<td>A minimum value. Below this value, points will be colored according to the default styles returned by ChartStyles.getDefaultStylesForPlot().</td>
+<td style="text-align:right"><em>label</em></td>
+<td>The label to show above the line (optional). If no label is specified, the <code>value</code> property is used.</td>
+</tr>
+<tr>
+<td style="text-align:right"><em>visible</em></td>
+<td>Whether to show the gridline (optional).</td>
 </tr>
 </tbody>
 </table>
-<p>On a chart of type <code>line</code>, a labeled horizontal rule is drawn all the way across the chart for each threshold, and the points are colored differently, depending on where they fall in relation to the thresholds.</p>
-<p>By default, a point is colored differently if it exceeds a <code>max</code> threshold or falls below a <code>min</code> threshold. This is achieved by the settings returned by ChartStyles.getDefaultStylesForPlot(). By default, this is set to the light orange color in the previous example.</p>
-<h4>Extending default thresholds with ChartStyles</h4><p>To add more thresholds and change the colors of the points they affect, you can call <code>chart.addGridline()</code> and customize the chart's <code>ChartStyles</code> object before rendering the chart.
-Below are some examples of what can be done. See <code>examples/charts.html</code> for code samples.</p>
-<p>Change the color of points above the threshold:
-<img src="http://www.openmhealth.org/media/viz_example_threshold_color.png" alt="Above Threshold Color" title="Above Threshold Color"></p>
+<p>On a chart of type <code>line</code>, a labeled horizontal rule is drawn all the way across the chart for each gridline. Gridlines are not drawn on bar charts.</p>
+<p>To create a new gridline without using the <code>options</code> object, you can alternatively call <code>chart.addGridline()</code> before the chart is rendered.</p>
+<h3>Extending default appearances with ChartStyles</h3><p>To change the colors and other visual attributes of points on the chart, you can specify a <code>chart.styles</code> section in each measure in the <code>measures</code> block of the configuration <code>options</code> object.
+You can alternatively customize the chart's <code>ChartStyles</code> object before rendering the chart by calling <code>chart.getStylesForPlot()</code> and <code>chart.setStylesForPlot()</code>. The Plottable plot you wish to affect must be passed into these functions.</p>
+<p>Below are some examples of what can be done. See <code>examples/charts.html</code> for code samples.</p>
+<p>Change the color of points above the gridline:
+<img src="http://www.openmhealth.org/media/viz_example_threshold_color.png" alt="Above Gridline Color" title="Above Gridline Color"></p>
 <p>Add a range in the chart that is colored differently:
-<img src="http://www.openmhealth.org/media/viz_example_threshold_color_band.png" alt="Above Threshold Color with Colored Range" title="Above Threshold Color with Colored Range"></p>
+<img src="http://www.openmhealth.org/media/viz_example_threshold_color_band.png" alt="Above Gridline Color with Colored Range" title="Above Gridline Color with Colored Range"></p>
 <h3>Tooltips</h3><p>Tooltips can be enabled, disabled, and configured using the <code>userInterface.tooltips</code> property of the <code>options</code> object passed into the constructor (<a href="#configuring_a_chart">see 'Configuring a Chart'</a>). The properties of <code>userInterface.tooltips</code> are explained in the following table:</p>
 <table>
 <thead>
@@ -378,20 +372,20 @@ Below are some examples of what can be done. See <code>examples/charts.html</cod
 </tbody>
 </table>
 <p>In the following chart, we see a tooltip that has been colored light orange to match its point in the diastolic blood pressure series:</p>
-<p><img src="http://www.openmhealth.org/media/viz_example_threshold_above_tip_2.png" alt="Above Threshold Tooltip" title="Above Threshold Tooltip"></p>
+<p><img src="http://www.openmhealth.org/media/viz_example_threshold_above_tip_2.png" alt="Above Gridline Tooltip" title="Above Gridline Tooltip"></p>
 <p>And here is the CSS used for the tooltip:</p>
 <pre class="prettyprint source lang-css"><code>.omh-tooltip.above .value {
   color: #e8ac4e;
 }</code></pre><p>You can restrict the tooltip colors to only <code>diastolic_blood_pressure</code> as follows:</p>
 <pre class="prettyprint source lang-css"><code>.omh-tooltip.diastolic_blood_pressure.b .value {
   color: #e8ac4e;
-}</code></pre><p>In the same chart, we see a tooltip that has been colored red to match its point below the minimum threshold in the systolic blood pressure series:</p>
-<p><img src="http://www.openmhealth.org/media/viz_example_threshold_above_tip_1.png" alt="Above Threshold Tooltip with Custom Color" title="Above Threshold Tooltip with Custom Color"></p>
+}</code></pre><p>In the same chart, we see a tooltip that has been colored red to match its point below the gridline in the systolic blood pressure series:</p>
+<p><img src="http://www.openmhealth.org/media/viz_example_threshold_above_tip_1.png" alt="Above Gridline Tooltip with Custom Color" title="Above Gridline Tooltip with Custom Color"></p>
 <p>Here is the CSS used for the systolic tooltip:</p>
 <pre class="prettyprint source lang-css"><code>.omh-tooltip.systolic_blood_pressure.below .value {
   color:#ce5050;
 }</code></pre><p>And again, in the same chart, we see a tooltip that has been colored light orange to match its point in the first measure:
-<img src="http://www.openmhealth.org/media/viz_example_threshold_warning_tip.png" alt="Within Threshold Tooltip with Custom Color" title="Within Threshold Tooltip with Custom Color"></p>
+<img src="http://www.openmhealth.org/media/viz_example_threshold_warning_tip.png" alt="Within Gridline Tooltip with Custom Color" title="Within Gridline Tooltip with Custom Color"></p>
 <p>The point shown above has matched a chart style named <code>warning</code>:
 In order for this to work, the corresponding chart style's <code>name</code> property is set to <code>warning</code> as follows:</p>
 <pre class="prettyprint source lang-javascript"><code>{
@@ -472,7 +466,7 @@ if (chart.initialized) {
 <span class="jsdoc-message">
 	Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.0</a>
 	
-		on March 30th 2016, 5:18:52 pm
+		on March 31st 2016, 7:28:30 pm
 	
 	using the <a href="https://github.com/docstrap/docstrap">DocStrap template</a>.
 </span>

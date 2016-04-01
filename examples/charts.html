@@ -96,6 +96,9 @@
         .omh-tooltip.danger .value {
             color: #ce5050;
         }
+        .omh-tooltip.above .value {
+            color: #e8ac4e;
+        }
 
     </style>
 </head>
@@ -175,9 +178,6 @@
                     'visible': true
                 }
             },
-            'thresholds': {
-                'show': true
-            },
             'tooltips': {
                 'decimalPlaces': 4
             }
@@ -215,7 +215,7 @@
                                 'stroke': '#4a90e2'
                             }
                         }
-                    ]
+                    ],
                 }
             },
             'body_weight': {
@@ -223,14 +223,43 @@
             },
             'systolic_blood_pressure': {
                 'seriesName': 'Blood Pressure',
-                'thresholds': { 'max': 120 },
                 'chart': {
-                    'daysShownOnTimeline': { 'min': 0, 'max': Infinity }
+                    'daysShownOnTimeline': { 'min': 0, 'max': Infinity },
+                    'styles': [
+                        {
+                            'name': 'above',
+                            'plotType': 'Scatter',
+                            'filters': [ OMHWebVisualizations.ChartStyles.filters.above( 120 ) ],
+                            'attributes': {
+                                'fill': '#e8ac4e',
+                                'stroke': '#745628'
+                            }
+                        }
+                    ],
+                    'gridlines': [
+                        { value: 120, label: '120', visible: true }
+                    ]
                 },
                 'range': { 'min': 60, 'max': 140 },
             },
             'diastolic_blood_pressure': {
                 'seriesName': 'Blood Pressure',
+                'chart': {
+                    'styles': [
+                        {
+                            'name': 'above',
+                            'plotType': 'Scatter',
+                            'filters': [ OMHWebVisualizations.ChartStyles.filters.above( 80 ) ],
+                            'attributes': {
+                                'fill': '#e8ac4e',
+                                'stroke': '#745628'
+                            }
+                        }
+                    ],
+                    'gridlines': [
+                        { value: 80, label: '80', visible: true }
+                    ]
+                }
             }
         }
     };
@@ -382,7 +411,7 @@
         };
 
         // ChartStyles.filters contains a number of useful filters
-        var systolicFilter = chartStyles.filters.measure( 'systolic_blood_pressure' );
+        var systolicFilter = OMHWebVisualizations.ChartStyles.filters.measure( 'systolic_blood_pressure' );
 
         // initialize new styles with the existing ones
         var plotStylesWithDanger = chartStyles.getStylesForPlot( scatterPlot );
@@ -402,7 +431,7 @@
         chartStyles.setStylesForPlot( plotStylesWithDanger, scatterPlot );
 
         // add a gridline for the danger zone
-        chart.addGridline( dangerValue );
+        chart.addGridline( dangerValue, 'Danger!' );
 
     };
 
@@ -505,7 +534,6 @@
             chartOptions[ 'measures' ][ 'step_count' ] = {
                 'range': undefined,
                 'timeQuantizationLevel': OMHWebVisualizations.DataParser.QUANTIZE_MONTH,
-                'thresholds': { 'min': 10000 },
                 'chart': {
                     'type': 'line',
                     'daysShownOnTimeline': undefined

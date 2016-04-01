@@ -29,176 +29,6 @@
             return configuration.getMeasureSettings( d.measure ).thresholds;
         };
 
-        var filters = {
-            /**
-             * Get a filter that matches the measure
-             * @param {String} measure - The measure to match
-             * @returns {Function} - The filter function that can be added to a filter array in a style
-             * @alias filters.measure
-             * @memberof! ChartStyles#
-             */
-            'measure': function ( measure ) {
-                return function ( d ) {
-                    return d.measure === measure;
-                };
-            },
-            /**
-             * Get a filter that matches points with y values above max
-             * @returns {Function} - The filter function that can be added to a filter array in a style
-             * @alias filters.above
-             * @memberof! ChartStyles#
-             * @param {Number} max - The value, above which the matched points' y values must fall
-             */
-            'above': function ( max ) {
-                return function ( d ) {
-                    return d.y > max;
-                };
-            },
-            /**
-             * Get a filter that matches points with y values above the threshold for their measure, found in the configuration passed in during construction
-             * @returns {Function} - The filter function that can be added to a filter array in a style
-             * @alias filters.aboveThresholdMax
-             * @memberof! ChartStyles#
-             */
-            'aboveThresholdMax': function () {
-                return function ( d ) {
-                    var thresholds = getPointThresholds( d );
-                    var max = thresholds ? thresholds.max : null;
-                    return max ? d.y > max : false;
-                };
-            },
-            /**
-             * Get a filter that matches points with y values below min
-             * @returns {Function} - The filter function that can be added to a filter array in a style
-             * @alias filters.below
-             * @memberof! ChartStyles#
-             * @param {Number} min - The value, below which the matched points' y values must fall
-             */
-            'below': function ( min ) {
-                return function ( d ) {
-                    return d.y < min;
-                };
-            },
-            /**
-             * Get a filter that matches points with y values below the threshold for their measure, found in the configuration passed in during construction
-             * @returns {Function} - The filter function that can be added to a filter array in a style
-             * @alias filters.belowThresholdMin
-             * @memberof! ChartStyles#
-             */
-            'belowThresholdMin': function () {
-                return function ( d ) {
-                    var thresholds = getPointThresholds( d );
-                    var min = thresholds ? thresholds.min : null;
-                    return min ? d.y < min : false;
-                };
-            },
-            /**
-             * Get a filter that matches the points with an x value that falls prior to the given hour of each day
-             * @returns {Function} - The filter function that can be added to a filter array in a style
-             * @alias filters.dailyBeforeHour
-             * @memberof! ChartStyles#
-             * @param {Number} hour - The hour, below which the matched points' x.getHours() must fall
-             */
-            'dailyBeforeHour': function ( hour ) {
-                return function ( d ) {
-                    return d.x.getHours() < hour;
-                };
-            }
-        };
-
-
-        /**
-         * A list of useful filters to help with conditional styling
-         * These are not static because they depend on the settings in the configuration
-         * @type {{}}
-         */
-        this.filters = filters;
-
-        /**
-         * Get a fresh copy of default styles for the plot
-         * This cannot be static because it depends on the configuration.
-         * Styles will be returned if the plot is of type Plottable.Plots.Scatter, Plottable.Plots.Line, or Plottable.Plots.ClusteredBar
-         * @param {Plottable.Plots.XYPlot} plot - The plot that the styles will be used for. Different styles are returned depending on the type of the plot.
-         * @returns {{}}
-         */
-        this.getDefaultStylesForPlot = function ( plot ) {
-
-            // define these defaults every time this function is called,
-            // so that the defaults are preserved even if the return value
-            // is altered outside of this function
-
-            var defaults = {
-
-                'Scatter': [
-                    {
-                        'name': 'default',
-                        'attributes': {
-                            'fill': '#4a90e2',
-                            'stroke': '#0066d6',
-                            'stroke-width': '1px',
-                            'size': 9,
-                            'opacity': 0.5
-                        }
-                    },
-                    {
-                        'name': 'above',
-                        'filters': [ filters.aboveThresholdMax() ],
-                        'attributes': {
-                            'fill': '#e8ac4e',
-                            'stroke': '#745628'
-                        }
-                    },
-                    {
-                        'name': 'below',
-                        'filters': [ filters.belowThresholdMin() ],
-                        'attributes': {
-                            'fill': '#e8ac4e',
-                            'stroke': '#745628'
-                        }
-                    }
-                ],
-
-                'Line': [
-                    {
-                        'name': 'default',
-                        'attributes': {
-                            'stroke': '#dedede',
-                            'stroke-width': '1px'
-                        }
-                    }
-                ],
-
-                'ClusteredBar': [
-                    {
-                        'name': 'default',
-                        'attributes': {
-                            'fill': '#4a90e2'
-                        }
-                    },
-                    {
-                        'name': 'secondary',
-                        'filters': [
-                            function ( d ) {
-                                return !d.primary;
-                            }
-                        ],
-                        'attributes': {
-                            'fill': '#eeeeee'
-                        }
-                    }
-                ]
-
-            };
-
-            var defaultStyleForPlot = defaults[ plot.constructor.name ];
-
-            if ( !defaultStyleForPlot ) {
-                return {};
-            }
-
-            return defaultStyleForPlot;
-        };
-
         /**
          * Get the style specified in the configuration passed in at construction
          * Filters that match the measures containing each style are added to the returned styles
@@ -250,7 +80,7 @@
          * @returns {Array} - The combined styles
          */
         this.getConfiguredDefaultStylesForPlot = function( plot ){
-            var defaultStyles = this.getDefaultStylesForPlot( plot );
+            var defaultStyles = ChartStyles.getDefaultStylesForPlot( plot );
             var configuredStyles = this.getConfiguredStylesForPlot( plot );
             return defaultStyles.concat( configuredStyles );
         };
@@ -546,8 +376,133 @@
         return content;
     };
 
+    /**
+     * Get a fresh copy of default styles for the plot.
+     * Styles will be returned if the plot is of type Plottable.Plots.Scatter, Plottable.Plots.Line, or Plottable.Plots.ClusteredBar
+     * @param {Plottable.Plots.XYPlot} plot - The plot that the styles will be used for. Different styles are returned depending on the type of the plot.
+     * @returns {{}}
+     * @memberof ChartStyles
+     */
+    ChartStyles.getDefaultStylesForPlot = function ( plot ) {
+
+        // define these defaults every time this function is called,
+        // so that the defaults are preserved even if the return value
+        // is altered outside of this function
+
+        var defaults = {
+
+            'Scatter': [
+                {
+                    'name': 'default',
+                    'attributes': {
+                        'fill': '#4a90e2',
+                        'stroke': '#0066d6',
+                        'stroke-width': '1px',
+                        'size': 9,
+                        'opacity': 0.5
+                    }
+                }
+            ],
+
+            'Line': [
+                {
+                    'name': 'default',
+                    'attributes': {
+                        'stroke': '#dedede',
+                        'stroke-width': '1px'
+                    }
+                }
+            ],
+
+            'ClusteredBar': [
+                {
+                    'name': 'default',
+                    'attributes': {
+                        'fill': '#4a90e2'
+                    }
+                },
+                {
+                    'name': 'secondary',
+                    'filters': [
+                        function ( d ) {
+                            return !d.primary;
+                        }
+                    ],
+                    'attributes': {
+                        'fill': '#eeeeee'
+                    }
+                }
+            ]
+
+        };
+
+        var defaultStyleForPlot = defaults[ plot.constructor.name ];
+
+        if ( !defaultStyleForPlot ) {
+            return {};
+        }
+
+        return defaultStyleForPlot;
+    };
+
+    /**
+     * A list of useful filters to help with conditional styling
+     * @type {{}}
+     */
+    ChartStyles.filters = {
+        /**
+         * Get a filter that matches the measure
+         * @param {String} measure - The measure to match
+         * @returns {Function} - The filter function that can be added to a filter array in a style
+         * @alias filters.measure
+         * @memberof! ChartStyles
+         */
+        'measure': function ( measure ) {
+            return function ( d ) {
+                return d.measure === measure;
+            };
+        },
+        /**
+         * Get a filter that matches points with y values above max
+         * @returns {Function} - The filter function that can be added to a filter array in a style
+         * @alias filters.above
+         * @memberof! ChartStyles
+         * @param {Number} max - The value, above which the matched points' y values must fall
+         */
+        'above': function ( max ) {
+            return function ( d ) {
+                return d.y > max;
+            };
+        },
+        /**
+         * Get a filter that matches points with y values below min
+         * @returns {Function} - The filter function that can be added to a filter array in a style
+         * @alias filters.below
+         * @memberof! ChartStyles
+         * @param {Number} min - The value, below which the matched points' y values must fall
+         */
+        'below': function ( min ) {
+            return function ( d ) {
+                return d.y < min;
+            };
+        },
+        /**
+         * Get a filter that matches the points with an x value that falls prior to the given hour of each day
+         * @returns {Function} - The filter function that can be added to a filter array in a style
+         * @alias filters.dailyBeforeHour
+         * @memberof! ChartStyles
+         * @param {Number} hour - The hour, below which the matched points' x.getHours() must fall
+         */
+        'dailyBeforeHour': function ( hour ) {
+            return function ( d ) {
+                return d.x.getHours() < hour;
+            };
+        }
+    };
+
     parent.ChartStyles = ChartStyles;
 
     return parent;
 
 } ) );
+
