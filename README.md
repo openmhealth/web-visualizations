@@ -119,7 +119,7 @@ The following object is the default settings object used by the `OMHWebVisualiza
                 'yValuePath': 'body.step_count',
                 'xValueQuantization': {
                     'period': OMHWebVisualizations.DataParser.QUANTIZE_DAY,
-                    'aggregator': parent.DataParser.aggregators.summation
+                    'aggregator': parent.DataParser.aggregators.sum
                 }
             },
             'chart': {
@@ -136,7 +136,7 @@ The following object is the default settings object used by the `OMHWebVisualiza
                 'yValuePath': 'body.minutes_moderate_activity.value',
                 'xValueQuantization': {
                     'period': OMHWebVisualizations.DataParser.QUANTIZE_DAY,
-                    'aggregator': parent.DataParser.aggregators.summation
+                    'aggregator': parent.DataParser.aggregators.sum
                 }
             },
             'seriesName': 'Minutes of moderate activity',
@@ -269,7 +269,7 @@ var settings = {
                 'yValuePath': 'body.distance.value',
                 'xValueQuantization': {
                     'period': OMHWebVisualizations.DataParser.QUANTIZE_MONTH,
-                    'aggregator': OMHWebVisualizations.DataParser.aggregators.summation
+                    'aggregator': OMHWebVisualizations.DataParser.aggregators.sum
                 }
             },
             'chart': {

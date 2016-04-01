@@ -350,10 +350,10 @@
          *
          * Provenance data for the first point (chronologically) will be preserved. For a given moment in time shared by more than one point, all but one point at that time are removed from the data array, and references to aggregated points are stored in the remaining point as 'aggregatedData' field.
          * @param {Array} data - The data to aggregate
-         * @alias aggregators.summation
+         * @alias aggregators.sum
          * @memberof! DataParser
          */
-        DataParser.aggregators.summation = function ( data ) {
+        DataParser.aggregators.sum = function ( data ) {
             data.sort( function ( a, b ) {
                 return a.x.getTime() - b.x.getTime();
             } );
@@ -364,7 +364,7 @@
                         data[ i ].aggregatedData = [ data[ i ].omhDatum ];
                     }
                     data[ i ].aggregatedData.push( data[ i + 1 ].omhDatum );
-                    data[ i ].aggregationType = 'summation';
+                    data[ i ].aggregationType = 'sum';
                     data.splice( i + 1, 1 );
                 }
             }
@@ -379,7 +379,7 @@
          * @memberof! DataParser
          */
         DataParser.aggregators.average = function ( data ) {
-            parent.DataParser.aggregators.summation( data );
+            parent.DataParser.aggregators.sum( data );
             for ( var i = 0; i < data.length; i++ ) {
                 var count = data[ i ].aggregatedData ? data[ i ].aggregatedData.length : 0;
                 if ( count > 0 ) {

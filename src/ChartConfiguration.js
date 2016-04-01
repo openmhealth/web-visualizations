@@ -72,7 +72,7 @@
                      'yValuePath': 'body.step_count',
                      'xValueQuantization': {
                          'period': parent.DataParser.QUANTIZE_DAY,
-                         'aggregator': parent.DataParser.aggregators.summation
+                         'aggregator': parent.DataParser.aggregators.sum
                      }
                  },
                  'chart': {
@@ -89,7 +89,7 @@
                      'yValuePath': 'body.minutes_moderate_activity.value',
                      'xValueQuantization': {
                          'period': parent.DataParser.QUANTIZE_DAY,
-                         'aggregator': parent.DataParser.aggregators.summation
+                         'aggregator': parent.DataParser.aggregators.sum
                      }
                  },
                  'seriesName': 'Minutes of moderate activity',
@@ -183,7 +183,7 @@
                         'yValuePath': 'body.step_count',
                         'xValueQuantization': {
                             'period': parent.DataParser.QUANTIZE_DAY,
-                            'aggregator': parent.DataParser.aggregators.summation
+                            'aggregator': parent.DataParser.aggregators.sum
                         }
                     },
                     'chart': {
@@ -200,7 +200,7 @@
                         'yValuePath': 'body.minutes_moderate_activity.value',
                         'xValueQuantization': {
                             'period': parent.DataParser.QUANTIZE_DAY,
-                            'aggregator': parent.DataParser.aggregators.summation
+                            'aggregator': parent.DataParser.aggregators.sum
                         }
                     },
                     'seriesName': 'Minutes of moderate activity',
