@@ -76,7 +76,7 @@ The following object is the default settings object used by the `OMHWebVisualiza
             'visible': true,
             'timeFormat': 'M/D/YY, h:mma',
             'decimalPlaces': 0,
-            'contentFormatter': parent.ChartStyles.formatters.defaultTooltip.bind( this ),
+            'contentFormatter': OMHWebVisualizations.ChartStyles.formatters.defaultTooltip.bind( this ),
             'grouped': true
         },
         'panZoomUsingMouse': {
@@ -118,7 +118,7 @@ The following object is the default settings object used by the `OMHWebVisualiza
             'data': {
                 'yValuePath': 'body.step_count',
                 'xValueQuantization': {
-                    'period': parent.DataParser.QUANTIZE_DAY,
+                    'period': OMHWebVisualizations.DataParser.QUANTIZE_DAY,
                     'aggregator': parent.DataParser.aggregators.summation
                 }
             },
@@ -135,7 +135,7 @@ The following object is the default settings object used by the `OMHWebVisualiza
             'data':{
                 'yValuePath': 'body.minutes_moderate_activity.value',
                 'xValueQuantization': {
-                    'period': parent.DataParser.QUANTIZE_DAY,
+                    'period': OMHWebVisualizations.DataParser.QUANTIZE_DAY,
                     'aggregator': parent.DataParser.aggregators.summation
                 }
             },
