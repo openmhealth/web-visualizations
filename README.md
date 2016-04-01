@@ -114,19 +114,22 @@ The following object is the default settings object used by the `OMHWebVisualiza
             }
         },
         'step_count': {
-            'seriesName': 'Steps',
             'data': {
                 'yValuePath': 'body.step_count',
                 'xValueQuantization': {
                     'period': OMHWebVisualizations.DataParser.QUANTIZE_DAY,
-                    'aggregator': parent.DataParser.aggregators.summation
+                    'aggregator': parent.DataParser.aggregators.sum
                 }
             },
             'chart': {
                 'type': 'clustered_bar',
                 'daysShownOnTimeline': { 'min': 7, 'max': 90 }
             },
-            'yAxis': {
+            'legend': {
+                'seriesName': 'Steps',
+                'seriesColor': '#eeeeee'
+            },
+           'yAxis': {
                 'range': { 'min': 0, 'max': 1500 },
                 'label': 'Steps'
             }
@@ -136,13 +139,16 @@ The following object is the default settings object used by the `OMHWebVisualiza
                 'yValuePath': 'body.minutes_moderate_activity.value',
                 'xValueQuantization': {
                     'period': OMHWebVisualizations.DataParser.QUANTIZE_DAY,
-                    'aggregator': parent.DataParser.aggregators.summation
+                    'aggregator': parent.DataParser.aggregators.sum
                 }
             },
-            'seriesName': 'Minutes of moderate activity',
             'chart': {
                 'type': 'clustered_bar',
                 'daysShownOnTimeline': { 'min': 7, 'max': 90 }
+            },
+            'legend': {
+                'seriesName': 'Minutes of moderate activity',
+                'seriesColor': '#4a90e2'
             },
             'yAxis':{
                 'range': { 'min': 0, 'max': 300 },
@@ -185,16 +191,19 @@ If you look carefully at the default settings object, you'll also notice that so
        'range': { 'min': 0, 'max': 100 },
        'label': 'Units',
    },
-   'seriesName': 'Series',
    'data':{
         'xValueQuantization': {
            'period': OMHWebVisualizations.DataParser.QUANTIZE_NONE,
-           'aggregator': OMHWebVisualizations.DataParser.consolidators.average,
+           'aggregator': OMHWebVisualizations.DataParser.consolidators.mean,
         }
-   }
+   },
    'chart': {
        'type': 'line',
        'daysShownOnTimeline': { 'min': 1, 'max': 1000 },
+   },
+   'legend': {
+       'seriesName': 'Series',
+       'seriesColor': '#4a90e2'
    }
 }
 ```
@@ -240,7 +249,7 @@ The Y axis range can be set to adapt to the data by setting the `yAxis.range` pr
 
 Quantization reduces the dataset's size by summarizing each group of points that fall into a common time range, or "bucket," with a single point that represents their bucket's range.
 
-Currently, quantized data point values within each subsequent quantization bucket are *averaged* for most measures and *summed* for `step_count` and `minutes_moderate_activity`.
+Currently, quantized data point values within each subsequent quantization bucket are *averaged* (mean) for most measures and *summed* for `step_count` and `minutes_moderate_activity`.
 
 If you wish to configure the `timeQuantizationLevel` for a measure, you will need the following constants:
 
@@ -269,7 +278,7 @@ var settings = {
                 'yValuePath': 'body.distance.value',
                 'xValueQuantization': {
                     'period': OMHWebVisualizations.DataParser.QUANTIZE_MONTH,
-                    'aggregator': OMHWebVisualizations.DataParser.aggregators.summation
+                    'aggregator': OMHWebVisualizations.DataParser.aggregators.sum
                 }
             },
             'chart': {
@@ -314,12 +323,50 @@ To create a new gridline without using the `settings` object, you can alternativ
 To change the colors and other visual attributes of points on the chart, you can specify a `chart.styles` section in each measure in the `measures` block of the configuration `settings` object.
 You can alternatively customize the chart's `ChartStyles` object before rendering the chart by calling `chart.getStylesForPlot()` and `chart.setStylesForPlot()`. The Plottable plot you wish to affect must be passed into these functions.
 
-Below are some examples of what can be done. See `examples/charts.html` for code samples.
+Below is an example of what can be done. See `examples/charts.html` for code samples.
 
-Change the color of points above the gridline:
+```javascript
+var dangerValue = 120;
+
+// these filter functions are used to determine which
+// points will be rendered with the style's attributes
+var dangerFilter = function ( d ) {
+
+    // a filter function takes a datum and returns a boolean
+    return d.y >= dangerValue;
+    
+};
+
+var dangerSettings = {
+    'measures': {
+        'systolic_blood_pressure':{
+            'chart':{
+                'styles': {
+                    'name': 'danger',
+                    'plotType': 'Scatter',
+                    'filters': [ dangerFilter ],
+                    'attributes': {
+                        'fill': 'red'
+                        'stroke': 'red'
+                    }
+                }
+            }
+        }
+    }
+}
+
+//builds a new plottable chart with the danger settings
+chart = new OMHWebVisualizations.Chart( data, element, measureList, dangerSettings );
+if ( chart.initialized ) {
+    chart.renderTo( element.select( "svg" ).node() );
+}
+
+```
+
+The code above changes the color of points above the gridline:
 ![Above Gridline Color](http://www.openmhealth.org/media/viz_example_threshold_color.png "Above Gridline Color")
 
-Add a range in the chart that is colored differently:
+You could also add a range in the chart that is colored differently:
 ![Above Gridline Color with Colored Range](http://www.openmhealth.org/media/viz_example_threshold_color_band.png "Above Gridline Color with Colored Range")
 
 ### Tooltips

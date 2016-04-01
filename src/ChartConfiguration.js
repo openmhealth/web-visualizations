@@ -29,7 +29,7 @@
                  'visible': true,
                  'timeFormat': 'M/D/YY, h:mma',
                  'decimalPlaces': 0,
-                 'contentFormatter': parent.ChartStyles.formatters.defaultTooltip.bind( this ),
+                 'contentFormatter': ChartStyles.formatters.defaultTooltip.bind( this ),
                  'grouped': true
              },
              'panZoomUsingMouse': {
@@ -67,17 +67,20 @@
                  }
              },
              'step_count': {
-                 'seriesName': 'Steps',
                  'data': {
                      'yValuePath': 'body.step_count',
                      'xValueQuantization': {
-                         'period': parent.DataParser.QUANTIZE_DAY,
-                         'aggregator': parent.DataParser.aggregators.summation
+                         'period': DataParser.QUANTIZE_DAY,
+                         'aggregator': parent.DataParser.aggregators.sum
                      }
                  },
                  'chart': {
                      'type': 'clustered_bar',
                      'daysShownOnTimeline': { 'min': 7, 'max': 90 }
+                 },
+                 'legend': {
+                     'seriesName': 'Steps',
+                     'seriesColor': '#eeeeee'
                  },
                  'yAxis': {
                      'range': { 'min': 0, 'max': 1500 },
@@ -88,14 +91,17 @@
                  'data':{
                      'yValuePath': 'body.minutes_moderate_activity.value',
                      'xValueQuantization': {
-                         'period': parent.DataParser.QUANTIZE_DAY,
-                         'aggregator': parent.DataParser.aggregators.summation
+                         'period': DataParser.QUANTIZE_DAY,
+                         'aggregator': DataParser.aggregators.sum
                      }
                  },
-                 'seriesName': 'Minutes of moderate activity',
                  'chart': {
                      'type': 'clustered_bar',
                      'daysShownOnTimeline': { 'min': 7, 'max': 90 }
+                 },
+                 'legend': {
+                     'seriesName': 'Minutes of moderate activity',
+                     'seriesColor': '#4a90e2'
                  },
                  'yAxis':{
                      'range': { 'min': 0, 'max': 300 },
@@ -178,17 +184,20 @@
                     }
                 },
                 'step_count': {
-                    'seriesName': 'Steps',
                     'data': {
                         'yValuePath': 'body.step_count',
                         'xValueQuantization': {
                             'period': parent.DataParser.QUANTIZE_DAY,
-                            'aggregator': parent.DataParser.aggregators.summation
+                            'aggregator': parent.DataParser.aggregators.sum
                         }
                     },
                     'chart': {
                         'type': 'clustered_bar',
                         'daysShownOnTimeline': { 'min': 7, 'max': 90 }
+                    },
+                    'legend': {
+                        'seriesName': 'Steps',
+                        'seriesColor': '#eeeeee'
                     },
                     'yAxis': {
                         'range': { 'min': 0, 'max': 1500 },
@@ -200,13 +209,16 @@
                         'yValuePath': 'body.minutes_moderate_activity.value',
                         'xValueQuantization': {
                             'period': parent.DataParser.QUANTIZE_DAY,
-                            'aggregator': parent.DataParser.aggregators.summation
+                            'aggregator': parent.DataParser.aggregators.sum
                         }
                     },
-                    'seriesName': 'Minutes of moderate activity',
                     'chart': {
                         'type': 'clustered_bar',
                         'daysShownOnTimeline': { 'min': 7, 'max': 90 }
+                    },
+                    'legend': {
+                        'seriesName': 'Minutes of moderate activity',
+                        'seriesColor': '#4a90e2'
                     },
                     'yAxis': {
                         'range': { 'min': 0, 'max': 300 },
@@ -235,7 +247,6 @@
         };
 
         var genericMeasureDefaults = {
-            'seriesName': 'Series',
             'yAxis': {
                 'range': { 'min': 0, 'max': 100 },
                 'label': 'Units'
@@ -243,12 +254,16 @@
             'data': {
                 'xValueQuantization': {
                     'period': parent.DataParser.QUANTIZE_NONE,
-                    'aggregator': parent.DataParser.aggregators.average
+                    'aggregator': parent.DataParser.aggregators.mean
                 }
             },
             'chart': {
                 'type': 'line',
                 'daysShownOnTimeline': { 'min': 1, 'max': 1000 }
+            },
+            'legend': {
+                'seriesName': 'Series',
+                'seriesColor': '#4a90e2'
             }
         };
 
@@ -294,4 +309,3 @@
     return parent;
 
 } ) );
-

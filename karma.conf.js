@@ -24,8 +24,12 @@ module.exports = function(config) {
     // list of files / patterns to load in the browser
     files: [
       'src/*.js',
-      'test/*.js'
-    ],
+      'test/*.js',
+      'bower_components/d3/d3.min.js',
+      'bower_components/d3-tip/index.js',
+      'bower_components/plottable/plottable.js',
+      'bower_components/moment/moment.js'
+  ],
 
 
     // list of files to exclude
