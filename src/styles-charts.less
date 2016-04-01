@@ -23,6 +23,9 @@
   .axis .tick-label {
     fill: #a4a4a4;
   }
+  .gridlines-axis .tick-label-container {
+    transform: translateX(6px);
+  }
   .axis-label text {
     fill: #a4a4a4;
     text-transform: none;
@@ -30,8 +33,9 @@
     font-weight: normal;
   }
   //shift labels to the right of the axis for all but lefthand yaxis
+  //put a gradient on the axis label background
   .axis-label .background-container .background-fill {
-    fill: #fff;
+    fill: url(#y-axis-label-gradient);
     transform: translateX(1px);
   }
   //shift label left for lefthand yaxis
@@ -74,9 +78,6 @@
 .omh-tooltip .value {
   font-size: 20px;
   color: #4a90e2;
-}
-.omh-tooltip .value.above-threshold {
-  color: #e8ac4e;
 }
 .omh-tooltip .time {
   font-size: 12px;
