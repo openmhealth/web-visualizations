@@ -53,8 +53,9 @@
 
                 //deep copy data passed in so that it is not altered when we add group names
                 var dataCopy = JSON.parse( JSON.stringify( data ) );
+                var dateProvider = (typeof moment !== 'undefined')? moment: Date;
 
-                measureData = this.parseOmhData( dataCopy, measures, moment );
+                measureData = this.parseOmhData( dataCopy, measures, dateProvider );
 
                 if ( Object.keys( measureData ).length === 0 ) {
                     console.log( "Warning: no data of the specified type could be found." );
@@ -62,7 +63,6 @@
                 }
 
             };
-
 
             /**
              * Get the value found at a key path
@@ -364,9 +364,9 @@
                         data[ i ].aggregatedData = [ data[ i ].omhDatum ];
                     }
                     data[ i ].aggregatedData.push( data[ i + 1 ].omhDatum );
-                    data[ i ].aggregationType = 'sum';
                     data.splice( i + 1, 1 );
                 }
+                data[ i ].aggregationType = 'sum';
             }
         };
 
@@ -386,6 +386,32 @@
                     data[ i ].y /= count;
                     data[ i ].aggregationType = 'mean';
                 }
+            }
+        };
+        /**
+         * Aggregate points with the same time value by finding the mean.
+         *
+         * Provenance data for the first point( chronologically ) will be preserved. For a given moment in time shared by more than one point, all but one point at that time are removed from the data array, and references to aggregated points are stored in the remaining point as 'aggregatedData' field.
+         * @param {Array} data - The data to aggregate
+         * @alias aggregators.mean
+         * @memberof! DataParser
+         */
+        DataParser.aggregators.median = function ( data ) {
+            data.sort( function ( a, b ) {
+                return a.x.getTime() - b.x.getTime();
+            } );
+            for ( var i = 0; i < data.length; i++ ) {
+                var values = [ data[ i ].y ];
+                while ( i + 1 < data.length && ( data[ i + 1 ].x.getTime() === data[ i ].x.getTime() ) ) {
+                    if ( !data[ i ].aggregatedData ) {
+                        data[ i ].aggregatedData = [ data[ i ].omhDatum ];
+                    }
+                    values.push( data[ i + 1 ].y );
+                    data[ i ].aggregatedData.push( data[ i + 1 ].omhDatum );
+                    data.splice( i + 1, 1 );
+                }
+                data[ i ].aggregationType = 'median';
+                data[ i ].y = values[ parseInt( data[ i ].aggregatedData.length / 2 ) ];
             }
         };
 
