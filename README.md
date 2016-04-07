@@ -194,7 +194,7 @@ If you look carefully at the default settings object, you'll also notice that so
    'data':{
         'xValueQuantization': {
            'period': OMHWebVisualizations.DataParser.QUANTIZE_NONE,
-           'aggregator': OMHWebVisualizations.DataParser.consolidators.mean,
+           'aggregator': OMHWebVisualizations.DataParser.aggregators.mean,
         }
    },
    'chart': {
