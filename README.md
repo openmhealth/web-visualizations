@@ -31,9 +31,9 @@ If you'd like to experiment with the library using a demonstration page,
 1. Make your changes
 1. To publish your changes to the `dist` directory, run [gulp](http://gulpjs.com/)
     * `gulp`
-1. Open `charts.html` in the `example` directory to see the result
-1. To let gulp watch for changes in the background and update `dist` as needed
-    * `gulp watch`
+1. To see the results on the example page
+    * `gulp watch` and open [http://localhost:8080/examples/charts.html](http://localhost:8080/examples/charts.html) in your browser
+1. If you leave it running, gulp will watch for changes in the background and update `dist` as needed
 
 ### Building a chart
 
@@ -194,7 +194,7 @@ If you look carefully at the default settings object, you'll also notice that so
    'data':{
         'xValueQuantization': {
            'period': OMHWebVisualizations.DataParser.QUANTIZE_NONE,
-           'aggregator': OMHWebVisualizations.DataParser.consolidators.mean,
+           'aggregator': OMHWebVisualizations.DataParser.aggregators.mean,
         }
    },
    'chart': {
