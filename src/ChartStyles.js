@@ -64,7 +64,9 @@
                     var measureStyles = measureSettings.chart.styles;
                     measureStyles.forEach( function( style ){
 
-                        if( style.plotType === plot.constructor.name ){
+                        var plotClass = eval( 'Plottable.Plots.' + style.plotType );
+
+                        if( plot instanceof plotClass ){
 
                             // add a filter to the returned style that matches the measure
                             var measureFilter = function( d ){ return d.measure === measure; };
@@ -452,7 +454,14 @@
 
         };
 
-        var defaultStyleForPlot = defaults[ plot.constructor.name ];
+        var defaultStyleForPlot = null;
+
+        for( var plotType in defaults ) {
+            var plotClass = eval( 'Plottable.Plots.' + plotType );
+            if ( plot instanceof plotClass ){
+                defaultStyleForPlot = defaults[ plotType ];
+            }
+        }
 
         if ( !defaultStyleForPlot ) {
             return {};
