@@ -304,9 +304,7 @@ And here is a chart of the same data *quantized* by hour. The points before 05:0
 Horizontal lines (e.g. representing safe thresholds) can be drawn on charts. Each line is labelled with a custom label or its `y` value, unless that label will overlap another gridline's label. Here are two maximum gridlines with default appearance:
 ![Default Gridlines](http://www.openmhealth.org/media/viz_example_threshold_basic.png "Default Maximum Gridline")
 
-Gridlines can be specified in the `chart` property of a measure in the `measures` section of the configuration `settings` object.
-
-A gridline in the `settings` object should have the following properties:
+Gridlines can be specified as `gridlines` in the `chart` property of a measure in the `measures` section of the configuration `settings` object, eg: `settings.measures.heart_rate.chart.gridlines`. It should be an array of gridline objects, as detailed below:
 
 Property | Description
 ---: | ---
