@@ -50,7 +50,7 @@ Argument | Description
 *data* | An array of Open mHealth structured data points.
 *element* | A dom element, such as a `<div>` containing an `<svg>` node. This can also be a D3 selection. For backward compatibility, it can also be a jQuery object, however this functionality is deprecated and may be removed in a future release.
 *measureList* | A string containing a comma-separated list of Open mHealth measures to display.
-*settings* | An object with [settings](#configuring_a_chart) for the chart. If this is omitted or if an empty object is passed in, the function uses the default settings explained below.
+*settings* | An object with [settings](#configuring-a-chart) for the chart. If this is omitted or if an empty object is passed in, the function uses the default settings explained below.
 
 The easiest way to create data points to pass to the `data` parameter is to use our [sample data generator](https://github.com/openmhealth/sample-data-generator). You can either use a pre-generated [data set](https://github.com/openmhealth/sample-data-generator/releases/download/v1.0.0/one-year-of-data.json.gz), or download the generator itself to create data that fits your needs.
 
@@ -369,7 +369,7 @@ You could also add a range in the chart that is colored differently:
 
 ### Tooltips
 
-Tooltips can be enabled, disabled, and configured using the `userInterface.tooltips` property of the `settings` object passed into the constructor ([see 'Configuring a Chart'](#configuring_a_chart)). The properties of `userInterface.tooltips` are explained in the following table:
+Tooltips can be enabled, disabled, and configured using the `userInterface.tooltips` property of the `settings` object passed into the constructor ([see 'Configuring a Chart'](#configuring-a-chart)). The properties of `userInterface.tooltips` are explained in the following table:
 
 Property | Description
 ---: | ---
