@@ -448,7 +448,7 @@
         }
 
         if ( !defaultStyleForPlot ) {
-            return {};
+            return [];
         }
 
         return defaultStyleForPlot;
